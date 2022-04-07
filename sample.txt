@@ -1,0 +1,22 @@
+Name : Artin Ghasivand
+Date : 2022-04-04
+
+[Mood]
+
+Neutral 7 - 13
+Angry : 13 - 15
+Sad : 15 - 18
+Neutral : 18 - 23
+
+[Sleep]
+
+wake up : 6:30
+sleep : 00
+
+[Productivity]
+
+6/11
+
+[Rating]
+
+Bad

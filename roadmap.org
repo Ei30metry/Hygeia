@@ -1,0 +1,60 @@
+#+TITLE: Hygeia
+#+AUTHOR: Artin Ghasivand
+
+* IDEA Computation
+
+* IDEA Report
+
+* TODO Feature [0/0]
+
+** Computation [/]
+
+** Daemon [/]
++ [ ] Check and compute in the directory ~/.Bruce/Entries
++ [ ] Generate template files for users to fill in named by date for every Month
++ [ ] Put the results in the directory ~/.Bruce/Reports
++ [ ] Works with mutt for E-mail integration
++ [ ] Weekly and Monthly report both with macOs and E-mail integration
+
+** Filing in [/]
+
+** CLI [/]
++ [ ] Being able to Edit the Entries and then recompute again
++ [ ] Asks if you want to add new sections like Alcohol Cigarette and ...
++ [ ] Asks for Email to Send Weekly and Monthly report to it
+
+** Type-level [/]
++ [ ] GADTs for the Mood handler
+
+** Report [/]
++ [ ] Tell the Amount of days that patient felt a certain way or scored a certain number
++ [ ] Give percentages for the Moods, for example, 1/3 of the month you were feeling Neutral or ...
+
+
+* TODO Refactor
+
+** Computation [/]
+
+** Daemon [/]
+
+** Filing in [/]
+
+** CLI [/]
+
+** Type-level [/]
+
+** Report [/]
+
+* TODO Bug
+
+** Computation [/]
+
+** Daemon [/]
+
+** Filing in [/]
+
+** CLI [/]
+
+** Type-level [/]
+
+** Report [/]

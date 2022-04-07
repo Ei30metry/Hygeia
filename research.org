@@ -1,0 +1,6 @@
+#+TITLE: Self mood reporting accuracy
+#+AUTHOR: Artin Ghasivand
+
+* IDEA Core Ideas on Mood
++ Sleep and mood are closely related to each other in both ways. meaning if you don't have good/normal sleep, your mood will be affected and being in a certain mood will affect your sleep schedule.
++

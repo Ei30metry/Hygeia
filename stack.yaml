@@ -1,0 +1,65 @@
+packages:
+- .
+resolver:
+  compiler: ghc-8.10.7
+
+extra-deps:
+  - optparse-applicative-0.17.0.0
+  - turtle-1.5.24
+  - ansi-wl-pprint-0.6.9
+  - async-2.2.4
+  - clock-0.8.3
+  - foldl-1.4.12
+  - hostname-1.0
+  - managed-1.0.9
+  - optional-args-1.0.2
+  - streaming-commons-0.2.2.4
+  - system-fileio-0.3.16.4
+  - system-filepath-0.4.14
+  - temporary-1.3
+  - transformers-compat-0.7.1
+  - unix-compat-0.5.4
+  - ansi-terminal-0.11.1
+  - comonad-5.0.8
+  - contravariant-1.5.5
+  - hashable-1.4.0.2
+  - network-3.1.2.7
+  - primitive-0.7.3.0
+  - profunctors-5.6.2
+  - random-1.2.1
+  - semigroupoids-5.3.7
+  - unordered-containers-0.2.16.0
+  - vector-0.12.3.1
+  - zlib-0.6.2.3
+  - StateVar-1.2.2
+  - base-orphans-0.8.6
+  - bifunctors-5.5.11
+  - colour-2.3.6
+  - distributive-0.6.2.1
+  - indexed-traversable-0.1.2
+  - splitmix-0.1.0.4
+  - tagged-0.8.6.1
+  - th-abstraction-0.4.3.0
+  - mime-mail-0.5.1
+  - smtp-mail-0.3.0.0@sha256:2e6d9cb29d09a5a04d77a905eb1b570b94b5654e24d40630ea96aa374474c12f,1239
+  - base16-bytestring-1.0.2.0@sha256:64abad7816ab8cabed8489e29f807b3a6f828e0b2cec0eae404323d69d36df9a,2541
+  - base64-bytestring-1.2.1.0@sha256:50ec0e229255d4c45cbdd568da011311b8887f304b931564886016f4984334d8,2396
+  - blaze-builder-0.4.2.2@sha256:f0017df374c330de0ebe0eb15eae8c48427bddefa1d81a3cb31c0a4812ecdb08,3685
+  - connection-0.3.1@sha256:65da1c055610095733bcd228d85dff80804b23a5d18fede994a0f9fcd1b0c121,1554
+  - cryptonite-0.30@sha256:12c85dea7be63e5ad90bcb487eb3846bf3c413347f94336fa1dede7b28f9936a,18301
+  - memory-0.17.0@sha256:c8809b0b3026193c813a88c1f626758c923fae7e0b0d6b96b91c6ce5e14173ec,4468
+  - network-bsd-2.8.1.0@sha256:cd945ea08818281e4a8fa6f0a0640a1502aad3748546a3c197e071772452a9bd,3738
+  - basement-0.0.14@sha256:d28a94225234a9895abbf88cdbf171fdea8cb478d718479f06522238b2cc7e74,5403
+  - data-default-class-0.1.2.0@sha256:63e62120b7efd733a5a17cf59ceb43268e9a929c748127172d7d42f4a336e327,542
+  - socks-0.6.1@sha256:ac190808eea704672df18f702e8f2ad0b7a4d0af528e95ee55ea6ee0be672e2a,1258
+  - tls-1.5.7@sha256:1cc30253a9696b65a9cafc0317fbf09f7dcea15e3a145ed6c9c0e28c632fa23a,6991
+  - x509-1.7.6@sha256:0bd3cf1f15ca56068a4aa5db31bff5be0ea2eefedda5aa572f4a1b9cb441d588,2224
+  - x509-store-1.6.9@sha256:1f1abeab5bacf1407b920d0f34f4c35a5ad450ff0d8121cd3dc76460f81e711d,1716
+  - x509-system-1.6.7@sha256:45ddd5db19f18be80614e058e8838765f2749a8afcfd2b292bd6afb36820a3c0,1492
+  - x509-validation-1.6.12@sha256:4f4af20ec77f02c042ecd4726c195bb0e0b694b336de81e7bd4515b2917bd9bc,2169
+  - asn1-encoding-0.9.6@sha256:27ed8f6043aed79630313bb931f7c8e2b510f0b4586cd55c16ae040c7d1ea098,2060
+  - asn1-parse-0.9.5@sha256:77c0126d63070df2d82cb4cfa4febb26c4e280f6d854bc778c2fa4d80ce692b8,976
+  - asn1-types-0.3.4@sha256:8e879b3a5bbdd0031232eb84d904b5a3a2c20a18847692b996d774f4ff811355,1025
+  - cereal-0.5.8.2@sha256:046ab07bfe82770e209a2ef57382171c88f7a194d020b768b7d8131299c7f023,2767
+  - hourglass-0.2.12@sha256:e083f5e030dfebe432e30a9c0fa07a99a54eac992f622442646be561fd7a44e8,3085
+  - pem-0.2.4@sha256:cc8e62118b783e284dc0fa032f54fe386a3861a948ec88079370a433c103a705,1441
