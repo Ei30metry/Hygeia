@@ -12,8 +12,8 @@ Name : FName LName
 Date : YYYY-MM-DD
 
 [Moods]
-Mood1 : n ~ p
-Mood2 : p ~ k 
+Mood1 : Intensity
+Mood2 : Intensity
 ...
 .
 .
@@ -43,6 +43,12 @@ Available Moods:
  - **Bored**
  - **Angry**
  - **Sad**
+
+Available Intensities:
+ - **Low**
+ - **Normal**
+ - **High**
+ - **Extreme**
 
 Available Ratings:
  - **Great**

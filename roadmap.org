@@ -5,9 +5,13 @@
 
 * IDEA Report
 
++ [ ] Show a graph to represent different moods throughout the month and use the intensity for graphing them
++ [ ] Use statistical functions like variance, mean and median to graph your moods according to their value and their intensity
+
 * TODO Feature [0/0]
 
 ** Computation [/]
++ [ ] rewrite Headers as type families in order to write different instances for the Header tyepes
 
 ** Daemon [/]
 + [ ] Check and compute in the directory ~/.Bruce/Entries
@@ -22,9 +26,6 @@
 + [ ] Being able to Edit the Entries and then recompute again
 + [ ] Asks if you want to add new sections like Alcohol Cigarette and ...
 + [ ] Asks for Email to Send Weekly and Monthly report to it
-
-** Type-level [/]
-+ [ ] GADTs for the Mood handler
 
 ** Report [/]
 + [ ] Tell the Amount of days that patient felt a certain way or scored a certain number
@@ -54,7 +55,5 @@
 ** Filing in [/]
 
 ** CLI [/]
-
-** Type-level [/]
 
 ** Report [/]

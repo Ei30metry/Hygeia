@@ -1,17 +1,12 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE KindSignatures        #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoStarIsType          #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 module Computation where
 
-import           Data.Kind      (Constraint, Type)
+import           Data.Coerce
 import           Data.List
-import           Data.Monoid
-import           Data.Semigroup
+import           Parser
 
 -- a Type representing one's mood
 data Mood = Angry
@@ -26,74 +21,49 @@ data Intensity = Low
                | High
                | Extreme deriving (Show, Read, Eq, Ord)
 
+newtype MoodReport = MR (Mood, Intensity)
+
+instance (a ~ Mood, b ~ Intensity) => Show MoodReport where
+  show (MR (a, b)) = show a ++ " : " ++ show b
+
+
+
+data Rating = Awful
+            | Bad
+            | Normal
+            | Good
+            | Great deriving (Show, Eq, Ord, Enum)
+
+
+data Header = MoodH
+            | Name
+            | Date
+            | Sleep
+            | Productivity
+            | Rating
+            | Meditation deriving Eq
+
+
+-- instance Read Header where
+
+-- instance (a ~ Header) => Show a where
+--   show a = "[" ++ show a ++ "]"
+
+instance Show Header where
+  show Name = "Artin Ghasivand\n\n"
+  show Date = "Date : "
+  show MoodH         = "[Mood]\n\n"
+  show Productivity = "[Productivity]\n\n"
+  show Sleep = mconcat ["[Sleep]", "\n", "\n", "wake up :", "\n", "sleep :", "\n", "\n"]
+  show Rating = "[Rating]\n"
+  show Meditation = "[Meditation]\n\n"
+
 
 type Minutes = Int
 
--- GADT representation of our MoodReport
-data MoodReport (a :: Mood) (b :: Intensity) where
-   Report :: forall a b. Mood -> Intensity -> MoodReport a b
 
 
--- Enum instance for computing moods together
-instance Enum Mood where
-  fromEnum Angry   = -2
-  fromEnum Sad     = -1
-  fromEnum Neutral = 0
-  fromEnum Happy   = 1
-  fromEnum Excited = 2
-  toEnum (-2) = Angry
-  toEnum (-1) = Sad
-  toEnum 0    = Neutral
-  toEnum 1    = Happy
-  toEnum 2    = Excited
+-- using newtype to be able to Coerce between this and the normal tuple
 
-
-class ToFrac a where
-  toFrac :: Fractional b => a -> b
-  fracToType :: (Fractional b, Eq b) => b -> Maybe a
-
-
-instance ToFrac Intensity where
-  toFrac Low     = 0.25
-  toFrac Medium  = 0.5
-  toFrac High    = 0.75
-  toFrac Extreme = 1
-  fracToType 0.25 = Just Low
-  fracToType 0.5  = Just Medium
-  fracToType 0.75 = Just High
-  fracToType 1    = Just Extreme
-  fracToType n    = Nothing
-
-
--- mean or average of a list
-mean :: (Real a, Fractional a) => [a] -> a
-mean ns = total/count
-  where total = (realToFrac  . sum) ns
-        count = (realToFrac . length) ns
-
--- median of a list
-median :: (Ord a, Fractional a, Show a) => [a] -> a
-median ns | odd n = sort ns !! (n `div` 2)
-          | otherwise = ((sort ns !! (n `div` 2 - 1)) + (sort ns !! (n `div` 2))) / 2
-        where n = length ns
-
-
-rangeData :: (Num a, Ord a) => [a] -> a
-rangeData ns = maximum ns - minimum ns
-
-
-variance :: (Real a, Fractional a) => [a] -> a
-variance ns = sum (map (\x -> (x - mean ns)^2) ns) / (fromIntegral . length) ns
-
---centralDeviation :: (Ord a, Fractional a, Show a, Floating a, Num a, Integral a) => [a] -> a
---centralDeviation :: (Ord a, Show a, RealFloat a, Integral a) => [a] -> a
-centralDeviation :: (Real a, RealFloat a) => [a] -> a
-centralDeviation = sqrt . variance
-
-
--- overallMood :: [MoodReport] -> Mood
--- overallMood = undefined
-
-
-someFunc :: IO ()
-someFunc = putStrLn "building ..."
+-- someFunc :: IO ()
+-- someFunc = putStrLn "building ..."
