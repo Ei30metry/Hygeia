@@ -9,6 +9,17 @@ import qualified Data.Text.IO                        as TIO
 import           Text.ParserCombinators.Parsec
 import           Text.ParserCombinators.Parsec.Token
 
+
+--- Not sure about the types, more considering is required
+data Header a where
+  Name :: (a ~ String ) => a -> Header a
+  Date :: (a ~ String) => a -> Header a
+  MoodH :: (a ~ String) => [a] -> Header a
+  Sleep :: (a ~ String) => [a] -> Header a
+  Productivity :: (a ~ String) => a -> Header a
+  Meditation :: (a ~ String) => [a] -> Header a
+  Rating :: (a ~ String) => a -> Header a
+
 -- parses '\n' charecters
 eol1 :: GenParser Char st String
 eol1 = many (char '\n')
@@ -17,11 +28,11 @@ time :: GenParser Char st String
 time = many1 digit <> many1 (char ':') <> many1 digit
 
 header :: String -> GenParser Char st String
-header h = string' $ mconcat ["[", h, "]"]
+header h = string $ mconcat ["[", h, "]"]
 
 -- parses the name section
 name :: GenParser Char st String
-name = string' "Name :" <|> string' "Name: "
+name = string "Name :" <|> string "Name: "
 
 parseName :: GenParser Char st String
 parseName = do
@@ -34,7 +45,7 @@ parseName = do
 
 -- parses the date section
 date :: GenParser Char st String
-date = string' "Date :" <|> string' "date :" <|> string' "Date:" <|> string' "date:"
+date = string "Date :" <|> string "date :" <|> string "Date:" <|> string "date:"
 
 dateSep :: GenParser Char st Char
 dateSep = char '-' <|> char '/' <|> char '_' <|> char '\\'
@@ -52,18 +63,40 @@ parseDate = do
 mood :: GenParser Char st String
 mood = header "Mood" <|> header "mood"
 
-parseMood :: GenParser Char st [[String]]
-parseMood = undefined
 
--- parseMood :: GenParser Char st String
--- parseMood = string "Neutral"
---         <|> string "Angry"
---         <|> string "Sad"
---         <|> string "Happy"
---         <|> string "Bored"
---         <|> string "Focused"
---         <|> string "Stressed"
---         <|> string "Excited"
+parseMood' :: GenParser Char st String
+parseMood' = string "Neutral"
+         <|> string "Angry"
+         <|> string "Sad"
+         <|> string "Excited"
+         <|> string "Happy"
+         <|> string "Focused"
+         <|> string "Bored"
+
+-- parses one mood
+parseMood :: GenParser Char st (String, String)
+parseMood = do
+  userMood <- parseMood'
+  spaces
+  char ':'
+  spaces
+  moodIntensity <- parseIntensity
+  return (userMood, moodIntensity)
+
+-- This function type checks but hasn't been tested yet but it's supoosed to parse all the moods
+parseMoods :: GenParser Char st [(String,String)]
+parseMoods = do
+  mood
+  eol1
+  many1 parseMood <* eol1
+
+
+-- parses all the possible Intensities
+parseIntensity :: GenParser Char st String
+parseIntensity = string "Low"
+             <|> string "Normal"
+             <|> string "High"
+             <|> string "Extreme"
 
 -- parses the sleep header
 sleep :: GenParser Char st String
@@ -89,6 +122,7 @@ parseSleep = do
 productivity :: GenParser Char st String
 productivity = header "Productivity" <|> header "productivity"
 
+-- parses productivity into a tuple which has the done tasks as its fst and assigned tasks as its snd
 parseProductivity :: GenParser Char st (String,String)
 parseProductivity = do
   productivity
@@ -101,18 +135,21 @@ parseProductivity = do
 rating :: GenParser Char st String
 rating = header "Rating" <|> header "rating"
 
+-- parses the different rating a user might give
+parseRating' :: GenParser Char st String
+parseRating' = string "Great"
+           <|> string "Good"
+           <|> string "Neutral"
+           <|> string "Bad"
+           <|> string "Awful"
+
+-- parses the whole Rating header (section)
 parseRating :: GenParser Char st String
-parseRating = undefined
-
--- implement this with Parsec
--- parseFrac :: String -> (String, String)
--- parseFrac frac | length frac == 3 = toTuple . map T.unpack . T.splitOn "/" $ T.pack frac
---                | otherwise = ("","")
---             where toTuple :: [a] -> (a,a)
---                   toTuple (x:xs) = (x, unList xs)
---                   unList :: [a] -> a
---                   unList [x] = x
+parseRating = do
+  rating
+  parseRating'
 
 
--- parse :: String -> HList '[Name, Date, MoodReport, Sleep, Productivity, Rating]
--- parse = undefined
+-- parses the Entry written by the user
+parseEntry :: IO T.Text -> [Header]
+parseEntry = undefined

@@ -61,8 +61,10 @@
 
 ** Daemon [/]
 
-** Parser [/]
-+ [ ] Functions made <|> not working properly
+** Parser [1/2]
++ [X] Functions made <|> not working properly
++ [ ] After you got the package mess worked out, replace every instance of string with string'
+
 
 ** CLI [/]
 

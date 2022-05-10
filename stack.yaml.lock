@@ -5,6 +5,24 @@
 
 packages:
 - completed:
+    name: parsec
+    version: 3.1.16.0
+    git: https://github.com/haskell/parsec/
+    pantry-tree:
+      size: 2929
+      sha256: 0ac567898d505658049745bda9e1f4d60fa99fd463351a6717712d69131b4c2b
+    commit: 7a9c85da6a671a888e1291745bd1022164667434
+  original:
+    git: https://github.com/haskell/parsec/
+    commit: 7a9c85da6a671a888e1291745bd1022164667434
+- completed:
+    hackage: Cabal-3.6.3.0@sha256:ff97c442b0c679c1c9876acd15f73ac4f602b973c45bde42b43ec28265ee48f4,12459
+    pantry-tree:
+      size: 19757
+      sha256: b250a53bdb56844f047a2927833bb565b936a289abfa85dfc2a63148d776368a
+  original:
+    hackage: Cabal-3.6.3.0@sha256:ff97c442b0c679c1c9876acd15f73ac4f602b973c45bde42b43ec28265ee48f4,12459
+- completed:
     hackage: optparse-applicative-0.17.0.0@sha256:0713e54cbb341e5cae979e2ac441eb3a5ff42e303001f432bd58c19e5638bdda,4967
     pantry-tree:
       size: 3124

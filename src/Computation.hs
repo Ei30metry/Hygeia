@@ -77,23 +77,6 @@ data Rating = Awful
 --             | Meditation [a]
 --             | Rating a deriving (Eq, Enum)
 
-data Header a where
-  Name :: (a ~ String ) => a -> Header a
-  Date :: (a ~ String) => a -> Header a
-  MoodH :: (a ~ String) => [a] -> Header a
-  Sleep :: (a ~ String) => [a] -> Header a
-  Productivity :: (a ~ String) => a -> Header a
-  Meditation :: (a ~ String) => [a] -> Header a
-  Rating :: (a ~ String) => a -> Header a
-
-
-instance Show Header a where
-  show (Name a)  = a
-  show (Date a)  = "Date : " ++ a
-  show (MoodH a) = "Moods : " ++ a
-  show (Sleep a) = "Sleep : " ++ a
-  show (Productivity a) = "Productivity : " : '\n' ++ "you did " ++ fst (parseFrac a) ++ " of the " ++ snd (parseFrac a) ++ " things you had to do."
-
 
 type Minutes = Int
 
