@@ -2,6 +2,8 @@
 #+AUTHOR: Artin Ghasivand
 
 * IDEA Computation
++ [ ] Compute all occurnces of a Mood in a given time stamp
++ [ ] Compute the average productivity of a given time stamp
 
 * IDEA Report
 
@@ -11,7 +13,7 @@
 * TODO Feature [0/0]
 
 ** Computation [/]
-+ [ ] rewrite Headers as type families in order to write different instances for the Header tyepes
++ [ ] rewrite Headers as type families in order to write different instances for the Header types
 
 ** Daemon [/]
 + [ ] Check and compute in the directory ~/.Bruce/Entries
@@ -20,7 +22,8 @@
 + [ ] Works with mutt for E-mail integration
 + [ ] Weekly and Monthly report both with macOs and E-mail integration
 
-** Filing in [/]
+** Parser [/]
++ [ ] Check
 
 ** CLI [/]
 + [ ] Being able to Edit the Entries and then recompute again
@@ -32,13 +35,19 @@
 + [ ] Give percentages for the Moods, for example, 1/3 of the month you were feeling Neutral or ...
 
 
+
 * TODO Refactor
 
 ** Computation [/]
 
++ [ ] Generate template by using the Enum instnace
+
 ** Daemon [/]
 
-** Filing in [/]
+** Parser [0/3]
++ [ ] Rewrite date with spaces and <* binary operator
++ [ ] Rewrite parseSleep with a way to parse every possible "wake up :". for example "Wake up:"
++ [ ] Apply hlint and refactor all of the things that come up with hlint's suggestions
 
 ** CLI [/]
 
@@ -52,8 +61,12 @@
 
 ** Daemon [/]
 
-** Filing in [/]
+** Parser [/]
++ [ ] Functions made <|> not working properly
 
 ** CLI [/]
 
 ** Report [/]
+
+** Cabal configuration [/]
++ [ ] Fix the parsec version

@@ -1,8 +1,8 @@
 # Hygeia
-Your not so friendly companion
+A CLI program and Daemon that keeps track of your moods and daily sleep
 
 ## Introduction 
-Bruce is a Daemon which does simple analysis on your mood entries and then gives you a summary of your general mood in whatever format you want!
+Hygeia is a Daemon which does simple analysis on your mood entries and then gives you a summary of your general mood in whatever format you want!
 
 
 default Format :

@@ -53,7 +53,7 @@ library
     , bytestring
     , mime-mail
     , optparse-applicative >=0.17
-    , parsec
+    , parsec >=3.1.16.0
     , smtp-mail
     , text
     , time
@@ -85,7 +85,7 @@ executable Hygeia-exe
     , bytestring
     , mime-mail
     , optparse-applicative >=0.17
-    , parsec
+    , parsec >=3.1.16.0
     , smtp-mail
     , text
     , time
@@ -118,7 +118,7 @@ test-suite Hygeia-test
     , bytestring
     , mime-mail
     , optparse-applicative >=0.17
-    , parsec
+    , parsec >=3.1.16.0
     , smtp-mail
     , text
     , time

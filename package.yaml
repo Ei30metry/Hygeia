@@ -37,7 +37,7 @@ dependencies:
 - base >= 4.7 && < 5
 - text
 - bytestring
-- parsec
+- parsec >= 3.1.16.0
 - time
 - optparse-applicative >= 0.17
 - turtle

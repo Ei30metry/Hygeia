@@ -1,12 +1,24 @@
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE KindSignatures       #-}
+{-# LANGUAGE NoStarIsType         #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE PolyKinds            #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 
 module Computation where
 
 import           Data.Coerce
+import           Data.Kind      (Constraint, Type)
 import           Data.List
+import           Data.Monoid
+import           Data.Semigroup
+import           GHC.TypeLits
 import           Parser
+
 
 -- a Type representing one's mood
 data Mood = Angry
@@ -16,15 +28,36 @@ data Mood = Angry
           | Excited deriving (Read, Eq, Ord, Show)
 
 
-data Intensity = Low
+data Intensity = None
+               | Low
                | Medium
                | High
-               | Extreme deriving (Show, Read, Eq, Ord)
+               | Extreme deriving (Show, Read, Eq, Ord, Enum)
 
+-- I'm using a newtype wrapper to be able to coerce it with the normal tuple when computing the data that comes from files
 newtype MoodReport = MR (Mood, Intensity)
+
 
 instance (a ~ Mood, b ~ Intensity) => Show MoodReport where
   show (MR (a, b)) = show a ++ " : " ++ show b
+
+
+computeIntensity :: Intensity -> Intensity -> Intensity
+computeIntensity x y | fromEnum x == fromEnum y = x
+                     | fromEnum x > fromEnum y = x
+                     | otherwise = y
+
+
+instance Semigroup Intensity where
+  x <> y = computeIntensity x y
+
+
+instance Monoid Intensity where
+  mappend = (<>)
+  mempty = None
+
+instance (a ~ Mood, b ~ Intensity, c ~ Intensity) => Semigroup MoodReport where
+  (MR (a, b)) <> (MR (a, c)) = (a , c <> b)
 
 
 
@@ -35,35 +68,58 @@ data Rating = Awful
             | Great deriving (Show, Eq, Ord, Enum)
 
 
-data Header = MoodH
-            | Name
-            | Date
-            | Sleep
-            | Productivity
-            | Rating
-            | Meditation deriving Eq
+-- data Header (a :: Symbol) =
+--               Name a
+--             | Date a
+--             | MoodH [a]
+--             | Sleep [a]
+--             | Productivity [a]
+--             | Meditation [a]
+--             | Rating a deriving (Eq, Enum)
+
+data Header a where
+  Name :: (a ~ String ) => a -> Header a
+  Date :: (a ~ String) => a -> Header a
+  MoodH :: (a ~ String) => [a] -> Header a
+  Sleep :: (a ~ String) => [a] -> Header a
+  Productivity :: (a ~ String) => a -> Header a
+  Meditation :: (a ~ String) => [a] -> Header a
+  Rating :: (a ~ String) => a -> Header a
 
 
--- instance Read Header where
-
--- instance (a ~ Header) => Show a where
---   show a = "[" ++ show a ++ "]"
-
-instance Show Header where
-  show Name = "Artin Ghasivand\n\n"
-  show Date = "Date : "
-  show MoodH         = "[Mood]\n\n"
-  show Productivity = "[Productivity]\n\n"
-  show Sleep = mconcat ["[Sleep]", "\n", "\n", "wake up :", "\n", "sleep :", "\n", "\n"]
-  show Rating = "[Rating]\n"
-  show Meditation = "[Meditation]\n\n"
+instance Show Header a where
+  show (Name a)  = a
+  show (Date a)  = "Date : " ++ a
+  show (MoodH a) = "Moods : " ++ a
+  show (Sleep a) = "Sleep : " ++ a
+  show (Productivity a) = "Productivity : " : '\n' ++ "you did " ++ fst (parseFrac a) ++ " of the " ++ snd (parseFrac a) ++ " things you had to do."
 
 
 type Minutes = Int
 
+-- heterogenous list
+
+-- data HList (a :: Header t) where
+--   HNil :: HList t
+--   (:>) :: t -> HList ts -> HList (t ': ts)
+
+-- infixr 5 :>
 
 
--- using newtype to be able to Coerce between this and the normal tuple
 
--- someFunc :: IO ()
--- someFunc = putStrLn "building ..."
+-- type family RecursiveInstance (c :: Type -> Constraint) (ts :: [Type]) :: Constraint where
+--   RecursiveInstance c '[] = ()
+--   RecursiveInstance c (t ': ts) = (c t, RecursiveInstance c ts)
+
+
+-- instance RecursiveInstance Show ts => Show (HList ts) where
+--   show HNil      = "HNil"
+--   show (a :> as) = show a ++ show as
+
+
+someFunc :: IO ()
+someFunc = putStrLn "building ..."
+
+-- prettyMatrix :: Show a => Matrix a -> String
+-- prettyMatrix m = concat
+--    [ "┌ ", unwords (replicate (ncols m) blank), " ┐\n", unlines [ "│ " ++ unwords (fmap (\j -> fill $ strings ! (i,j)) [1..ncols m]) ++ " │" | i <- [1..nrows m] ], "└ ", unwords (replicate (ncols m) blank), " ┘" ]
