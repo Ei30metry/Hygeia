@@ -4,6 +4,8 @@
 * IDEA Computation
 + [ ] Compute all occurnces of a Mood in a given time stamp
 + [ ] Compute the average productivity of a given time stamp
++ [ ] Get information in strings and then computer them into types
++ [ ] Convert all the information into types in the parser itself
 
 * IDEA Report
 
@@ -16,14 +18,14 @@
 + [ ] rewrite Headers as type families in order to write different instances for the Header types
 
 ** Daemon [/]
-+ [ ] Check and compute in the directory ~/.Bruce/Entries
++ [ ] Check and compute in the directory ~/.Hygeia/Entries
 + [ ] Generate template files for users to fill in named by date for every Month
 + [ ] Put the results in the directory ~/.Bruce/Reports
 + [ ] Works with mutt for E-mail integration
 + [ ] Weekly and Monthly report both with macOs and E-mail integration
 
 ** Parser [/]
-+ [ ] Check
++ [ ] Make all the parsers case insensitive even for the headers
 
 ** CLI [/]
 + [ ] Being able to Edit the Entries and then recompute again

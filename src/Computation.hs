@@ -11,6 +11,7 @@
 
 module Computation where
 
+import           Config
 import           Data.Coerce
 import           Data.Kind      (Constraint, Type)
 import           Data.List
@@ -37,6 +38,7 @@ data Intensity = None
 -- I'm using a newtype wrapper to be able to coerce it with the normal tuple when computing the data that comes from files
 newtype MoodReport = MR (Mood, Intensity)
 
+-- write the Read instance with the help of a parser
 
 instance (a ~ Mood, b ~ Intensity) => Show MoodReport where
   show (MR (a, b)) = show a ++ " : " ++ show b
@@ -56,8 +58,9 @@ instance Monoid Intensity where
   mappend = (<>)
   mempty = None
 
-instance (a ~ Mood, b ~ Intensity, c ~ Intensity) => Semigroup MoodReport where
-  (MR (a, b)) <> (MR (a, c)) = (a , c <> b)
+-- instance (Eq a, Eq a', a' ~ Mood,  a ~ Mood, b ~ Intensity, c ~ Intensity) => Semigroup MoodReport where
+--   (MR (a, b)) <> (MR (a, c)) | a == a' = Right (a , c <> b)
+--                              | otherwise = Left []
 
 
 
@@ -67,37 +70,6 @@ data Rating = Awful
             | Good
             | Great deriving (Show, Eq, Ord, Enum)
 
-
--- data Header (a :: Symbol) =
---               Name a
---             | Date a
---             | MoodH [a]
---             | Sleep [a]
---             | Productivity [a]
---             | Meditation [a]
---             | Rating a deriving (Eq, Enum)
-
-
-type Minutes = Int
-
--- heterogenous list
-
--- data HList (a :: Header t) where
---   HNil :: HList t
---   (:>) :: t -> HList ts -> HList (t ': ts)
-
--- infixr 5 :>
-
-
-
--- type family RecursiveInstance (c :: Type -> Constraint) (ts :: [Type]) :: Constraint where
---   RecursiveInstance c '[] = ()
---   RecursiveInstance c (t ': ts) = (c t, RecursiveInstance c ts)
-
-
--- instance RecursiveInstance Show ts => Show (HList ts) where
---   show HNil      = "HNil"
---   show (a :> as) = show a ++ show as
 
 
 someFunc :: IO ()

@@ -27,6 +27,7 @@ library
   exposed-modules:
       CLI
       Computation
+      Config
       Daemon
       Email
       Notification

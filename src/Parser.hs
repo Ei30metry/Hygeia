@@ -1,6 +1,5 @@
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Parser where
 
@@ -14,16 +13,19 @@ import           Text.ParserCombinators.Parsec.Token
 data Header a where
   Name :: (a ~ String ) => a -> Header a
   Date :: (a ~ String) => a -> Header a
-  MoodH :: (a ~ String) => [a] -> Header a
-  Sleep :: (a ~ String) => [a] -> Header a
+  MoodH :: (a ~ String) => [a] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
+  Sleep :: (a ~ String) => [a] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
   Productivity :: (a ~ String) => a -> Header a
   Meditation :: (a ~ String) => [a] -> Header a
+  Alcohol :: (a ~ String) => a -> Header a
+  Cigarette :: (a ~ String) => a -> Header a
   Rating :: (a ~ String) => a -> Header a
 
 -- parses '\n' charecters
 eol1 :: GenParser Char st String
 eol1 = many (char '\n')
 
+-- computes the times of
 time :: GenParser Char st String
 time = many1 digit <> many1 (char ':') <> many1 digit
 
@@ -122,6 +124,19 @@ parseSleep = do
 productivity :: GenParser Char st String
 productivity = header "Productivity" <|> header "productivity"
 
+-- alcohol header
+alcohol :: GenParser Char st String
+alcohol = header "Alcohol" <|> header "alcohol"
+
+
+-- parseAlcohol :: GenParser Char st [String]
+-- parseAlcohol = do
+--   header
+--   eol1
+--   many1 (many1 alphaNum )
+
+
+
 -- parses productivity into a tuple which has the done tasks as its fst and assigned tasks as its snd
 parseProductivity :: GenParser Char st (String,String)
 parseProductivity = do
@@ -151,5 +166,5 @@ parseRating = do
 
 
 -- parses the Entry written by the user
-parseEntry :: IO T.Text -> [Header]
+parseEntry :: IO T.Text -> [Header String]
 parseEntry = undefined

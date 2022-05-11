@@ -1,22 +1,18 @@
 module Template where
 
-import           Computation
-import qualified Data.Text              as T
-import           Data.Time
-import           Data.Time.Clock.System
-import           Data.Time.Format
+import qualified Config       as C
+import qualified Data.Text    as T
+import qualified Data.Text.IO as TIO
+import qualified Data.Time    as TI
+import           Parser
 
 
-generateTemplate :: FilePath -> IO ()
-generateTemplate path = do
-  writeFile path $ show Date
-  time <- getCurrentTime
-  appendFile path $ show time
-  appendFile path $ "\n" ++ (mconcat . map show)  [Name, MoodH, Productivity, Meditation, Sleep, Rating]
+-- generateTemplate :: IO ()
+-- generateTemplate path = do
+--   writeFile path $ show Date
+--   time <- TI.getCurrentTime
+--   appendFile path $ show time
+--   appendFile path $ "\n" ++ (mconcat . map show)  [Name, MoodH, Productivity, Meditation, Sleep, Rating]
 
-
-generateTemplateForMonth :: Filepath -> IO ()
-generateTemplateForMonth = undefined
-
-generateTemplateForYear :: Filepath -> IO ()
-generateTemplateForYear = undefined
+generateTemplate :: IO ()
+generateTemplate = undefined
