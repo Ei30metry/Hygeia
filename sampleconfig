@@ -1,0 +1,20 @@
+Info :
+    Name = Artin Ghasivand
+
+
+Daemon :
+    Run_Daemon = True
+
+
+Template :
+    Generate_Template = True
+
+    Optional_Headers = Meditation - Alcohol - Cigarette ...
+
+Report :
+
+    Email_Report = On
+
+    Email = ghasivand.artin@gmail.com
+
+    Email_Report_Frequency = 1 Month
