@@ -16,6 +16,7 @@
 
 ** Computation [/]
 + [ ] rewrite Headers as type families in order to write different instances for the Header types
++ [ ] prove that a and a' are the same thing in the type signature of addMoodReport
 
 ** Daemon [/]
 + [ ] Check and compute in the directory ~/.Hygeia/Entries

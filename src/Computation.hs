@@ -4,6 +4,7 @@
 {-# LANGUAGE NoStarIsType         #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE PolyKinds            #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -13,10 +14,11 @@ module Computation where
 
 import           Config
 import           Data.Coerce
-import           Data.Kind      (Constraint, Type)
+import           Data.Kind          (Constraint, Type)
 import           Data.List
 import           Data.Monoid
 import           Data.Semigroup
+import           Data.Type.Equality
 import           GHC.TypeLits
 import           Parser
 
@@ -40,8 +42,27 @@ newtype MoodReport = MR (Mood, Intensity)
 
 -- write the Read instance with the help of a parser
 
-instance (a ~ Mood, b ~ Intensity) => Show MoodReport where
-  show (MR (a, b)) = show a ++ " : " ++ show b
+type family FromEnum (a :: Intensity) :: Nat where
+  FromEnum Low = 1
+  FromEnum Medium = 2
+  FromEnum High = 3
+  FromEnum Extreme = 4
+
+-- compute the bigger Intensity
+
+-- return the ordering of two different Intensities
+type family ReturnOrdering (a :: Intensity) (b :: Intensity) :: Ordering where
+  ReturnOrdering a b = CmpNat (FromEnum a) (FromEnum b)
+
+
+type family ReturnBiggerOne (a :: Intensity) (b :: Intensity) (c :: Ordering) :: Intensity where
+  ReturnBiggerOne a b LT = b
+  ReturnBiggerOne a b GT = a
+  ReturnBiggerOne a b EQ = a
+
+
+type family (a :: Intensity) <+> (b :: Intensity) :: Intensity where
+  a <+> b = ReturnBiggerOne a b (ReturnOrdering a b)
 
 
 computeIntensity :: Intensity -> Intensity -> Intensity
@@ -58,9 +79,6 @@ instance Monoid Intensity where
   mappend = (<>)
   mempty = None
 
--- instance (Eq a, Eq a', a' ~ Mood,  a ~ Mood, b ~ Intensity, c ~ Intensity) => Semigroup MoodReport where
---   (MR (a, b)) <> (MR (a, c)) | a == a' = Right (a , c <> b)
---                              | otherwise = Left []
 
 
 
@@ -74,7 +92,3 @@ data Rating = Awful
 
 someFunc :: IO ()
 someFunc = putStrLn "building ..."
-
--- prettyMatrix :: Show a => Matrix a -> String
--- prettyMatrix m = concat
---    [ "┌ ", unwords (replicate (ncols m) blank), " ┐\n", unlines [ "│ " ++ unwords (fmap (\j -> fill $ strings ! (i,j)) [1..ncols m]) ++ " │" | i <- [1..nrows m] ], "└ ", unwords (replicate (ncols m) blank), " ┘" ]
