@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE PolyKinds            #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -30,7 +31,9 @@ data Mood = Angry
           | Happy
           | Excited deriving (Read, Eq, Ord, Show)
 
-
+-- Intensity of a mood
+-- The None is not supposed to be used in a MoodReport but it is only here to
+-- serve as an mempty for our Monoid instance
 data Intensity = None
                | Low
                | Medium
