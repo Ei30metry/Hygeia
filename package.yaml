@@ -1,10 +1,10 @@
 name:                Hygeia
 version:             0.1.0.0
-github:              "githubuser/Hygeia"
+github:              "Ei30metry/Hygeia"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2022 Author name here"
+author:              "Artin Ghasivand"
+maintainer:          "ghasivand.artin@gmail.com"
+copyright:           "2022 Artin Ghasivand"
 
 extra-source-files:
 - README.md
@@ -31,6 +31,12 @@ default-extensions:
 - TypeApplications
 - GADTs
 - OverloadedStrings
+- InstanceSigs
+- EmptyCase
+- StandaloneKindSignatures
+- TemplateHaskell
+- UndecidableInstances
+- InstanceSigs
 
 
 dependencies:
@@ -43,6 +49,7 @@ dependencies:
 - turtle
 - mime-mail
 - smtp-mail
+- singletons >= 2.7
 
 library:
   source-dirs: src

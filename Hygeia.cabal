@@ -7,11 +7,11 @@ cabal-version: 1.12
 name:           Hygeia
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/Hygeia#readme>
-homepage:       https://github.com/githubuser/Hygeia#readme
-bug-reports:    https://github.com/githubuser/Hygeia/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2022 Author name here
+homepage:       https://github.com/Ei30metry/Hygeia#readme
+bug-reports:    https://github.com/Ei30metry/Hygeia/issues
+author:         Artin Ghasivand
+maintainer:     ghasivand.artin@gmail.com
+copyright:      2022 Artin Ghasivand
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -21,7 +21,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/Hygeia
+  location: https://github.com/Ei30metry/Hygeia
 
 library
   exposed-modules:
@@ -55,6 +55,7 @@ library
     , mime-mail
     , optparse-applicative >=0.17
     , parsec >=3.1.16.0
+    , singletons >=2.7
     , smtp-mail
     , text
     , time
@@ -87,6 +88,7 @@ executable Hygeia-exe
     , mime-mail
     , optparse-applicative >=0.17
     , parsec >=3.1.16.0
+    , singletons >=2.7
     , smtp-mail
     , text
     , time
@@ -120,6 +122,7 @@ test-suite Hygeia-test
     , mime-mail
     , optparse-applicative >=0.17
     , parsec >=3.1.16.0
+    , singletons >=2.7
     , smtp-mail
     , text
     , time
