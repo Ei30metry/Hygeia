@@ -73,7 +73,9 @@ type family (a :: Intensity) <+> (b :: Intensity) :: Intensity where
   a <+> b = ReturnBiggerOne a b (ReturnOrdering a b)
 
 
-computeIntensity :: Intensity -> Intensity -> Intensity
+computeIntensity :: Intensity -- ^
+  -> Intensity -- ^
+  -> Intensity
 computeIntensity x y | fromEnum x == fromEnum y = x
                      | fromEnum x > fromEnum y = x
                      | otherwise = y

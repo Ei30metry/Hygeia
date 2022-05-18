@@ -49,6 +49,12 @@ library
       TypeApplications
       GADTs
       OverloadedStrings
+      InstanceSigs
+      EmptyCase
+      StandaloneKindSignatures
+      TemplateHaskell
+      UndecidableInstances
+      InstanceSigs
   build-depends:
       base >=4.7 && <5
     , bytestring
@@ -80,6 +86,12 @@ executable Hygeia-exe
       TypeApplications
       GADTs
       OverloadedStrings
+      InstanceSigs
+      EmptyCase
+      StandaloneKindSignatures
+      TemplateHaskell
+      UndecidableInstances
+      InstanceSigs
   ghc-options: -threaded -O2 -rtsopts -with-rtsopts=-N
   build-depends:
       Hygeia
@@ -114,6 +126,12 @@ test-suite Hygeia-test
       TypeApplications
       GADTs
       OverloadedStrings
+      InstanceSigs
+      EmptyCase
+      StandaloneKindSignatures
+      TemplateHaskell
+      UndecidableInstances
+      InstanceSigs
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Hygeia
