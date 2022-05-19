@@ -14,15 +14,18 @@
 {-# LANGUAGE UndecidableInstances     #-}
 
 
+
 module Computation where
 
 import           Config
 import           Data.Coerce
-import           Data.Kind               (Constraint, Type)
+import           Data.Kind                (Constraint, Type)
 import           Data.List
 import           Data.Monoid
 import           Data.Semigroup
 import           Data.Singletons.Prelude
+import           Data.Singletons.ShowSing
+import           Data.Singletons.Sigma
 import           Data.Singletons.TH
 import           Data.Type.Equality
 import           GHC.TypeLits
@@ -48,7 +51,6 @@ singletons [d| data Intensity = None
 -- I'm using a newtype wrapper to be able to coerce it with the normal tuple when computing the data that comes from files
 singletons [d| newtype MoodReport = MR (Mood, Intensity) |]
 
--- write the Read instance with the help of a parser
 
 type family FromEnum' (a :: Intensity) :: Nat where
   FromEnum' Low = 1
@@ -90,6 +92,7 @@ instance Monoid Intensity where
   mempty = None
 
 
+-- addMoodReport :: SMR ()
 
 data Rating = Awful
             | Bad
