@@ -14,9 +14,9 @@
 
 * TODO Feature [0/0]
 
-** Computation [/]
+** Computation [0/3]
 + [ ] rewrite Headers as type families in order to write different instances for the Header types
-+ [ ] prove that a and a' are the same thing in the type signature of addMoodReport
++ [ ] use singletons and phantom type parameters in order to keep track of the Mood data on the type-level computation
 
 ** Daemon [/]
 + [ ] Check and compute in the directory ~/.Hygeia/Entries
@@ -41,10 +41,11 @@
 
 * TODO Refactor
 
-** Computation [0/2]
+** Computation [0/3]
 
 + [ ] Generate template by using the Enum instnace
 + [ ] Replace every type level function you've written with the ones that come in the singletons package
++ [ ] Replace your hand written Type-level functions with the ones provided by Singletons.Prelude.Ord
 
 ** Daemon [/]
 

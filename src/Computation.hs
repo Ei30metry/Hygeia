@@ -10,6 +10,7 @@
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TemplateHaskell          #-}
 {-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeInType               #-}
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
 
@@ -19,13 +20,13 @@ module Computation where
 
 import           Config
 import           Data.Coerce
-import           Data.Kind                (Constraint, Type)
+import           Data.Kind                         (Constraint, Type)
 import           Data.List
 import           Data.Monoid
 import           Data.Semigroup
-import           Data.Singletons.Prelude
-import           Data.Singletons.ShowSing
-import           Data.Singletons.Sigma
+import           Data.Singletons.Decide
+import           Data.Singletons.Prelude.Monoid
+import           Data.Singletons.Prelude.Semigroup
 import           Data.Singletons.TH
 import           Data.Type.Equality
 import           GHC.TypeLits
@@ -50,6 +51,7 @@ singletons [d| data Intensity = None
 
 -- I'm using a newtype wrapper to be able to coerce it with the normal tuple when computing the data that comes from files
 singletons [d| newtype MoodReport = MR (Mood, Intensity) |]
+--singletons [d| type MoodReport = (Mood, Intensity) |]
 
 
 type family FromEnum' (a :: Intensity) :: Nat where
@@ -74,6 +76,12 @@ type family ReturnBiggerOne (a :: Intensity) (b :: Intensity) (c :: Ordering) ::
 type family (a :: Intensity) <+> (b :: Intensity) :: Intensity where
   a <+> b = ReturnBiggerOne a b (ReturnOrdering a b)
 
+-- type family (a :: Intensity) <+> (b :: Intensity) :: Intensity where
+--   a <+> b = a
+
+-- instance SSemigroup Intensity where
+--   (%<>) = toSing . (<>)
+
 
 computeIntensity :: Intensity -- ^
   -> Intensity -- ^
@@ -92,8 +100,6 @@ instance Monoid Intensity where
   mempty = None
 
 
--- addMoodReport :: SMR ()
-
 data Rating = Awful
             | Bad
             | Normal
@@ -101,6 +107,15 @@ data Rating = Awful
             | Great deriving (Show, Eq, Ord, Enum)
 
 
+-- addMoodReports :: MoodReport -> MoodReport -> MoodReport
+-- addMoodReports = undefined
+
+
+-- instance (a ~ Mood, b ~ Intensity) => SingI ('MR '(a, b)) where
+--   sing = undefined
+
+unsafeAddMoodReports :: MoodReport -> MoodReport -> MoodReport
+unsafeAddMoodReports (MR (a, c)) (MR (b, d)) = MR (a, d <> c)
 
 someFunc :: IO ()
 someFunc = putStrLn "building ..."
