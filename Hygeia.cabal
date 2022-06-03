@@ -33,7 +33,6 @@ library
       Notification
       Parser
       Template
-      Test
   other-modules:
       Paths_Hygeia
   hs-source-dirs:
