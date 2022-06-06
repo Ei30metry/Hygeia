@@ -9,6 +9,8 @@
 {-# LANGUAGE NoStarIsType             #-}
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE QuantifiedConstraints    #-}
+{-# LANGUAGE RoleAnnotations          #-}
 {-# LANGUAGE ScopedTypeVariables      #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TemplateHaskell          #-}
@@ -24,6 +26,7 @@ module Computation where
 
 import           Config
 import           Data.Coerce
+import           Data.Coerce                       (Coercible)
 import           Data.Kind                         (Constraint, Type)
 import           Data.List
 import           Data.Monoid
@@ -35,6 +38,8 @@ import           Data.Singletons.Prelude.Monoid
 import           Data.Singletons.Prelude.Semigroup
 import           Data.Singletons.TH
 import           Data.Type.Equality
+import           Data.Type.Equality                (TestEquality (testEquality))
+import           Data.Typeable
 import           GHC.TypeLits
 import           Parser
 
@@ -55,65 +60,31 @@ singletons [d| data Intensity = None
                                | High
                                | Extreme deriving (Show, Read, Eq, Ord, Enum) |]
 
--- I'm using a newtype wrapper to be able to coerce it with the normal tuple when computing the data that comes from files
+-- using newtype to be able to coerce
 singletons [d| newtype MoodReport = MR (Mood, Intensity) deriving Show |]
---singletons [d| type MoodReport = (Mood, Intensity) |]
 
 
-type family FromEnum' (a :: Intensity) :: Nat where
-  FromEnum' Low = 1
-  FromEnum' Medium = 2
-  FromEnum' High = 3
-  FromEnum' Extreme = 4
 
--- compute the bigger Intensity
-
--- return the ordering of two different Intensities
-type family ReturnOrdering (a :: Intensity) (b :: Intensity) :: Ordering where
-  ReturnOrdering a b = CmpNat (FromEnum' a) (FromEnum' b)
+singletons [d| computeIntensity :: Intensity -> Intensity -> Intensity
+               computeIntensity x y | fromEnum x == fromEnum y = x
+                                    | fromEnum x > fromEnum y = x
+                                    | otherwise = y |]
 
 
-type family ReturnBiggerOne (a :: Intensity) (b :: Intensity) (c :: Ordering) :: Intensity where
-  ReturnBiggerOne a b LT = b
-  ReturnBiggerOne a b GT = a
-  ReturnBiggerOne a b EQ = a
-
-
-type family (a :: Intensity) <+> (b :: Intensity) :: Intensity where
-  a <+> b = ReturnBiggerOne a b (ReturnOrdering a b)
-
-
--- instance SSemigroup Intensity where
---   (%<>) = toSing . (<>)
-
-
-computeIntensity :: Intensity -> Intensity -> Intensity
-computeIntensity x y | fromEnum x == fromEnum y = x
-                     | fromEnum x > fromEnum y = x
-                     | otherwise = y
-
-
--- promote [d| computeIntensity :: Intensity -> Intensity -> Intensity
---             computeIntensity x y | fromEnum x == fromEnum y = x
---                                  | fromEnum x > fromEnum y = x
---                                  | otherwise = y |]
-
-instance Semigroup Intensity where
-  x <> y = computeIntensity x y
+singletons [d| instance Semigroup Intensity where
+                 x <> y = computeIntensity x y |]
 
 -- singletons [d| instance Semigroup Intensity where
 --                  x <> y = computeIntensity x y |]
 
 
 
-instance Monoid Intensity where
-  mappend = (<>)
-  mempty = None
+singletons [d| instance Monoid Intensity where
+                 mappend = (<>)
+                 mempty = None |]
 
--- singletons [d| instance Monoid Intensity where
---                 mappend = (<>)
---                 mempty = None |]
 
+-- Rating data type for rating the day
 data Rating = Awful
             | Bad
             | Normal
@@ -122,23 +93,24 @@ data Rating = Awful
 
 
 
--- should be called with  TypeApplications
---example: moodReportToSing @Happy @Low ===> SMoodReport ('MR '(Happy,Low))
-moodReportToSing :: forall (a :: Mood) (b :: Intensity). (SingI a, SingI b) => MoodReport -> SMoodReport ('MR '(a,b))
-moodReportToSing (MR (a,b)) = sing :: Sing ('MR '(a, b))
+-- this function will only work if our SMoods are the same
+addSingMoodReports :: forall a a' (b :: Intensity) (c :: Intensity). SMoodReport ('MR '(a, b)) -> SMoodReport ('MR '(a, c)) -> SMoodReport ('MR '(a, b <> c))
+addSingMoodReports (SMR (STuple2 a b)) (SMR (STuple2 a' c)) = SMR $ STuple2 a (b %<> c)
 
 
--- addSingMoodReports :: forall a a' (b :: Intensity) (c :: Intensity) (d :: Intensity). SMoodReport ('MR '(a,b)) -> SMoodReport ('MR '(a, c)) -> SMoodReport ('MR '(a, b <+> c))
--- addSingMoodReports (SMR (STuple2 a b)) (SMR (STuple2 a' c)) = SMR $ STuple2 a (b  c)
 
-unsafeAddMoodReports :: MoodReport -> MoodReport -> MoodReport
-unsafeAddMoodReports (MR (a, c)) (MR (b, d)) = MR (a, d <> c)
+-- safe function to add MoodReports
+addMoodReports :: MoodReport -> MoodReport -> Maybe MoodReport
+addMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b'))) = do
+  Refl <- testEquality a a'
+  return $ FromSing $ addSingMoodReports l r
 
 
--- not the actual term-level code of the code but just a representation of the
--- needed compositions
--- addMoodReports :: MoodReport -> MoodReport -> MoodReport
--- addMoodReports = unsafeAddMoodReports  . fromSing . addSingMoodReports . mooodReportToSing
+-- instance Semigroup MoodReport where
+
+-- instance Monoid MoodReport where
+--   mempty = MR (Neutral,None)
+--   mappend = (<>)
 
 someFunc :: IO ()
 someFunc = putStrLn "building ..."
