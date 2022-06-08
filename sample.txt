@@ -9,11 +9,26 @@ Neutral : High
 Sad : Low
 Neutral : Medium
 
-
 [Sleep]
 
 wake up : 6:30
 sleep : 00
+
+[Alcohol]
+
+tequila : 5
+
+[Meditation]
+
+0:20
+0:25
+0:15
+
+[Cigarette]
+
+Number : 7
+Nicotine : 0.6
+Tar : 0.7
 
 [Productivity]
 

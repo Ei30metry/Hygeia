@@ -11,24 +11,21 @@ Default format :
 Name : FName LName
 Date : YYYY-MM-DD
 
-[Moods]
+[Mood]
 Mood1 : Intensity
 Mood2 : Intensity
 ...
 .
 .
+
 [Sleep] 
 
-Wake up time :
-Sleep time : 
-
-[Productivity]
-
-n/ns
+Wake up :
+Sleep : 
 
 OPT [Alcohol]
 
-Name of Drink : shots 
+Name of the drink : shots 
 
 OPT [Meditation]
 
@@ -42,8 +39,15 @@ Number :
 Nicotone :
 Tar : 
 
+
+[Productivity]
+
+n/ns
+
+
 [Rating]
 
+Some rating
 ...
 ```
 

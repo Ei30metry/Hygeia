@@ -25,8 +25,9 @@
 + [ ] Works with mutt for E-mail integration
 + [ ] Weekly and Monthly report both with macOs and E-mail integration
 
-** Parser [/]
+** Parser [0/2]
 + [ ] Make all the parsers case insensitive even for the headers
++ [ ] Change the Header parsers to return a `Header a` type
 
 ** CLI [/]
 + [ ] Being able to Edit the Entries and then recompute again

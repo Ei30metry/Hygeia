@@ -79,6 +79,7 @@ singletons [d| instance Semigroup Intensity where
 
 
 
+-- monoid instance for Intensity
 singletons [d| instance Monoid Intensity where
                  mappend = (<>)
                  mempty = None |]
@@ -106,11 +107,6 @@ addMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b')
   return $ FromSing $ addSingMoodReports l r
 
 
--- instance Semigroup MoodReport where
-
--- instance Monoid MoodReport where
---   mempty = MR (Neutral,None)
---   mappend = (<>)
 
 someFunc :: IO ()
 someFunc = putStrLn "building ..."
