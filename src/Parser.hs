@@ -53,6 +53,7 @@ eol1 = many (char '\n')
 time :: GenParser Char st String
 time = many1 digit <> many1 (char ':') <> many1 digit
 
+
 header :: String -> GenParser Char st String
 header h = string $ mconcat ["[", h, "]"]
 
@@ -61,6 +62,7 @@ name :: GenParser Char st String
 name = string "Name :" <|> string "Name: "
 
 
+-- parses the name section
 parseName :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseName = do
   name
@@ -74,10 +76,12 @@ parseName = do
 date :: GenParser Char st String
 date = string "Date :" <|> string "date :" <|> string "Date:" <|> string "date:"
 
+
 dateSep :: GenParser Char st Char
 dateSep = char '-' <|> char '/' <|> char '_' <|> char '\\'
 
 
+-- parses the date section
 parseDate :: forall a st. (a ~ String ) => GenParser Char st (Header a)
 parseDate = do
   date
@@ -111,9 +115,10 @@ parseMood = do
   moodIntensity <- parseIntensity
   return (userMood, moodIntensity)
 
+
 -- This function type checks but hasn't been tested yet but it's supoosed to parse all the moods
-parseMoods' :: GenParser Char st [(String,String)]
-parseMoods' = do
+parseMoods :: GenParser Char st [(String,String)]
+parseMoods = do
   mood
   eol1
   many1 parseMood <* eol1
@@ -144,35 +149,53 @@ parseSleep = do
   return $ Sleep (wakeUpTime, sleepTime)
 
 
---parses the productivity header
 -- alcohol header
 alcohol :: GenParser Char st String
 alcohol = header "Alcohol" <|> header "alcohol"
 
 
-parseAlcohol :: forall a st. GenParser Char st (Header (a,a))
-parseAlcohol = undefined
---   header
---   eol1
---   many1 (many1 alphaNum )
+-- parses the alcohol header and the data in it
+parseAlcohol :: forall a st. (a ~ String) => GenParser Char st (Header (a,a))
+parseAlcohol = do
+  alcohol
+  eol1
+  drink <- (many1 alphaNum <* spaces) <* string ":"
+  shots <- spaces *> many1 digit
+  return $ Alcohol (drink,shots)
 
+
+-- parses the cigarette header
 cigarette :: GenParser Char st String
 cigarette = header "Cigarette" <|> header "cigarette"
 
 
+-- parses the cigarette header and the data in it
 parseCigarette :: forall a st. (a ~ String) => GenParser Char st (Header (a,a,a))
-parseCigarette = undefined
+parseCigarette = do
+  cigarette
+  eol1
+  (string "Number :" <* spaces) <|> (string "number :" <* spaces)
+  number <- many1 digit
+  eol1
+  (string "Nicotine :" <* spaces) <|> (string "nicotine :" <* spaces)
+  nicotine <- many1 digit
+  (string "Tar :" <* spaces) <|> (string "tar :" <* spaces)
+  tar <- many1 digit
+  return $ Cigarette (number,nicotine,tar)
 
 
 meditation :: GenParser Char st String
 meditation = header "Meditation" <|> header "Meditation"
 
+-- parses the meditatin header and the data in it
 parseMeditation :: forall a st. (a ~ String) => GenParser Char st (Header [a])
 parseMeditation = undefined
+
 
 productivity :: GenParser Char st String
 productivity = header "Productivity" <|> header "productivity"
 
+-- parses the productivity header and the information in it
 parseProductivity :: forall a st. (a ~ String) => GenParser Char st (Header (a,a))
 parseProductivity = do
   productivity

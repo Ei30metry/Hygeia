@@ -37,7 +37,6 @@ import           Data.Singletons.Prelude.Enum
 import           Data.Singletons.Prelude.Monoid
 import           Data.Singletons.Prelude.Semigroup
 import           Data.Singletons.TH
-import           Data.Type.Equality
 import           Data.Type.Equality                (TestEquality (testEquality))
 import           Data.Typeable
 import           GHC.TypeLits
@@ -73,9 +72,6 @@ singletons [d| computeIntensity :: Intensity -> Intensity -> Intensity
 
 singletons [d| instance Semigroup Intensity where
                  x <> y = computeIntensity x y |]
-
--- singletons [d| instance Semigroup Intensity where
---                  x <> y = computeIntensity x y |]
 
 
 
