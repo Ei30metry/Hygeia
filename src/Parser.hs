@@ -21,14 +21,14 @@ import           Text.ParserCombinators.Parsec.Token
 data Header a where
   Name :: (a ~ String ) => a -> Header a
   Date :: (a ~ String) => a -> Header a
-  MoodH :: (a ~ String) => [a] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
-  Sleep :: (a ~ String) => (a,a) -> Header (a,a)-- when writting the show instance, the strings should me mconcated with a newline charecter
-  Productivity :: (a ~ String) => (a,a) -> Header (a,a)
-  Meditation :: (a ~ String) => [a] -> Header [a]
-  Alcohol :: (a ~ String) => (a,a) -> Header (a,a)
-  Cigarette :: (a ~ String) => (a,a,a) -> Header (a,a,a)
+  MoodH :: (a ~ String) => [(a,a)] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
+  Sleep :: (a ~ String) => (a,a) -> Header a-- when writting the show instance, the strings should me mconcated with a newline charecter
+  Productivity :: (a ~ String) => (a,a) -> Header a
+  Meditation :: (a ~ String) => [a] -> Header a
+  Alcohol :: (a ~ String) => (a,a) -> Header a
+  Cigarette :: (a ~ String) => (a,a,a) -> Header a
   Rating :: (a ~ String) => a -> Header a
-  AllHeaders :: (a ~ String) => a -> Header [a]
+  AllHeaders :: (a ~ String) => [Header a] -> Header a
 
 
 type WakeUp = String
@@ -65,7 +65,7 @@ header h = string $ mconcat ["[", h, "]"]
 
 -- parses the name section
 name :: GenParser Char st String
-name = string "Name :" <|> string "Name: "
+name = string "Name :"
 
 
 -- parses the name section
@@ -82,7 +82,7 @@ parseName = do
 
 -- parses the date section
 date :: GenParser Char st String
-date = string "Date :" <|> string "date :" <|> string "Date:" <|> string "date:"
+date = string "Date :" <|> string "Date:"
 
 
 dateSep :: GenParser Char st Char
@@ -102,7 +102,7 @@ parseDate = do
 -- refactor with a list function
 
 mood :: GenParser Char st String
-mood = header "Mood" <|> header "mood"
+mood = header "Mood"
 
 
 -- Parses all the mood data constructors as stirngs
@@ -128,27 +128,28 @@ parseMood = do
 
 
 -- This function type checks but hasn't been tested yet but it's supoosed to parse all the moods
-parseMoods :: GenParser Char st [(String,String)]
+parseMoods :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseMoods = do
   mood
   eol1
-  many1 parseMood <* eol1
+  l <- many1 parseMood <* eol1
+  return $ MoodH l
 
 
 -- parses all the possible Intensities
 parseIntensity :: GenParser Char st String
 parseIntensity = string "Low"
-             <|> string "Normal"
+             <|> string "Medium"
              <|> string "High"
              <|> string "Extreme"
 
 -- parses the sleep header
 sleep :: GenParser Char st String
-sleep = header "Sleep" <|> header "sleep"
+sleep = header "Sleep"
 
 
 -- parses the sleep header and it's data
-parseSleep :: forall a a' st. (a ~ WakeUp, a' ~ Sleep) => GenParser Char st (Header (a,a'))
+parseSleep :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseSleep = do
   sleep
   eol1
@@ -163,11 +164,11 @@ parseSleep = do
 
 -- alcohol header
 alcohol :: GenParser Char st String
-alcohol = header "Alcohol" <|> header "alcohol"
+alcohol = header "Alcohol"
 
 
 -- parses the alcohol header and the data in it
-parseAlcohol :: forall a st. (a ~ String) => GenParser Char st (Header (a,a))
+parseAlcohol :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseAlcohol = do
   alcohol
   eol1
@@ -179,11 +180,11 @@ parseAlcohol = do
 
 -- parses the cigarette header
 cigarette :: GenParser Char st String
-cigarette = header "Cigarette" <|> header "cigarette"
+cigarette = header "Cigarette"
 
 
 -- parses the cigarette header and the data in it
-parseCigarette :: forall a st. (a ~ String) => GenParser Char st (Header (a,a,a))
+parseCigarette :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseCigarette = do
   cigarette
   eol1
@@ -201,10 +202,10 @@ parseCigarette = do
 
 -- parses the meditation header
 meditation :: GenParser Char st String
-meditation = header "Meditation" <|> header "Meditation"
+meditation = header "Meditation"
 
 -- parses the meditatin header and the data in it
-parseMeditations :: forall a st. (a ~ String) => GenParser Char st (Header [a])
+parseMeditations :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseMeditations = do
   meditation
   eol1
@@ -214,10 +215,10 @@ parseMeditations = do
 
 
 productivity :: GenParser Char st String
-productivity = header "Productivity" <|> header "productivity"
+productivity = header "Productivity"
 
 -- parses the productivity header and the information in it
-parseProductivity :: forall a st. (a ~ String) => GenParser Char st (Header (a,a))
+parseProductivity :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseProductivity = do
   productivity
   eol1
@@ -229,7 +230,7 @@ parseProductivity = do
 
 -- parses the rating header
 rating :: GenParser Char st String
-rating = header "Rating" <|> header "rating"
+rating = header "Rating"
 
 
 -- convRating :: GenParser Char st String -> Header a
@@ -252,16 +253,16 @@ parseRating = do
   return $ Rating prsd
 
 
--- parses the Entry written by the user
--- parseEntry' :: forall a st. (a ~ String) => GenParser Char st (Header [a])
--- parseEntry' = do
---   n <- parseName
---   d <- parseDate
---   m <- parseMoods
---   s <- parseSleep
---   al <- parseAlcohol
---   me <- parseMeditations
---   c <- parseCigarette
---   p <- parseProductivity
---   r <- parseRating
---   return $ AllHeaders [n,d,m,s,al,me,c,p,r]
+--parses the Entry written by the user
+parseEntry :: forall a st. (a ~ String) => GenParser Char st (Header a)
+parseEntry = do
+  n <- parseName
+  d <- parseDate
+  m <- parseMoods
+  s <- parseSleep
+  al <- parseAlcohol
+  me <- parseMeditations
+  c <- parseCigarette
+  p <- parseProductivity
+  r <- parseRating
+  return $ AllHeaders [n,d,m,s,al,me,c,p,r]

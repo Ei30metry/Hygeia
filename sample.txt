@@ -11,8 +11,8 @@ Neutral : Medium
 
 [Sleep]
 
-wake up : 6:30
-sleep : 00
+Wake up : 06:30
+Sleep : 00:00
 
 [Alcohol]
 

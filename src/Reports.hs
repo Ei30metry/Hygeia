@@ -15,5 +15,5 @@ import           Parser
 
 
 -- takes
-report :: [Header a] -> String
+report :: [Header a] -> [String]
 report = map show
