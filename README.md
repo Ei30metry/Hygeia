@@ -82,7 +82,7 @@ Meditatin entries:
     
 Alcohol entries:
  - _Alcohol entries are completed by writing the name of the drink followed by 
-    a colon and the amount of shots drinked  _
+    a colon and the amount of shots drinked_
     
 Cigarette entries: 
  - _Cigarette entries are written by writtin the numer of cigarettes smoked and the amount of nicotine and tar 

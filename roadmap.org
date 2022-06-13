@@ -42,18 +42,16 @@
 
 * TODO Refactor
 
-** Computation [0/3]
+** Computation [3/3]
 
-+ [ ] Generate template by using the Enum instnace
-+ [ ] Replace every type level function you've written with the ones that come in the singletons package
-+ [ ] Replace your hand written Type-level functions with the ones provided by Singletons.Prelude.Ord
 
 ** Daemon [/]
 
-** Parser [0/3]
+** Parser [0/4]
 + [ ] Rewrite date with spaces and <* binary operator
 + [ ] Rewrite parseSleep with a way to parse every possible "wake up :". for example "Wake up:"
 + [ ] Apply hlint and refactor all of the things that come up with hlint's suggestions
++ [ ] Rewrite the show instance for the Header type in order to use it for generating reports
 
 ** CLI [/]
 

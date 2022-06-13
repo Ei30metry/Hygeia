@@ -32,6 +32,7 @@ library
       Email
       Notification
       Parser
+      Reports
       Template
   other-modules:
       Paths_Hygeia
