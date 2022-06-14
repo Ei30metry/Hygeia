@@ -11,6 +11,7 @@
 
 module Parser where
 
+import           Config                              (Config (emailReportFrequency, optionalHeaders))
 import qualified Data.Text                           as T
 import qualified Data.Text.IO                        as TIO
 import           Text.ParserCombinators.Parsec
@@ -97,6 +98,7 @@ parseDate = do
   userDate <- many1 (alphaNum <|> dateSep)
   eol1
   return $ Date userDate
+
 
 -- parses the mood
 -- refactor with a list function
@@ -266,3 +268,68 @@ parseEntry = do
   p <- parseProductivity
   r <- parseRating
   return $ AllHeaders [n,d,m,s,al,me,c,p,r]
+
+
+-- parses the info section of user's config file
+parseInfo :: GenParser Char st [String]
+parseInfo = do
+  string "Info :"
+  eol1
+  spaces
+  string "name =" <* spaces
+  name <- many1 alphaNum
+  spaces
+  lName <- many1 alphaNum
+  eol1 >> spaces
+  string "email =" <* spaces
+  email <- many1 (alphaNum <|> char '.' <|> char '@')
+  eol1
+  return [name,lName,email]
+
+-- parses the daemon section of user's config file
+parseDaemon :: GenParser Char st String
+parseDaemon = do
+  string "Daemon :"
+  eol1
+  spaces
+  string "run_daemon" >> spaces >> char '=' >> spaces
+  value <- string "True" <|> string "False"
+  return value
+
+parseOptionalHeaders :: GenParser Char st [String]
+parseOptionalHeaders = do
+  string "optional_headers ="
+  spaces
+  sepBy (string "Meditation" <|> string "Alcohol" <|> string "Cigarette") (string " - " <|> string "-") :: GenParser Char st [String]
+
+
+-- parses the template section of user's config file
+parseTemplate :: GenParser Char st (String,[String])
+parseTemplate = do
+  string "Template :"
+  eol1
+  spaces
+  generateTemplate <- (string "generate_template =" >> spaces) *> (string "True" <|> string "False")
+  eol1
+  spaces
+  optionalHeaders <- parseOptionalHeaders
+  return (generateTemplate,optionalHeaders)
+
+
+-- parses the report section of user's config file
+parseReport :: GenParser Char st [String]
+parseReport = do
+  string "Report :"
+  eol1
+  spaces
+  string "email_report ="
+  spaces
+  emailReport <- string "True" <|> string "False"
+  eol1
+  spaces
+  string "email_report_frequency ="
+  spaces
+  emailReportFrequencyN <- many1 digit
+  spaces
+  emailReportFrequencyD <- string "Month" <|> string "Week" <|> string "Year"
+  return [emailReport,emailReportFrequencyN,emailReportFrequencyD]

@@ -6,7 +6,6 @@
 module Config where
 
 import           Data.Time
-import           Parser
 
 -- existential type to work on
 data Freq where
