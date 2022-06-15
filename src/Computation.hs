@@ -35,7 +35,7 @@ import           Data.Singletons.Prelude.Enum
 import           Data.Singletons.Prelude.Monoid
 import           Data.Singletons.Prelude.Semigroup
 import           Data.Singletons.TH
-import           Data.Time
+import qualified Data.Time                         as T
 import           Data.Type.Equality                (TestEquality (testEquality))
 import           GHC.Base                          (Double)
 import           GHC.TypeLits
@@ -112,12 +112,66 @@ data HList (ts :: [Type]) where
 -- parseResult = undefined
 
 
+-- type synonyms for more descriptive type signatures
 type Name = String
 
 type HeaderToComp b = forall a. (a ~ String ) => P.Header a -> b
 
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int }
+
+newtype Hour = H Int deriving Read
+
+newtype Minute = M Int deriving Read
+
+newtype Year = Y Int deriving Read
+
+newtype Month = Mo Int deriving Read
+
+newtype Day = D Int deriving Read
+
+
+instance Bounded Hour where
+  minBound = H 0
+  maxBound = H 24
+
+
+instance Bounded Minute where
+  minBound = M 0
+  maxBound = M 60
+
+newtype Sleep = Sleep (Hour,Minute) deriving Read
+
+
+instance Show Minute where
+  show (M a) = show a
+
+instance Show Hour where
+  show (H a) = show a
+
+
+data Date = Date { year  :: Year
+                 , month :: Month
+                 , day   :: Day }
+
+
+instance Bounded Month where
+  minBound = Mo 1
+  maxBound = Mo 12
+
+
+instance Bounded Day where
+  minBound = D 1
+  maxBound = D 30
+
+
+instance Show Sleep where
+  show (Sleep (H a, M b)) | a < 10 && b < 10 = mconcat ["0",show a,":", "0",show b]
+                          | a < 10 = mconcat ["0",show a,":",show b]
+                          | b < 10 = mconcat [show a,":","0",show b]
+                          | otherwise = mconcat [show a,":",show b]
+
+
 
 type Meditation = [String]
 
@@ -132,7 +186,7 @@ nameHtoName :: HeaderToComp Name
 nameHtoName (P.Name a) = a :: Name
 
 
-dateHtoTime :: HeaderToComp a
+dateHtoTime :: HeaderToComp Date
 dateHtoTime = undefined
 
 
@@ -144,8 +198,13 @@ moodHtoMoodReport :: HeaderToComp [MoodReport]
 moodHtoMoodReport (P.MoodH a) = map moodHtoMoodReport' a
 
 
-sleepHtoSleep :: HeaderToComp (a,a)
-sleepHtoSleep = undefined
+sleepHtoSleep :: HeaderToComp Sleep
+--sleepHtoSleep (P.Sleep (a,b)) = Sleep (H (read a :: Hour), M (read b :: Minute))
+sleepHtoSleep (P.Sleep (a,b)) = Sleep (H $ read a :: Hour, M $ read b :: Minute)
+
+
+-- mediatationHtoMediation' :: HeaderToComp Meditation
+-- mediatationHtoMediation'
 
 
 mediatationHtoMediation :: HeaderToComp Meditation
@@ -157,7 +216,7 @@ productivityHtoProductivity (P.Productivity (a,b)) = (read a, read b)
 
 
 alcoholHtoAlcohol :: HeaderToComp Alcohol
-alcoholHtoAlcohol = undefined
+alcoholHtoAlcohol (P.Alcohol (a,b)) = Alcohol (read a) (read b)
 
 
 cigaretteHtoCigratte :: HeaderToComp Cigarette
