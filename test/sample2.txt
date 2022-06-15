@@ -1,0 +1,36 @@
+Name : Hoorsa Something
+Date : 2022-06-23
+
+[Mood]
+
+Angry : Extreme
+Sad : Extreme
+Neutral : Medium
+Sad : High
+
+[Sleep]
+
+Wake up : 05:45
+Sleep : 23:00
+
+[Alcohol]
+
+Aragh : 4
+
+[Meditation]
+
+22:00
+
+[Cigarette]
+
+Number : 23
+Nicotine : 0.1
+Tar : 0.1
+
+[Productivity]
+
+7/10
+
+[Rating]
+
+Normal

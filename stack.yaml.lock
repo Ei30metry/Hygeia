@@ -51,10 +51,10 @@ packages:
   original:
     hackage: clock-0.8.3
 - completed:
-    hackage: foldl-1.4.12@sha256:860dacd697f715023e21a94d5f46f5639f386530ce141f91348565ec6533f43d,2668
+    hackage: foldl-1.4.12@sha256:5978eb44a494b2778b8dca89f8af8a502aa090df223f030f1732d78911b632f6,2668
     pantry-tree:
       size: 959
-      sha256: 06c323172e93cd9b1f67eb8989cdb6e6d7b8d153a1749e8fad28ac25340d25ba
+      sha256: eb24ef4a2e6db32252a3767054853210f810f19dc5b878c2068c563dafcbeaee
   original:
     hackage: foldl-1.4.12
 - completed:
@@ -114,10 +114,10 @@ packages:
   original:
     hackage: transformers-compat-0.7.1
 - completed:
-    hackage: unix-compat-0.5.4@sha256:51125a20ae3e521932315f2ebe3b7621258b16af622c305dfc3a0355e99df5d8,1987
+    hackage: unix-compat-0.5.4@sha256:d5eec003bc321119a8590cea8715fdecaac6d7268785a828e38beb7d6eb84c6c,2075
     pantry-tree:
       size: 1044
-      sha256: 7ec9396abc19f19514132e250eaeda541c5c9ffb5b7cd111d9a60592213b78be
+      sha256: 0a16cd43d020ce92e30e1e3077700294576cd2ab1b77e20ecfe2413499451b80
   original:
     hackage: unix-compat-0.5.4
 - completed:

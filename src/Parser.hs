@@ -242,7 +242,7 @@ rating = header "Rating"
 parseRating' :: GenParser Char st String
 parseRating' = string "Great"
            <|> string "Good"
-           <|> string "Neutral"
+           <|> string "Normal"
            <|> string "Bad"
            <|> string "Awful"
 
