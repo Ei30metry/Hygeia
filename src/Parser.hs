@@ -11,7 +11,6 @@
 
 module Parser where
 
-import           Config                              (Config (emailReportFrequency, optionalHeaders))
 import qualified Data.Text                           as T
 import qualified Data.Text.IO                        as TIO
 import           Text.ParserCombinators.Parsec

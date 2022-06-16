@@ -1,30 +1,34 @@
-{-# LANGUAGE AllowAmbiguousTypes      #-}
-{-# LANGUAGE DataKinds                #-}
-{-# LANGUAGE EmptyCase                #-}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE GADTs                    #-}
-{-# LANGUAGE InstanceSigs             #-}
-{-# LANGUAGE KindSignatures           #-}
-{-# LANGUAGE NoStarIsType             #-}
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE PolyKinds                #-}
-{-# LANGUAGE QuantifiedConstraints    #-}
-{-# LANGUAGE RoleAnnotations          #-}
-{-# LANGUAGE ScopedTypeVariables      #-}
-{-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TemplateHaskell          #-}
-{-# LANGUAGE TypeApplications         #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeInType               #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE AllowAmbiguousTypes        #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE EmptyCase                  #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs               #-}
+{-# LANGUAGE KindSignatures             #-}
+{-# LANGUAGE NoStarIsType               #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE PolyKinds                  #-}
+{-# LANGUAGE QuantifiedConstraints      #-}
+{-# LANGUAGE RoleAnnotations            #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE StandaloneKindSignatures   #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeInType                 #-}
+{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
 
 module Computation where
 
 
+import           Control.Monad
+import           Control.Monad.Trans
 import           Data.Coerce
+import           Data.Functor
 import           Data.Kind                         (Constraint, Type)
 import           Data.List
 import           Data.Monoid
@@ -38,7 +42,6 @@ import           Data.Singletons.TH
 import qualified Data.Time                         as T
 import           Data.Type.Equality                (TestEquality (testEquality))
 import           GHC.Base                          (Double)
-import           GHC.TypeLits
 import qualified Parser                            as P
 
 
@@ -56,7 +59,7 @@ singletons [d| data Intensity = None
                               | Low
                               | Medium
                               | High
-                              | Extreme deriving (Show, Read, Eq, Ord, Enum) |]
+                              | Extreme deriving (Show, Read, Eq, Ord, Enum,Bounded) |]
 
 -- using newtype to be able to coerce
 singletons [d| newtype MoodReport = MR (Mood, Intensity) deriving Show |]
@@ -85,7 +88,7 @@ data Rating = Awful
             | Bad
             | Normal
             | Good
-            | Great deriving (Show, Eq, Ord, Enum, Read)
+            | Great deriving (Show, Eq, Ord, Enum, Read,Bounded)
 
 
 
@@ -120,15 +123,15 @@ type HeaderToComp b = forall a. (a ~ String ) => P.Header a -> b
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int }
 
-newtype Hour = H Int deriving Read
+newtype Hour = H Int deriving (Read,Enum)
 
-newtype Minute = M Int deriving Read
+newtype Minute = M Int deriving (Read,Enum)
 
-newtype Year = Y Int deriving Read
+newtype Year = Y Int deriving (Read,Enum)
 
-newtype Month = Mo Int deriving Read
+newtype Month = Mo Int deriving (Read,Enum)
 
-newtype Day = D Int deriving Read
+newtype Day = D Int deriving (Read,Enum)
 
 
 instance Bounded Hour where
@@ -140,11 +143,13 @@ instance Bounded Minute where
   minBound = M 0
   maxBound = M 60
 
+
 newtype Sleep = Sleep (Hour,Minute) deriving Read
 
 
 instance Show Minute where
   show (M a) = show a
+
 
 instance Show Hour where
   show (H a) = show a
@@ -225,7 +230,6 @@ cigaretteHtoCigratte (P.Cigarette (a,b,c)) = Cigarette (read a) (read b) (read c
 
 ratingHtoRating :: HeaderToComp Rating
 ratingHtoRating (P.Rating a) = read a :: Rating
-
 
 
 someFunc :: IO ()
