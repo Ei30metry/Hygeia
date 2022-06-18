@@ -50,6 +50,10 @@ dependencies:
 - mime-mail
 - smtp-mail
 - singletons >= 2.7
+- process
+- unix
+- mtl
+- transformers
 
 library:
   source-dirs: src

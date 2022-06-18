@@ -37,7 +37,7 @@ data Header a where
 type WakeUp = String
 type Sleep = String
 
--- parsing floating numbers as strings
+
 stringFloat :: GenParser Char st Char
 stringFloat = digit <|> char '.'
 
@@ -110,6 +110,7 @@ parseDate = do
   month <- many1 alphaNum
   dateSep
   day <- many1 alphaNum
+  eol1
   return $ DateH (year,month,day)
 
 -- parses the mood
@@ -147,9 +148,9 @@ parseMoods = do
   mood
   eol1
   l <- many1 parseMood <* eol1
-  return $ MoodH l
+  return $ MoodH $ sortOn fst l
+  --return $ MoodH $ sortOn fst l
 
--- TODO sort on moods before returning
 
 -- parses all the possible Intensities
 parseIntensity :: GenParser Char st String

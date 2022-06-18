@@ -47,7 +47,7 @@ instance Show TemplateHeaders where
 
 -- generates templates for user to fill in
 generateTemplate :: IO ()
-generateTemplate = do
+generateTemplate = undefined --do
   -- date <- DateT <$> TI.getCurrentTime
   -- configFile <- readFile "~/.config/Hygeia/config"
   -- name <- NameT <$> parse P.parseInfo "couldn't parse name" configFile
