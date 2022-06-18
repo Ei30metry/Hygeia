@@ -11,23 +11,25 @@
 
 module Parser where
 
+import           Data.List
 import qualified Data.Text                           as T
 import qualified Data.Text.IO                        as TIO
+import           Text.Parsec                         (alphaNum)
 import           Text.ParserCombinators.Parsec
 import           Text.ParserCombinators.Parsec.Token
 
 
 --- Not sure about the types, more considering is required
 data Header a where
-  Name :: (a ~ String ) => a -> Header a
-  Date :: (a ~ String) => a -> Header a
+  NameH :: (a ~ String ) => a -> Header a
+  DateH :: (a ~ String) => (a,a,a) -> Header a
   MoodH :: (a ~ String) => [(a,a)] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
-  Sleep :: (a ~ String) => (a,a) -> Header a-- when writting the show instance, the strings should me mconcated with a newline charecter
-  Productivity :: (a ~ String) => (a,a) -> Header a
-  Meditation :: (a ~ String) => [a] -> Header a
-  Alcohol :: (a ~ String) => (a,a) -> Header a
-  Cigarette :: (a ~ String) => (a,a,a) -> Header a
-  Rating :: (a ~ String) => a -> Header a
+  SleepH :: (a ~ String) => (a,a) -> Header a-- when writting the show instance, the strings should me mconcated with a newline charecter
+  ProductivityH :: (a ~ String) => (a,a) -> Header a
+  MeditationH :: (a ~ String) => [a] -> Header a
+  AlcoholH :: (a ~ String) => (a,a) -> Header a
+  CigaretteH :: (a ~ String) => (a,a,a) -> Header a
+  RatingH :: (a ~ String) => a -> Header a
   AllHeaders :: (a ~ String) => [Header a] -> Header a
 
 
@@ -40,16 +42,16 @@ stringFloat :: GenParser Char st Char
 stringFloat = digit <|> char '.'
 
 instance Show (Header a) where
-  show (Name a)         = show a
-  show (Date a)         = show a
-  show (MoodH a)        = show a
-  show (Sleep a)        = show a
-  show (Productivity a) = show a
-  show (Meditation a)   = show a
-  show (Alcohol a)      = show a
-  show (Cigarette a)    = show a
-  show (Rating a)       = show a
-  show (AllHeaders a)   = show a
+  show (NameH a)         = show a
+  show (DateH a)         = show a
+  show (MoodH a)         = show a
+  show (SleepH a)        = show a
+  show (ProductivityH a) = show a
+  show (MeditationH a)   = show a
+  show (AlcoholH a)      = show a
+  show (CigaretteH a)    = show a
+  show (RatingH a)       = show a
+  show (AllHeaders a)    = show a
 
 
 -- parses '\n' charecters
@@ -78,7 +80,7 @@ parseName = do
   spaces
   userLName <- many1 alphaNum
   eol1
-  return $ Name (userName ++ " " ++  userLName)
+  return $ NameH (userName ++ " " ++  userLName)
 
 
 -- parses the date section
@@ -91,14 +93,24 @@ dateSep = char '-' <|> char '/' <|> char '_' <|> char '\\'
 
 
 -- parses the date section
-parseDate :: forall a st. (a ~ String ) => GenParser Char st (Header a)
+-- parseDate :: forall a st. (a ~ String ) => GenParser Char st (Header a)
+-- parseDate = do
+--   date
+--   spaces
+--   userDate <- many1 (alphaNum <|> dateSep)
+--   eol1
+--   return $ Date userDate
+
+parseDate :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseDate = do
   date
   spaces
-  userDate <- many1 (alphaNum <|> dateSep)
-  eol1
-  return $ Date userDate
-
+  year <- many1 alphaNum
+  dateSep
+  month <- many1 alphaNum
+  dateSep
+  day <- many1 alphaNum
+  return $ DateH (year,month,day)
 
 -- parses the mood
 -- refactor with a list function
@@ -137,6 +149,7 @@ parseMoods = do
   l <- many1 parseMood <* eol1
   return $ MoodH l
 
+-- TODO sort on moods before returning
 
 -- parses all the possible Intensities
 parseIntensity :: GenParser Char st String
@@ -161,7 +174,7 @@ parseSleep = do
   (string "Sleep :" <* spaces) <|> (string "sleep :" <* spaces)
   sleepTime <- time
   eol1
-  return $ Sleep (wakeUpTime, sleepTime)
+  return $ SleepH (wakeUpTime, sleepTime)
 
 
 -- alcohol header
@@ -177,7 +190,7 @@ parseAlcohol = do
   drink <- (many1 alphaNum <* spaces) <* string ":"
   shots <- spaces *> many1 digit
   eol1
-  return $ Alcohol (drink,shots)
+  return $ AlcoholH (drink,shots)
 
 
 -- parses the cigarette header
@@ -199,7 +212,7 @@ parseCigarette = do
   (string "Tar :" <* spaces) <|> (string "tar :" <* spaces)
   tar <- many1 stringFloat
   eol1
-  return $ Cigarette (number,nicotine,tar)
+  return $ CigaretteH (number,nicotine,tar)
 
 
 -- parses the meditation header
@@ -213,7 +226,7 @@ parseMeditations = do
   eol1
   meditations <- many1 (many1 (digit <|> char ':') <* eol1)
   eol1
-  return $ Meditation meditations
+  return $ MeditationH meditations
 
 
 productivity :: GenParser Char st String
@@ -227,7 +240,7 @@ parseProductivity = do
   done <- many1 digit <* char '/'
   shouldHave <- many1 digit
   eol1
-  return $ Productivity (done,shouldHave)
+  return $ ProductivityH (done,shouldHave)
 
 
 -- parses the rating header
@@ -252,7 +265,7 @@ parseRating = do
   rating
   eol1
   prsd <- parseRating'
-  return $ Rating prsd
+  return $ RatingH prsd
 
 
 --parses the Entry written by the user
@@ -295,6 +308,7 @@ parseDaemon = do
   string "run_daemon" >> spaces >> char '=' >> spaces
   value <- string "True" <|> string "False"
   return value
+
 
 parseOptionalHeaders :: GenParser Char st [String]
 parseOptionalHeaders = do

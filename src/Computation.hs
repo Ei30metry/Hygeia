@@ -40,6 +40,7 @@ import           Data.Singletons.Prelude.Monoid
 import           Data.Singletons.Prelude.Semigroup
 import           Data.Singletons.TH
 import qualified Data.Time                         as T
+import qualified Data.Time                         as TI
 import           Data.Type.Equality                (TestEquality (testEquality))
 import           GHC.Base                          (Double)
 import qualified Parser                            as P
@@ -89,7 +90,6 @@ data Rating = Awful
             | Normal
             | Good
             | Great deriving (Show, Eq, Ord, Enum, Read,Bounded)
-
 
 
 -- this function will only work if our SMoods are the same
@@ -144,6 +144,15 @@ instance Bounded Minute where
   maxBound = M 60
 
 
+instance Show Year where
+  show (Y a) = show a
+
+instance Show Month where
+  show (Mo a) = show a
+
+instance Show Day where
+  show (D a) = show a
+
 newtype Sleep = Sleep (Hour,Minute) deriving Read
 
 
@@ -159,6 +168,10 @@ data Date = Date { year  :: Year
                  , month :: Month
                  , day   :: Day }
 
+instance Show Date where
+  show (Date a b c) = mconcat [show a,"-",show b, "-", show c]
+
+-- type Date = TI.UTCTime
 
 instance Bounded Month where
   minBound = Mo 1
@@ -178,58 +191,70 @@ instance Show Sleep where
 
 
 
-type Meditation = [String]
+newtype Meditation = Med [String]
 
-type Productivity = (Int,Int)
+newtype Productivity = Pro (Int,Int)
+
+
+instance Show Meditation where
+  show (Med a) = show a
+
+
+instance Show Productivity where
+  show (Pro a) = show a
+
 
 data Cigarette = Cigarette { number   :: Double
                            , nitocone :: Double
                            , tar      :: Double } deriving Eq
 
 
+-- parses the Name header type into the Name data type in order to compute
 nameHtoName :: HeaderToComp Name
-nameHtoName (P.Name a) = a :: Name
+nameHtoName (P.NameH a) = a :: Name
 
+-- parses the Date header type into the Date data type in order to compute
+dateHtoDate :: HeaderToComp Date
+dateHtoDate (P.DateH (a,b,c)) = Date (Y $ read a) (Mo $ read b) (D $ read c)
 
-dateHtoTime :: HeaderToComp Date
-dateHtoTime = undefined
-
-
+-- helper function in order to convert tuple to MoodReport
 moodHtoMoodReport' :: (String,String) -> MoodReport
 moodHtoMoodReport' (a,b) = MR (read a :: Mood, read b :: Intensity)
 
-
+-- parses the Name header type into the Name data type in order to compute
 moodHtoMoodReport :: HeaderToComp [MoodReport]
 moodHtoMoodReport (P.MoodH a) = map moodHtoMoodReport' a
 
 
+-- parses the Sleep header type into the Sleep data type in order to compute
 sleepHtoSleep :: HeaderToComp Sleep
---sleepHtoSleep (P.Sleep (a,b)) = Sleep (H (read a :: Hour), M (read b :: Minute))
-sleepHtoSleep (P.Sleep (a,b)) = Sleep (H $ read a :: Hour, M $ read b :: Minute)
+sleepHtoSleep (P.SleepH (a,b)) = Sleep (H $ read a :: Hour, M $ read b :: Minute)
 
 
--- mediatationHtoMediation' :: HeaderToComp Meditation
--- mediatationHtoMediation'
-
-
+-- parses the Meditation header type into the Meditation data type in order to compute
 mediatationHtoMediation :: HeaderToComp Meditation
-mediatationHtoMediation = undefined
+mediatationHtoMediation (P.MeditationH a) = Med a
 
 
+-- parses the Productivity header type into the Productivity data type in order to compute
 productivityHtoProductivity :: HeaderToComp Productivity
-productivityHtoProductivity (P.Productivity (a,b)) = (read a, read b)
+productivityHtoProductivity (P.ProductivityH (a,b)) = Pro (read a, read b)
 
 
+-- parses the Alcohol header type into the Alcohol data type in order to compute
 alcoholHtoAlcohol :: HeaderToComp Alcohol
-alcoholHtoAlcohol (P.Alcohol (a,b)) = Alcohol (read a) (read b)
+alcoholHtoAlcohol (P.AlcoholH (a,b)) = Alcohol (read a) (read b)
 
 
+-- parses the Cigarette header type into the Cigarette data type in order to compute
 cigaretteHtoCigratte :: HeaderToComp Cigarette
-cigaretteHtoCigratte (P.Cigarette (a,b,c)) = Cigarette (read a) (read b) (read c)
+cigaretteHtoCigratte (P.CigaretteH (a,b,c)) = Cigarette (read a) (read b) (read c)
 
 
+-- parses the Rating header type into the Rating data type in order to compute
 ratingHtoRating :: HeaderToComp Rating
-ratingHtoRating (P.Rating a) = read a :: Rating
+ratingHtoRating (P.RatingH a) = read a :: Rating
+
 
 
 someFunc :: IO ()
