@@ -1,17 +1,16 @@
-module Parser where
+module Parser.Input where
+
 
 import           Data.List                           ( sortOn )
 import           Data.Singletons.Base.TH             ( singletons )
-import qualified Data.Text                           as T
-import qualified Data.Text.IO                        as TIO
 
 import           Text.Parsec                         ( alphaNum )
 import           Text.ParserCombinators.Parsec       ( GenParser, alphaNum,
                                                        char, choice, digit,
                                                        many, many1, sepBy,
                                                        spaces, string, (<|>) )
-import           Text.ParserCombinators.Parsec.Token
 
+import Text.Parsec.Char (newline)
 
 singletons [d| data Header a where
                  NameH :: a -> Header a
@@ -30,7 +29,7 @@ stringFloat :: GenParser Char st Char
 stringFloat = digit <|> char '.'
 
 
-instance (Show a ) => Show (Header a) where
+instance (Show a) => Show (Header a) where
   show (NameH a)         = show a
   show (DateH a)         = show a
   show (MoodH a)         = show a
@@ -43,8 +42,8 @@ instance (Show a ) => Show (Header a) where
   show (AllHeaders a)    = show a
 
 -- parses '\n' charecters
-eol1 :: GenParser Char st String
-eol1 = many (char '\n')
+-- many newline :: GenParser Char st String
+-- many newline = many (char '\n')
 
 -- parses time in format of HH:MM
 time :: GenParser Char st String
@@ -66,7 +65,7 @@ parseName = do
   userName <- many1 alphaNum
   spaces
   userLName <- many1 alphaNum
-  eol1
+  many newline
   return $ NameH (userName ++ " " ++  userLName)
 
 
@@ -85,7 +84,7 @@ dateSep = char '-' <|> char '/' <|> char '_' <|> char '\\'
 --   date
 --   spaces
 --   userDate <- many1 (alphaNum <|> dateSep)
---   eol1
+--   many newline
 --   return $ Date userDate
 
 parseDate :: forall a st. (a ~ String) => GenParser Char st (Header a)
@@ -97,7 +96,7 @@ parseDate = do
   month <- many1 alphaNum
   dateSep
   day <- many1 alphaNum
-  eol1
+  many newline
   return $ DateH (year,month,day)
 
 -- parses the mood
@@ -121,16 +120,16 @@ parseMood = do
   char ':'
   spaces
   moodIntensity <- parseIntensity
-  eol1
+  many newline
   return (userMood, moodIntensity)
 
 
--- This function type checks but hasn't been tested yet but it's supoosed to parse all the moods
+
 parseMoods :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseMoods = do
   mood
-  eol1
-  l <- many1 parseMood <* eol1
+  many newline
+  l <- many1 parseMood <* many newline
   return $ MoodH $ sortOn fst l
 
 
@@ -148,13 +147,13 @@ sleep = header "Sleep"
 parseSleep :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseSleep = do
   sleep
-  eol1
+  many newline
   (string "Wake up :" <* spaces) <|> (string "wake up :" <* spaces)
   wakeUpTime <- time
-  eol1
+  many newline
   (string "Sleep :" <* spaces) <|> (string "sleep :" <* spaces)
   sleepTime <- time
-  eol1
+  many newline
   return $ SleepH (wakeUpTime, sleepTime)
 
 
@@ -167,10 +166,10 @@ alcohol = header "Alcohol"
 parseAlcohol :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseAlcohol = do
   alcohol
-  eol1
+  many newline
   drink <- (many1 alphaNum <* spaces) <* string ":"
   shots <- spaces *> many1 digit
-  eol1
+  many newline
   return $ AlcoholH (drink,shots)
 
 
@@ -183,16 +182,16 @@ cigarette = header "Cigarette"
 parseCigarette :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseCigarette = do
   cigarette
-  eol1
+  many newline
   (string "Number :" <* spaces) <|> (string "number :" <* spaces)
   number <- many1 digit
-  eol1
+  many newline
   (string "Nicotine :" <* spaces) <|> (string "nicotine :" <* spaces)
   nicotine <- many1 stringFloat
-  eol1
+  many newline
   (string "Tar :" <* spaces) <|> (string "tar :" <* spaces)
   tar <- many1 stringFloat
-  eol1
+  many newline
   return $ CigaretteH (number,nicotine,tar)
 
 
@@ -204,9 +203,9 @@ meditation = header "Meditation"
 parseMeditations :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseMeditations = do
   meditation
-  eol1
-  meditations <- many1 (many1 (digit <|> char ':') <* eol1)
-  eol1
+  many newline
+  meditations <- many1 (many1 (digit <|> char ':') <* many newline)
+  many newline
   return $ MeditationH meditations
 
 
@@ -217,10 +216,10 @@ productivity = header "Productivity"
 parseProductivity :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseProductivity = do
   productivity
-  eol1
+  many newline
   done <- many1 digit <* char '/'
   shouldHave <- many1 digit
-  eol1
+  many newline
   return $ ProductivityH (done,shouldHave)
 
 
@@ -241,7 +240,7 @@ parseRating' = choice $ map string ["Great", "Good", "Normal", "Bad", "Awful"]
 parseRating :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseRating = do
   rating
-  eol1
+  many newline
   prsd <- parseRating'
   return $ RatingH prsd
 
@@ -259,69 +258,3 @@ parseEntry = do
   p <- parseProductivity
   r <- parseRating
   return $ AllHeaders [n,d,m,s,al,me,c,p,r]
-
-
--- parses the info section of user's config file
-parseInfo :: GenParser Char st [String]
-parseInfo = do
-  string "Info :"
-  eol1
-  spaces
-  string "name =" <* spaces
-  name <- many1 alphaNum
-  spaces
-  lName <- many1 alphaNum
-  eol1 >> spaces
-  string "email =" <* spaces
-  email <- many1 (alphaNum <|> char '.' <|> char '@')
-  eol1
-  return [name,lName,email]
-
--- parses the daemon section of user's config file
-parseDaemon :: GenParser Char st String
-parseDaemon = do
-  string "Daemon :"
-  eol1
-  spaces
-  string "run_daemon" >> spaces >> char '=' >> spaces
-  value <- string "True" <|> string "False"
-  return value
-
-
-parseOptionalHeaders :: GenParser Char st [String]
-parseOptionalHeaders = do
-  string "optional_headers ="
-  spaces
-  sepBy (choice $ map string ["Meditation", "Alcohol", "Cigarette"]) (string " - " <|> string "-")
-
-
--- parses the template section of user's config file
-parseTemplate :: GenParser Char st (String,[String])
-parseTemplate = do
-  string "Template :"
-  eol1
-  spaces
-  generateTemplate <- (string "generate_template =" >> spaces) *> (string "True" <|> string "False")
-  eol1
-  spaces
-  optionalHeaders <- parseOptionalHeaders
-  return (generateTemplate,optionalHeaders)
-
-
--- parses the report section of user's config file
-parseReport :: GenParser Char st [String]
-parseReport = do
-  string "Report :"
-  eol1
-  spaces
-  string "email_report ="
-  spaces
-  emailReport <- string "True" <|> string "False"
-  eol1
-  spaces
-  string "email_report_frequency ="
-  spaces
-  emailReportFrequencyN <- many1 digit
-  spaces
-  emailReportFrequencyD <- choice $ map string ["Month", "Week", "Year"]
-  return [emailReport,emailReportFrequencyN,emailReportFrequencyD]

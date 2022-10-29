@@ -1,4 +1,4 @@
-module Daemon where
+module Configuration.Daemon where
 
 import           System.Environment
 import           System.IO

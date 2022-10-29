@@ -1,6 +1,6 @@
-module Template where
+module Report.Template where
 
-import qualified Config                        as C
+import qualified Configuration.Config                        as C
 
 import           Control.Monad.Trans.Cont
 
@@ -9,7 +9,7 @@ import qualified Data.Text                     as T
 import qualified Data.Text.IO                  as TIO
 import qualified Data.Time                     as TI
 
-import qualified Parser                        as P
+import qualified Parser.Input                        as P
 
 import           System.Environment
 import           System.IO

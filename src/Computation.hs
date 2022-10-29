@@ -22,7 +22,7 @@ import           Data.Type.Equality        ( TestEquality (testEquality) )
 
 import           GHC.Base                  ( Double )
 
-import qualified Parser                    as P
+import qualified Parser.Input                    as P
 
 
 -- a Type representing one's mood with it's singleton definitions

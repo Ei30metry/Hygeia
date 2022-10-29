@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 
-module Config(Config(..)) where
+module Configuration.Config(Config(..)) where
 
 import           Data.Time
 

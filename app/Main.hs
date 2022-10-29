@@ -1,7 +1,7 @@
 module Main where
 
 import           Computation
-import           Parser
+import           Parser.Input
 import           System.Environment
 import           System.IO
 import           Text.ParserCombinators.Parsec

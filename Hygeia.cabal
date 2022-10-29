@@ -27,13 +27,14 @@ library
   exposed-modules:
       CLI
       Computation
-      Config
-      Daemon
-      Email
-      Notification
-      Parser
-      Reports
-      Template
+      Configuration.Config
+      Configuration.Daemon
+      Parser.ConfigFile
+      Parser.Input
+      Report.Email
+      Report.Notification
+      Report.PrettyPrint
+      Report.Template
   other-modules:
       Paths_Hygeia
   hs-source-dirs:
