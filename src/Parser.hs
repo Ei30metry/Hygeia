@@ -1,47 +1,36 @@
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE InstanceSigs           #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE PolyKinds              #-}
-{-# LANGUAGE ScopedTypeVariables    #-}
-{-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeFamilyDependencies #-}
-{-# LANGUAGE TypeOperators          #-}
-
 module Parser where
 
-import           Data.List
+import           Data.List                           ( sortOn )
+import           Data.Singletons.Base.TH             ( singletons )
 import qualified Data.Text                           as T
 import qualified Data.Text.IO                        as TIO
-import           Text.Parsec                         (alphaNum)
-import           Text.ParserCombinators.Parsec
+
+import           Text.Parsec                         ( alphaNum )
+import           Text.ParserCombinators.Parsec       ( GenParser, alphaNum,
+                                                       char, choice, digit,
+                                                       many, many1, sepBy,
+                                                       spaces, string, (<|>) )
 import           Text.ParserCombinators.Parsec.Token
 
 
---- Not sure about the types, more considering is required
-data Header a where
-  NameH :: (a ~ String ) => a -> Header a
-  DateH :: (a ~ String) => (a,a,a) -> Header a
-  MoodH :: (a ~ String) => [(a,a)] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
-  SleepH :: (a ~ String) => (a,a) -> Header a-- when writting the show instance, the strings should me mconcated with a newline charecter
-  ProductivityH :: (a ~ String) => (a,a) -> Header a
-  MeditationH :: (a ~ String) => [a] -> Header a
-  AlcoholH :: (a ~ String) => (a,a) -> Header a
-  CigaretteH :: (a ~ String) => (a,a,a) -> Header a
-  RatingH :: (a ~ String) => a -> Header a
-  AllHeaders :: (a ~ String) => [Header a] -> Header a
-
-
-
-type WakeUp = String
-type Sleep = String
+singletons [d| data Header a where
+                 NameH :: a -> Header a
+                 DateH :: (a,a,a) -> Header a
+                 MoodH :: [(a,a)] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
+                 SleepH :: (a,a) -> Header a-- when writting the show instance, the strings should me mconcated with a newline charecter
+                 ProductivityH :: (a,a) -> Header a
+                 MeditationH :: [a] -> Header a
+                 AlcoholH :: (a,a) -> Header a
+                 CigaretteH :: (a,a,a) -> Header a
+                 RatingH :: a -> Header a
+                 AllHeaders :: [Header a] -> Header a |]
 
 
 stringFloat :: GenParser Char st Char
 stringFloat = digit <|> char '.'
 
-instance Show (Header a) where
+
+instance (Show a ) => Show (Header a) where
   show (NameH a)         = show a
   show (DateH a)         = show a
   show (MoodH a)         = show a
@@ -53,23 +42,21 @@ instance Show (Header a) where
   show (RatingH a)       = show a
   show (AllHeaders a)    = show a
 
-
 -- parses '\n' charecters
 eol1 :: GenParser Char st String
 eol1 = many (char '\n')
 
--- computes the times of
+-- parses time in format of HH:MM
 time :: GenParser Char st String
 time = many1 digit <> many1 (char ':') <> many1 digit
 
-
+-- computes the time of Sleep and Wake up
 header :: String -> GenParser Char st String
 header h = string $ mconcat ["[", h, "]"]
 
 -- parses the name section
 name :: GenParser Char st String
 name = string "Name :"
-
 
 -- parses the name section
 parseName :: forall a st. (a ~ String) => GenParser Char st (Header a)
@@ -122,13 +109,9 @@ mood = header "Mood"
 
 -- Parses all the mood data constructors as stirngs
 parseMood' :: GenParser Char st String
-parseMood' = string "Neutral"
-         <|> string "Angry"
-         <|> string "Sad"
-         <|> string "Excited"
-         <|> string "Happy"
-         <|> string "Focused"
-         <|> string "Bored"
+parseMood' = choice $ map string ["Neutral", "Angry", "Sad"
+                                 ,"Excited", "Happy", "Focused", "Bored"]
+
 
 -- parses one mood
 parseMood :: GenParser Char st (String, String)
@@ -149,15 +132,12 @@ parseMoods = do
   eol1
   l <- many1 parseMood <* eol1
   return $ MoodH $ sortOn fst l
-  --return $ MoodH $ sortOn fst l
+
 
 
 -- parses all the possible Intensities
 parseIntensity :: GenParser Char st String
-parseIntensity = string "Low"
-             <|> string "Medium"
-             <|> string "High"
-             <|> string "Extreme"
+parseIntensity = choice $ map string ["Low", "Medium", "High", "Extreme"]
 
 -- parses the sleep header
 sleep :: GenParser Char st String
@@ -254,11 +234,8 @@ rating = header "Rating"
 
 -- parses the different rating a user might give
 parseRating' :: GenParser Char st String
-parseRating' = string "Great"
-           <|> string "Good"
-           <|> string "Normal"
-           <|> string "Bad"
-           <|> string "Awful"
+parseRating' = choice $ map string ["Great", "Good", "Normal", "Bad", "Awful"]
+
 
 -- parses the whole Rating header (section)
 parseRating :: forall a st. (a ~ String) => GenParser Char st (Header a)
@@ -315,7 +292,7 @@ parseOptionalHeaders :: GenParser Char st [String]
 parseOptionalHeaders = do
   string "optional_headers ="
   spaces
-  sepBy (string "Meditation" <|> string "Alcohol" <|> string "Cigarette") (string " - " <|> string "-") :: GenParser Char st [String]
+  sepBy (choice $ map string ["Meditation", "Alcohol", "Cigarette"]) (string " - " <|> string "-")
 
 
 -- parses the template section of user's config file
@@ -346,5 +323,5 @@ parseReport = do
   spaces
   emailReportFrequencyN <- many1 digit
   spaces
-  emailReportFrequencyD <- string "Month" <|> string "Week" <|> string "Year"
+  emailReportFrequencyD <- choice $ map string ["Month", "Week", "Year"]
   return [emailReport,emailReportFrequencyN,emailReportFrequencyD]

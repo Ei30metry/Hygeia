@@ -20,23 +20,30 @@ extra-source-files:
 description:         Please see the README on GitHub at <https://github.com/githubuser/Hygeia#readme>
 
 default-extensions:
+- DataKinds
+- DefaultSignatures
+- EmptyCase
+- ExistentialQuantification
+- FlexibleContexts
+- FlexibleInstances
+- GADTs
+- InstanceSigs
+- KindSignatures
+- NoCUSKs
+- NoNamedWildCards
+- NoStarIsType
+- PolyKinds
 - RankNTypes
 - ScopedTypeVariables
-- DataKinds
-- PolyKinds
-- ExistentialQuantification
-- MultiParamTypeClasses
-- TypeFamilies
-- TypeOperators
-- TypeApplications
-- GADTs
-- OverloadedStrings
-- InstanceSigs
-- EmptyCase
+- StandaloneDeriving
 - StandaloneKindSignatures
 - TemplateHaskell
+- TypeApplications
+- TypeFamilies
+- TypeOperators
 - UndecidableInstances
-- InstanceSigs
+- GeneralizedNewtypeDeriving
+
 
 
 dependencies:
@@ -44,12 +51,11 @@ dependencies:
 - text
 - bytestring
 - time
-- parsec >= 3.1.16.0
+- parsec
 - optparse-applicative >= 0.17
-- turtle
 - mime-mail
-- smtp-mail
-- singletons >= 2.7
+- singletons
+- singletons-base
 - process
 - unix
 - mtl

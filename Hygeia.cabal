@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -39,37 +39,42 @@ library
   hs-source-dirs:
       src
   default-extensions:
+      DataKinds
+      DefaultSignatures
+      EmptyCase
+      ExistentialQuantification
+      FlexibleContexts
+      FlexibleInstances
+      GADTs
+      InstanceSigs
+      KindSignatures
+      NoCUSKs
+      NoNamedWildCards
+      NoStarIsType
+      PolyKinds
       RankNTypes
       ScopedTypeVariables
-      DataKinds
-      PolyKinds
-      ExistentialQuantification
-      MultiParamTypeClasses
-      TypeFamilies
-      TypeOperators
-      TypeApplications
-      GADTs
-      OverloadedStrings
-      InstanceSigs
-      EmptyCase
+      StandaloneDeriving
       StandaloneKindSignatures
       TemplateHaskell
+      TypeApplications
+      TypeFamilies
+      TypeOperators
       UndecidableInstances
-      InstanceSigs
+      GeneralizedNewtypeDeriving
   build-depends:
       base >=4.7 && <5
     , bytestring
     , mime-mail
     , mtl
     , optparse-applicative >=0.17
-    , parsec >=3.1.16.0
+    , parsec
     , process
-    , singletons >=2.7
-    , smtp-mail
+    , singletons
+    , singletons-base
     , text
     , time
     , transformers
-    , turtle
     , unix
   default-language: Haskell2010
 
@@ -80,23 +85,29 @@ executable Hygeia-exe
   hs-source-dirs:
       app
   default-extensions:
+      DataKinds
+      DefaultSignatures
+      EmptyCase
+      ExistentialQuantification
+      FlexibleContexts
+      FlexibleInstances
+      GADTs
+      InstanceSigs
+      KindSignatures
+      NoCUSKs
+      NoNamedWildCards
+      NoStarIsType
+      PolyKinds
       RankNTypes
       ScopedTypeVariables
-      DataKinds
-      PolyKinds
-      ExistentialQuantification
-      MultiParamTypeClasses
-      TypeFamilies
-      TypeOperators
-      TypeApplications
-      GADTs
-      OverloadedStrings
-      InstanceSigs
-      EmptyCase
+      StandaloneDeriving
       StandaloneKindSignatures
       TemplateHaskell
+      TypeApplications
+      TypeFamilies
+      TypeOperators
       UndecidableInstances
-      InstanceSigs
+      GeneralizedNewtypeDeriving
   ghc-options: -threaded -O2 -rtsopts -with-rtsopts=-N
   build-depends:
       Hygeia
@@ -105,14 +116,13 @@ executable Hygeia-exe
     , mime-mail
     , mtl
     , optparse-applicative >=0.17
-    , parsec >=3.1.16.0
+    , parsec
     , process
-    , singletons >=2.7
-    , smtp-mail
+    , singletons
+    , singletons-base
     , text
     , time
     , transformers
-    , turtle
     , unix
   default-language: Haskell2010
 
@@ -124,23 +134,29 @@ test-suite Hygeia-test
   hs-source-dirs:
       test
   default-extensions:
+      DataKinds
+      DefaultSignatures
+      EmptyCase
+      ExistentialQuantification
+      FlexibleContexts
+      FlexibleInstances
+      GADTs
+      InstanceSigs
+      KindSignatures
+      NoCUSKs
+      NoNamedWildCards
+      NoStarIsType
+      PolyKinds
       RankNTypes
       ScopedTypeVariables
-      DataKinds
-      PolyKinds
-      ExistentialQuantification
-      MultiParamTypeClasses
-      TypeFamilies
-      TypeOperators
-      TypeApplications
-      GADTs
-      OverloadedStrings
-      InstanceSigs
-      EmptyCase
+      StandaloneDeriving
       StandaloneKindSignatures
       TemplateHaskell
+      TypeApplications
+      TypeFamilies
+      TypeOperators
       UndecidableInstances
-      InstanceSigs
+      GeneralizedNewtypeDeriving
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Hygeia
@@ -149,13 +165,12 @@ test-suite Hygeia-test
     , mime-mail
     , mtl
     , optparse-applicative >=0.17
-    , parsec >=3.1.16.0
+    , parsec
     , process
-    , singletons >=2.7
-    , smtp-mail
+    , singletons
+    , singletons-base
     , text
     , time
     , transformers
-    , turtle
     , unix
   default-language: Haskell2010

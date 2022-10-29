@@ -1,49 +1,28 @@
-{-# LANGUAGE AllowAmbiguousTypes        #-}
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE EmptyCase                  #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE InstanceSigs               #-}
-{-# LANGUAGE KindSignatures             #-}
-{-# LANGUAGE NoStarIsType               #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE PolyKinds                  #-}
-{-# LANGUAGE QuantifiedConstraints      #-}
-{-# LANGUAGE RoleAnnotations            #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE StandaloneKindSignatures   #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE TypeApplications           #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeInType                 #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE UndecidableInstances       #-}
-
+{-# LANGUAGE PolyKinds #-}
 
 module Computation where
 
 
 import           Control.Monad
 import           Control.Monad.Trans
+
 import           Data.Coerce
 import           Data.Functor
-import           Data.Kind                         (Constraint, Type)
+import           Data.Kind                 ( Constraint, Type )
 import           Data.List
 import           Data.Monoid
 import           Data.Proxy
 import           Data.Semigroup
-import           Data.Singletons.Decide
-import           Data.Singletons.Prelude.Enum
-import           Data.Singletons.Prelude.Monoid
-import           Data.Singletons.Prelude.Semigroup
-import           Data.Singletons.TH
-import qualified Data.Time                         as T
-import qualified Data.Time                         as TI
-import           Data.Type.Equality                (TestEquality (testEquality))
-import           GHC.Base                          (Double)
-import qualified Parser                            as P
+import           Data.Semigroup.Singletons
+import           Data.Singletons
+import           Data.Singletons.Base.Enum
+import           Data.Singletons.Base.TH
+import qualified Data.Time                 as TI
+import           Data.Type.Equality        ( TestEquality (testEquality) )
+
+import           GHC.Base                  ( Double )
+
+import qualified Parser                    as P
 
 
 -- a Type representing one's mood with it's singleton definitions
@@ -55,16 +34,15 @@ singletons [d| data Mood = Angry
 
 -- Intensity of a mood
 -- The None is not supposed to be used in a MoodReport but it is only here to
--- serve as an mempty for our Monoid instance
+-- serve as a mempty for our Monoid instance
 singletons [d| data Intensity = None
                               | Low
                               | Medium
                               | High
-                              | Extreme deriving (Show, Read, Eq, Ord, Enum,Bounded) |]
+                              | Extreme deriving (Show, Read, Eq, Ord, Enum, Bounded) |]
 
 -- using newtype to be able to coerce
 singletons [d| newtype MoodReport = MR (Mood, Intensity) deriving Show |]
-
 
 
 singletons [d| computeIntensity :: Intensity -> Intensity -> Intensity
@@ -75,7 +53,6 @@ singletons [d| computeIntensity :: Intensity -> Intensity -> Intensity
 
 singletons [d| instance Semigroup Intensity where
                  x <> y = computeIntensity x y |]
-
 
 
 -- monoid instance for Intensity
@@ -190,7 +167,7 @@ instance Show Sleep where
                           | otherwise = mconcat [show a,":",show b]
 
 
-
+-- using newtype instead of type in order to coerce and add a little bit of more
 newtype Meditation = Med [String]
 
 newtype Productivity = Pro (Int,Int)
@@ -219,16 +196,15 @@ dateHtoDate (P.DateH (a,b,c)) = Date (Y $ read a) (Mo $ read b) (D $ read c)
 
 -- helper function in order to convert tuple to MoodReport
 moodHtoMoodReport' :: (String,String) -> MoodReport
-moodHtoMoodReport' (a,b) = MR (read a :: Mood, read b :: Intensity)
+moodHtoMoodReport' (a,b) = MR (read a, read b)
 
 -- parses the Name header type into the Name data type in order to compute
 moodHtoMoodReport :: HeaderToComp [MoodReport]
 moodHtoMoodReport (P.MoodH a) = map moodHtoMoodReport' a
 
-
 -- parses the Sleep header type into the Sleep data type in order to compute
 sleepHtoSleep :: HeaderToComp Sleep
-sleepHtoSleep (P.SleepH (a,b)) = Sleep (H $ read a :: Hour, M $ read b :: Minute)
+sleepHtoSleep (P.SleepH (a,b)) = Sleep (H $ read a, M $ read b )
 
 
 -- parses the Meditation header type into the Meditation data type in order to compute

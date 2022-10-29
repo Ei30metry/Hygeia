@@ -1,11 +1,10 @@
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
 
-module Config where
+
+module Config(Config(..)) where
 
 import           Data.Time
+
 
 -- existential type to work on
 data Freq where
@@ -13,6 +12,7 @@ data Freq where
   Month :: (n ~ Int) => n -> Freq
   Week :: (n ~ Int) => n -> Freq
   Day :: (n ~ Int) => n -> Freq
+
 
 -- This type is only used by the Config type
 data OptHeader = Alcohol | Cigarette | Meditation deriving Eq

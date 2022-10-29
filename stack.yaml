@@ -1,82 +1,28 @@
 packages:
 - .
-resolver:
-  compiler: ghc-8.10.7
-
+resolver: ghc-9.4.2
 
 extra-deps:
-  - git: https://github.com/haskell/parsec/
-    commit: 7a9c85da6a671a888e1291745bd1022164667434
-  - optparse-applicative-0.17.0.0
-  - turtle-1.5.24
-  - ansi-wl-pprint-0.6.9
-  - async-2.2.4
-  - clock-0.8.3
-  - foldl-1.4.12
-  - hostname-1.0
-  - managed-1.0.9
-  - optional-args-1.0.2
-  - streaming-commons-0.2.2.4
-  - system-fileio-0.3.16.4
-  - system-filepath-0.4.14
-  - temporary-1.3
-  - transformers-compat-0.7.1
-  - unix-compat-0.5.4
-  - ansi-terminal-0.11.1
-  - comonad-5.0.8
-  - contravariant-1.5.5
-  - hashable-1.4.0.2
-  - network-3.1.2.7
-  - primitive-0.7.3.0
-  - profunctors-5.6.2
-  - random-1.2.1
-  - semigroupoids-5.3.7
-  - unordered-containers-0.2.16.0
-  - vector-0.12.3.1
-  - zlib-0.6.2.3
-  - StateVar-1.2.2
-  - base-orphans-0.8.6
-  - bifunctors-5.5.11
-  - colour-2.3.6
-  - distributive-0.6.2.1
-  - indexed-traversable-0.1.2
-  - splitmix-0.1.0.4
-  - tagged-0.8.6.1
-  - th-abstraction-0.4.3.0
-  - mime-mail-0.5.1
-  - smtp-mail-0.3.0.0@sha256:2e6d9cb29d09a5a04d77a905eb1b570b94b5654e24d40630ea96aa374474c12f,1239
-  - base16-bytestring-1.0.2.0@sha256:64abad7816ab8cabed8489e29f807b3a6f828e0b2cec0eae404323d69d36df9a,2541
+  - mime-mail-0.5.1@sha256:596938d4b17365129eccda3afe65e357331cfa407b68259252bdf34e5098ccb9,1629
+  - optparse-applicative-0.17.0.0@sha256:0713e54cbb341e5cae979e2ac441eb3a5ff42e303001f432bd58c19e5638bdda,4967
+  - singletons-3.0.2@sha256:eb9092cb181cb7c055185ab58bc2258477e1f493bcf72021f01d4054250bf7c7,2955
+  - singletons-base-3.1.1@sha256:d7c1cf5e44f9609b535b1622d59eca3930d2fcdde5cc38b91446c1421a109248,7053
+  - ansi-wl-pprint-0.6.9@sha256:212144ea0623b1170807a4162db05d87f26cf10b334aeadd0edb377aba06a1ce,2425
   - base64-bytestring-1.2.1.0@sha256:50ec0e229255d4c45cbdd568da011311b8887f304b931564886016f4984334d8,2396
   - blaze-builder-0.4.2.2@sha256:f0017df374c330de0ebe0eb15eae8c48427bddefa1d81a3cb31c0a4812ecdb08,3685
-  - connection-0.3.1@sha256:65da1c055610095733bcd228d85dff80804b23a5d18fede994a0f9fcd1b0c121,1554
-  - cryptonite-0.30@sha256:12c85dea7be63e5ad90bcb487eb3846bf3c413347f94336fa1dede7b28f9936a,18301
-  - memory-0.17.0@sha256:c8809b0b3026193c813a88c1f626758c923fae7e0b0d6b96b91c6ce5e14173ec,4468
-  - network-bsd-2.8.1.0@sha256:cd945ea08818281e4a8fa6f0a0640a1502aad3748546a3c197e071772452a9bd,3738
-  - basement-0.0.14@sha256:d28a94225234a9895abbf88cdbf171fdea8cb478d718479f06522238b2cc7e74,5403
-  - data-default-class-0.1.2.0@sha256:63e62120b7efd733a5a17cf59ceb43268e9a929c748127172d7d42f4a336e327,542
-  - socks-0.6.1@sha256:ac190808eea704672df18f702e8f2ad0b7a4d0af528e95ee55ea6ee0be672e2a,1258
-  - tls-1.5.7@sha256:1cc30253a9696b65a9cafc0317fbf09f7dcea15e3a145ed6c9c0e28c632fa23a,6991
-  - x509-1.7.6@sha256:0bd3cf1f15ca56068a4aa5db31bff5be0ea2eefedda5aa572f4a1b9cb441d588,2224
-  - x509-store-1.6.9@sha256:1f1abeab5bacf1407b920d0f34f4c35a5ad450ff0d8121cd3dc76460f81e711d,1716
-  - x509-system-1.6.7@sha256:45ddd5db19f18be80614e058e8838765f2749a8afcfd2b292bd6afb36820a3c0,1492
-  - x509-validation-1.6.12@sha256:4f4af20ec77f02c042ecd4726c195bb0e0b694b336de81e7bd4515b2917bd9bc,2169
-  - asn1-encoding-0.9.6@sha256:27ed8f6043aed79630313bb931f7c8e2b510f0b4586cd55c16ae040c7d1ea098,2060
-  - asn1-parse-0.9.5@sha256:77c0126d63070df2d82cb4cfa4febb26c4e280f6d854bc778c2fa4d80ce692b8,976
-  - asn1-types-0.3.4@sha256:8e879b3a5bbdd0031232eb84d904b5a3a2c20a18847692b996d774f4ff811355,1025
-  - cereal-0.5.8.2@sha256:046ab07bfe82770e209a2ef57382171c88f7a194d020b768b7d8131299c7f023,2767
-  - hourglass-0.2.12@sha256:e083f5e030dfebe432e30a9c0fa07a99a54eac992f622442646be561fd7a44e8,3085
-  - pem-0.2.4@sha256:cc8e62118b783e284dc0fa032f54fe386a3861a948ec88079370a433c103a705,1441
-  - singletons-2.7@sha256:558f88d376f30e8dabde9163a96d2ebcbe2fe533e08d20ab136eea91ad046da3,7605
-  - Cabal-3.2.1.0@sha256:8743076ec022296f9771d962000c9ca3a0fe02e68c37b992c63e382a675f791d,27482
-  - syb-0.7.2.1@sha256:bf42655a213402215299e435c52f799e76cbec0b984cd7153d6b9af8a1c0803f,3815
-  - th-desugar-1.11@sha256:573a176b4642c1ad1f40eef76ad2bfc6bdafe3e5d162f7a6bb08132488cc5496,3577
-  - fail-4.9.0.0@sha256:35d1ee29364447c1b7d616bb1ee31f162b73e85fea91d7ca6441cf901398f572,1051
+  - random-1.2.1.1@sha256:dea1f11e5569332dc6c8efaad1cb301016a5587b6754943a49f9de08ae0e56d9,6541
+  - singletons-th-3.1.1@sha256:7c811b9ca86c090b3524754a0d119b2deb1fc5f401a1135a4d9db6a560f96c5a,4589
+  - th-desugar-1.14@sha256:cd074b935106798ed3cf0238ed855a6c53dbaf71cc6c28c39460c752b6269eec,3644
+  - transformers-compat-0.7.2@sha256:044fb9955f63ee138fcebedfdcbe54afe741f2d5892a2d0bdf3a8052bd342643,5601
+  - ansi-terminal-0.11.3@sha256:cc499d5f4c09a7213cd752ee69dbb5a5b8f3d1c777274e609eea4bca5c68ac8c,3321
   - ordered-containers-0.2.2@sha256:ebf2be3f592d9cf148ea6b8375f8af97148d44f82d8d04476899285e965afdbf,810
-  - semigroups-0.20@sha256:925341e6f7eb104cb490bef06eab93bb7995c7c67c51ee938185a2ddefa7aaf2,6333
-  - th-lift-0.8.2@sha256:955f3ad62b202d2ff37a616d2155ad9ce30879c7c63edab1f1ec69d757d70ed1,2677
-  - th-orphans-0.13.12@sha256:72b6e2825c2dc9e87491737493b35c90b9188a8ab4546bae2ce0d4c39404c694,3046
-  - th-compat-0.1.3@sha256:f65819f74c6ced42b24d9e5053165508c4b6a18271c8e3229dc93b1dc8f7a5ab,2972
-  - th-expand-syns-0.4.9.0@sha256:b01295ae4b0161061bd968dbce75b80f3114e70ec16a2535bc5e814ecafb3ede,2129
-  - th-lift-instances-0.1.19@sha256:38900532d68993cba8e2e84984755a0d9e94df0f84b4e9d23819e0dc495c22d1,2608
+  - splitmix-0.1.0.4@sha256:804e2574bc7e32d08cbab91e47ee6287b4df7d50851d73f9e778f94a9a7814c7,6521
+  - syb-0.7.2.2@sha256:bc800dbd35a17b652082f7f9790fd20d196ea0f44daaa7d5ac46491d8ecc7347,3815
+  - th-abstraction-0.4.5.0@sha256:313f8b3c65781310df66ba86518bcf7662b1b419b601afaf72bb977c255fe6e9,2148
+  - th-lift-0.8.2@sha256:f135f67b018c22889e68b094773273dcf8f9e16fcfa330bf4778f84fce8925e9,2677
+  - th-orphans-0.13.14@sha256:dae2c8d3c23fe880dd1e50584ce92f7cbb2da884dfd40bf95d6bb5ac370efb76,2917
+  - colour-2.3.6@sha256:ebdcbf15023958838a527e381ab3c3b1e99ed12d1b25efeb7feaa4ad8c37664a,2378
+  - th-compat-0.1.4@sha256:6ca77c4e80b4e4109e30549c269631a9cc295c8fc2431ce4123972a5f80f7bfc,3135
   - th-reify-many-0.1.10@sha256:1827dcffb0c9f214e9739053fc808683336ea65c3749ff2d6148db189cbbd2a4,1753
   - safe-0.3.19@sha256:0910dafb8898f52bde4c646e560228a0fd08b1fca5457f222d2f5c0fad6d2039,2317
+  - th-expand-syns-0.4.10.0@sha256:4f0ae7278cf7b4485a37d550463bf8507e7550b93abcb085dc7bf41c3852def8,2130

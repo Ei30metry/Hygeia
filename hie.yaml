@@ -1,0 +1,13 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "Hygeia:lib"
+
+    - path: "./app/Main.hs"
+      component: "Hygeia:exe:Hygeia-exe"
+
+    - path: "./app/Paths_Hygeia.hs"
+      component: "Hygeia:exe:Hygeia-exe"
+
+    - path: "./test"
+      component: "Hygeia:test:Hygeia-test"
