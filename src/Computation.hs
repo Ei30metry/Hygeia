@@ -22,7 +22,7 @@ import           Data.Type.Equality        ( TestEquality (testEquality) )
 
 import           GHC.Base                  ( Double )
 
-import qualified Parser.Input                    as P
+import qualified Parser.Input              as P
 
 
 -- a Type representing one's mood with it's singleton definitions
@@ -55,10 +55,9 @@ singletons [d| instance Semigroup Intensity where
                  x <> y = computeIntensity x y |]
 
 
--- monoid instance for Intensity
-singletons [d| instance Monoid Intensity where
-                 mappend = (<>)
-                 mempty = None |]
+instance Monoid Intensity where
+  mappend = (<>)
+  mempty = None
 
 
 -- Rating data type for rating the day
@@ -82,17 +81,22 @@ addMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b')
   return $ FromSing $ addSingMoodReports l r
 
 
--- for capturing everything after we convert the result of parseEntry into their corresponding types
-data HList (ts :: [Type]) where
-  HNil :: HList '[]
-  (:>) :: t -> HList ts -> HList (t ': ts)
+addMoodReports' :: MoodReport -> MoodReport -> MoodReport
+addMoodReports' (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b')))
+  = case testEquality a a' of
+      Just Refl -> FromSing $ addSingMoodReports l r
+      _ -> undefined
 
 
--- parseResult :: 'HList [Name,Date,MoodH,Sleep,Productivity,Meditation,Alcohol,Cigarette,Rating]
--- parseResult = undefined
+instance Semigroup MoodReport where
+  (<>) = addMoodReports'
 
 
--- type synonyms for more descriptive type signatures
+-- instance Monoid MoodReport where
+--   mappend = (<>)
+--   mempty = MoodReport
+
+
 type Name = String
 
 type HeaderToComp b = forall a. (a ~ String ) => P.Header a -> b
@@ -100,74 +104,12 @@ type HeaderToComp b = forall a. (a ~ String ) => P.Header a -> b
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int }
 
-newtype Hour = H Int deriving (Read,Enum)
+-- instance Show Sleep where
+--   show (Sleep (H a, M b)) | a < 10 && b < 10 = mconcat ["0",show a,":", "0",show b]
+--                           | a < 10 = mconcat ["0",show a,":",show b]
+--                           | b < 10 = mconcat [show a,":","0",show b]
+--                           | otherwise = mconcat [show a,":",show b]
 
-newtype Minute = M Int deriving (Read,Enum)
-
-newtype Year = Y Int deriving (Read,Enum)
-
-newtype Month = Mo Int deriving (Read,Enum)
-
-newtype Day = D Int deriving (Read,Enum)
-
-
-instance Bounded Hour where
-  minBound = H 0
-  maxBound = H 24
-
-
-instance Bounded Minute where
-  minBound = M 0
-  maxBound = M 60
-
-
-instance Show Year where
-  show (Y a) = show a
-
-instance Show Month where
-  show (Mo a) = show a
-
-instance Show Day where
-  show (D a) = show a
-
-newtype Sleep = Sleep (Hour,Minute) deriving Read
-
-
-instance Show Minute where
-  show (M a) = show a
-
-
-instance Show Hour where
-  show (H a) = show a
-
-
-data Date = Date { year  :: Year
-                 , month :: Month
-                 , day   :: Day }
-
-instance Show Date where
-  show (Date a b c) = mconcat [show a,"-",show b, "-", show c]
-
--- type Date = TI.UTCTime
-
-instance Bounded Month where
-  minBound = Mo 1
-  maxBound = Mo 12
-
-
-instance Bounded Day where
-  minBound = D 1
-  maxBound = D 30
-
-
-instance Show Sleep where
-  show (Sleep (H a, M b)) | a < 10 && b < 10 = mconcat ["0",show a,":", "0",show b]
-                          | a < 10 = mconcat ["0",show a,":",show b]
-                          | b < 10 = mconcat [show a,":","0",show b]
-                          | otherwise = mconcat [show a,":",show b]
-
-
--- using newtype instead of type in order to coerce and add a little bit of more
 newtype Meditation = Med [String]
 
 newtype Productivity = Pro (Int,Int)
@@ -191,8 +133,8 @@ nameHtoName :: HeaderToComp Name
 nameHtoName (P.NameH a) = a :: Name
 
 -- parses the Date header type into the Date data type in order to compute
-dateHtoDate :: HeaderToComp Date
-dateHtoDate (P.DateH (a,b,c)) = Date (Y $ read a) (Mo $ read b) (D $ read c)
+-- dateHtoDate :: HeaderToComp Date
+-- dateHtoDate (P.DateH (a,b,c)) = Date (Y $ read a) (Mo $ read b) (D $ read c)
 
 -- helper function in order to convert tuple to MoodReport
 moodHtoMoodReport' :: (String,String) -> MoodReport
@@ -203,8 +145,8 @@ moodHtoMoodReport :: HeaderToComp [MoodReport]
 moodHtoMoodReport (P.MoodH a) = map moodHtoMoodReport' a
 
 -- parses the Sleep header type into the Sleep data type in order to compute
-sleepHtoSleep :: HeaderToComp Sleep
-sleepHtoSleep (P.SleepH (a,b)) = Sleep (H $ read a, M $ read b )
+-- sleepHtoSleep :: HeaderToComp Sleep
+-- sleepHtoSleep (P.SleepH (a,b)) = Sleep (H $ read a, M $ read b )
 
 
 -- parses the Meditation header type into the Meditation data type in order to compute
@@ -230,7 +172,6 @@ cigaretteHtoCigratte (P.CigaretteH (a,b,c)) = Cigarette (read a) (read b) (read 
 -- parses the Rating header type into the Rating data type in order to compute
 ratingHtoRating :: HeaderToComp Rating
 ratingHtoRating (P.RatingH a) = read a :: Rating
-
 
 
 someFunc :: IO ()

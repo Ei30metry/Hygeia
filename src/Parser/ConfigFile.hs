@@ -8,6 +8,16 @@ import           Text.ParserCombinators.Parsec       ( GenParser, alphaNum,
 import Text.Parsec.Char (newline)
 
 
+type ConfCategoryName = String
+type ConfValue = String
+type ConfOptions = String
+
+
+
+configParser :: ConfCategoryName -> [(ConfValue, [ConfOptions])] -> GenParser Char st [String]
+configParser = undefined
+
+
 parseInfo :: GenParser Char st [String]
 parseInfo = do
   string "Info :"

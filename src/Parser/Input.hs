@@ -1,22 +1,21 @@
 module Parser.Input where
 
 
-import           Data.List                           ( sortOn )
-import           Data.Singletons.Base.TH             ( singletons )
+import           Data.List                     ( sortOn )
+import           Data.Singletons.Base.TH       ( singletons )
 
-import           Text.Parsec                         ( alphaNum )
-import           Text.ParserCombinators.Parsec       ( GenParser, alphaNum,
-                                                       char, choice, digit,
-                                                       many, many1, sepBy,
-                                                       spaces, string, (<|>) )
-
-import Text.Parsec.Char (newline)
+import           Text.Parsec                   ( alphaNum )
+import           Text.Parsec.Char              ( newline )
+import           Text.ParserCombinators.Parsec ( GenParser, alphaNum, char,
+                                                 choice, digit, many, many1,
+                                                 sepBy, spaces, string, try,
+                                                 (<|>) )
 
 singletons [d| data Header a where
                  NameH :: a -> Header a
                  DateH :: (a,a,a) -> Header a
                  MoodH :: [(a,a)] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
-                 SleepH :: (a,a) -> Header a-- when writting the show instance, the strings should me mconcated with a newline charecter
+                 SleepH :: (a,a) -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
                  ProductivityH :: (a,a) -> Header a
                  MeditationH :: [a] -> Header a
                  AlcoholH :: (a,a) -> Header a
@@ -245,16 +244,11 @@ parseRating = do
   return $ RatingH prsd
 
 
---parses the Entry written by the user
+-- parses the Entry written by the user (order of the entry doesn't matter)
 parseEntry :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseEntry = do
-  n <- parseName
-  d <- parseDate
-  m <- parseMoods
-  s <- parseSleep
-  al <- parseAlcohol
-  me <- parseMeditations
-  c <- parseCigarette
-  p <- parseProductivity
-  r <- parseRating
-  return $ AllHeaders [n,d,m,s,al,me,c,p,r]
+  entryParser <- many1 $ choice $ map try listOfParsers
+  return . AllHeaders $ entryParser
+ where listOfParsers = [ parseName, parseDate, parseMoods, parseSleep
+                       , parseAlcohol, parseMeditations, parseCigarette
+                       , parseProductivity, parseRating ]
