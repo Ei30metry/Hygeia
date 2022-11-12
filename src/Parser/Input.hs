@@ -11,17 +11,17 @@ import           Text.ParserCombinators.Parsec ( GenParser, alphaNum, char,
                                                  sepBy, spaces, string, try,
                                                  (<|>) )
 
-singletons [d| data Header a where
-                 NameH :: a -> Header a
-                 DateH :: (a,a,a) -> Header a
-                 MoodH :: [(a,a)] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
-                 SleepH :: (a,a) -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
-                 ProductivityH :: (a,a) -> Header a
-                 MeditationH :: [a] -> Header a
-                 AlcoholH :: (a,a) -> Header a
-                 CigaretteH :: (a,a,a) -> Header a
-                 RatingH :: a -> Header a
-                 AllHeaders :: [Header a] -> Header a |]
+data Header a where
+  NameH :: a -> Header a
+  DateH :: (a,a,a) -> Header a
+  MoodH :: [(a,a)] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
+  SleepH :: (a,a) -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
+  ProductivityH :: (a,a) -> Header a
+  MeditationH :: [a] -> Header a
+  AlcoholH :: (a,a) -> Header a
+  CigaretteH :: (a,a,a) -> Header a
+  RatingH :: a -> Header a
+  AllHeaders :: [Header a] -> Header a
 
 
 stringFloat :: GenParser Char st Char
@@ -226,9 +226,6 @@ parseProductivity = do
 rating :: GenParser Char st String
 rating = header "Rating"
 
-
--- convRating :: GenParser Char st String -> Header a
--- convRating
 
 -- parses the different rating a user might give
 parseRating' :: GenParser Char st String

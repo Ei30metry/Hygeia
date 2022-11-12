@@ -3,19 +3,16 @@
 module Computation where
 
 
-import           Control.Monad
-import           Control.Monad.Trans
 
-import           Data.Coerce
-import           Data.Functor
-import           Data.Kind                 ( Constraint, Type )
-import           Data.List
-import           Data.Monoid
-import           Data.Proxy
-import           Data.Semigroup
-import           Data.Semigroup.Singletons
+import Data.Semigroup.Singletons
+    ( PSemigroup(type (<>)), SSemigroup((%<>)) )
 import           Data.Singletons
-import           Data.Singletons.Base.Enum
+import Data.Singletons.Base.Enum
+    ( PBounded(..),
+      PEnum(FromEnum, ToEnum),
+      SBounded(..),
+      FromEnumSym0,
+      SEnum(sFromEnum, sToEnum) )
 import           Data.Singletons.Base.TH
 import qualified Data.Time                 as TI
 import           Data.Type.Equality        ( TestEquality (testEquality) )
@@ -42,7 +39,7 @@ singletons [d| data Intensity = None
                               | Extreme deriving (Show, Read, Eq, Ord, Enum, Bounded) |]
 
 -- using newtype to be able to coerce
-singletons [d| newtype MoodReport = MR (Mood, Intensity) deriving Show |]
+singletons [d| newtype MoodReport = MR (Mood, Intensity) deriving (Show, Eq, Ord)|]
 
 
 singletons [d| computeIntensity :: Intensity -> Intensity -> Intensity
@@ -73,7 +70,6 @@ addSingMoodReports :: forall a a' (b :: Intensity) (c :: Intensity). SMoodReport
 addSingMoodReports (SMR (STuple2 a b)) (SMR (STuple2 a' c)) = SMR $ STuple2 a (b %<> c)
 
 
-
 -- safe function to add MoodReports
 addMoodReports :: MoodReport -> MoodReport -> Maybe MoodReport
 addMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b'))) = do
@@ -85,7 +81,7 @@ addMoodReports' :: MoodReport -> MoodReport -> MoodReport
 addMoodReports' (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b')))
   = case testEquality a a' of
       Just Refl -> FromSing $ addSingMoodReports l r
-      _ -> undefined
+      _         -> undefined
 
 
 instance Semigroup MoodReport where
@@ -94,7 +90,7 @@ instance Semigroup MoodReport where
 
 -- instance Monoid MoodReport where
 --   mappend = (<>)
---   mempty = MoodReport
+--   mempty = MR (Neutral, None)
 
 
 type Name = String
@@ -102,7 +98,10 @@ type Name = String
 type HeaderToComp b = forall a. (a ~ String ) => P.Header a -> b
 
 data Alcohol = Alcohol { drink :: String
-                       , shots :: Int }
+                       , shots :: Int } deriving (Eq, Ord)
+
+data Sleep = SP { wakeUpTime :: TI.DiffTime
+                , sleepTime  :: TI.DiffTime } deriving (Eq, Ord)
 
 -- instance Show Sleep where
 --   show (Sleep (H a, M b)) | a < 10 && b < 10 = mconcat ["0",show a,":", "0",show b]
@@ -110,10 +109,9 @@ data Alcohol = Alcohol { drink :: String
 --                           | b < 10 = mconcat [show a,":","0",show b]
 --                           | otherwise = mconcat [show a,":",show b]
 
-newtype Meditation = Med [String]
+newtype Meditation = Med [String] deriving (Eq, Ord)
 
-newtype Productivity = Pro (Int,Int)
-
+newtype Productivity = Pro (Int,Int) deriving (Eq, Ord)
 
 instance Show Meditation where
   show (Med a) = show a
@@ -125,7 +123,7 @@ instance Show Productivity where
 
 data Cigarette = Cigarette { number   :: Double
                            , nitocone :: Double
-                           , tar      :: Double } deriving Eq
+                           , tar      :: Double } deriving (Eq, Ord)
 
 
 -- parses the Name header type into the Name data type in order to compute
@@ -173,6 +171,19 @@ cigaretteHtoCigratte (P.CigaretteH (a,b,c)) = Cigarette (read a) (read b) (read 
 ratingHtoRating :: HeaderToComp Rating
 ratingHtoRating (P.RatingH a) = read a :: Rating
 
+-- the prefix of E stand for entry
+data EntryData = EName Name
+               | EDate TI.Day
+               | EMoodS [MoodReport]
+               | ESleep Sleep
+               | EProductivity Productivity
+               | EMeditation Meditation
+               | EAlcohol Alcohol
+               | ECigarette Cigarette
+               | ERating Rating
+         deriving (Eq, Ord)
 
-someFunc :: IO ()
-someFunc = putStrLn "building ..."
+
+-- data DayReport = DR { name :: EntryData
+--                     , date :: EntryData
+--                     , moods []}

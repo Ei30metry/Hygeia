@@ -1,11 +1,7 @@
 module Main where
 
-import           Computation
-import           Parser.Input
-import           System.Environment
-import           System.IO
-import           Text.ParserCombinators.Parsec
-import           Text.ParserCombinators.Parsec.Token
+import           Parser.Input (parseEntry)
+import           Text.ParserCombinators.Parsec (parse)
 
 main :: IO ()
 main = do
