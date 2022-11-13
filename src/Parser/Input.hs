@@ -1,4 +1,6 @@
-module Parser.Input where
+module Parser.Input(Header (..),
+                   parseEntry
+                   ) where
 
 
 import           Data.List                     ( sortOn )
@@ -27,6 +29,8 @@ data Header a where
 stringFloat :: GenParser Char st Char
 stringFloat = digit <|> char '.'
 
+-- instance Functor (Header a) where
+--   fmap f ((l :: a -> Header a) a) = f a
 
 instance (Show a) => Show (Header a) where
   show (NameH a)         = show a

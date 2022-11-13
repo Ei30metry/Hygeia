@@ -7,6 +7,8 @@
 + [ ] Get information in strings and then computer them into types
 + [ ] Convert all the information into types in the parser itself
 
+** Having the ability the compare you perseption of your loved one with their own entry in order to see how much empathy you can feel while talking to them.
+
 * IDEA Report
 
 + [ ] Show a graph to represent different moods throughout the month and use the intensity for graphing them

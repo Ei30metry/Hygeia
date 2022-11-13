@@ -19,7 +19,7 @@ import           Data.Type.Equality        ( TestEquality (testEquality) )
 
 import           GHC.Base                  ( Double )
 
-import qualified Parser.Input              as P
+import Parser.Input
 
 
 -- a Type representing one's mood with it's singleton definitions
@@ -95,7 +95,7 @@ instance Semigroup MoodReport where
 
 type Name = String
 
-type HeaderToComp b = forall a. (a ~ String ) => P.Header a -> b
+type HeaderToComp b = forall a. (a ~ String ) => Header a -> b
 
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int } deriving (Eq, Ord)
@@ -113,6 +113,7 @@ newtype Meditation = Med [String] deriving (Eq, Ord)
 
 newtype Productivity = Pro (Int,Int) deriving (Eq, Ord)
 
+
 instance Show Meditation where
   show (Med a) = show a
 
@@ -126,52 +127,6 @@ data Cigarette = Cigarette { number   :: Double
                            , tar      :: Double } deriving (Eq, Ord)
 
 
--- parses the Name header type into the Name data type in order to compute
-nameHtoName :: HeaderToComp Name
-nameHtoName (P.NameH a) = a :: Name
-
--- parses the Date header type into the Date data type in order to compute
--- dateHtoDate :: HeaderToComp Date
--- dateHtoDate (P.DateH (a,b,c)) = Date (Y $ read a) (Mo $ read b) (D $ read c)
-
--- helper function in order to convert tuple to MoodReport
-moodHtoMoodReport' :: (String,String) -> MoodReport
-moodHtoMoodReport' (a,b) = MR (read a, read b)
-
--- parses the Name header type into the Name data type in order to compute
-moodHtoMoodReport :: HeaderToComp [MoodReport]
-moodHtoMoodReport (P.MoodH a) = map moodHtoMoodReport' a
-
--- parses the Sleep header type into the Sleep data type in order to compute
--- sleepHtoSleep :: HeaderToComp Sleep
--- sleepHtoSleep (P.SleepH (a,b)) = Sleep (H $ read a, M $ read b )
-
-
--- parses the Meditation header type into the Meditation data type in order to compute
-mediatationHtoMediation :: HeaderToComp Meditation
-mediatationHtoMediation (P.MeditationH a) = Med a
-
-
--- parses the Productivity header type into the Productivity data type in order to compute
-productivityHtoProductivity :: HeaderToComp Productivity
-productivityHtoProductivity (P.ProductivityH (a,b)) = Pro (read a, read b)
-
-
--- parses the Alcohol header type into the Alcohol data type in order to compute
-alcoholHtoAlcohol :: HeaderToComp Alcohol
-alcoholHtoAlcohol (P.AlcoholH (a,b)) = Alcohol (read a) (read b)
-
-
--- parses the Cigarette header type into the Cigarette data type in order to compute
-cigaretteHtoCigratte :: HeaderToComp Cigarette
-cigaretteHtoCigratte (P.CigaretteH (a,b,c)) = Cigarette (read a) (read b) (read c)
-
-
--- parses the Rating header type into the Rating data type in order to compute
-ratingHtoRating :: HeaderToComp Rating
-ratingHtoRating (P.RatingH a) = read a :: Rating
-
--- the prefix of E stand for entry
 data EntryData = EName Name
                | EDate TI.Day
                | EMoodS [MoodReport]
@@ -183,7 +138,22 @@ data EntryData = EName Name
                | ERating Rating
          deriving (Eq, Ord)
 
+-- parses the Name header type into the Name data type in order to compute
+
+headerToEData :: forall a. (a ~ String) => (Header a) -> EntryData
+headerToEData (NameH a) = EName a
+headerToEData (DateH a) = undefined
+headerToEData (MoodH a) = undefined
+headerToEData (SleepH a) = undefined
+headerToEData (ProductivityH a) = undefined
+headerToEData (MeditationH a) = undefined
+headerToEData (AlcoholH a) = undefined
+headerToEData (CigaretteH a) = undefined
+headerToEData (RatingH a) = undefined
+headerToEData (AllHeaders a) = undefined
+
+-- the prefix of E stand for entry
+
 
 -- data DayReport = DR { name :: EntryData
 --                     , date :: EntryData
---                     , moods []}
