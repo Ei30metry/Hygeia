@@ -76,3 +76,13 @@ parseReport = do
   string "email_report_frequency =" >> spaces
   emailReportFreq <- many1 digit <* spaces
   return $ RepConf emailRep (read emailReportFreq)
+
+
+-- parses all of the config file and returns a config type to pass to the Reader Monad
+parseConfig :: GenParser Char st Config
+parseConfig = do
+  i <- parseInfo
+  d <- parseDaemon
+  t <- parseTemplate
+  r <- parseReport
+  return $ Config i d t r

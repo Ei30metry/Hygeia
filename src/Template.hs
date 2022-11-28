@@ -1,54 +1,70 @@
-module Template where
+module Template (generateTemplateFile) where
 
-import           Control.Monad.Trans.Cont
+import           Config
 
-import           Data.Functor
-import qualified Data.Text                     as T
-import qualified Data.Text.IO                  as TIO
-import qualified Data.Time                     as TI
+import           Control.Lens.Operators ((^.))
+import           Control.Monad              ( when )
+import           Control.Monad.IO.Class     ( liftIO )
+import           Control.Monad.Trans.Reader
 
-import qualified Parser.Input                        as P
+import           Data.List                  ( sort )
+import qualified Data.Text                  as T
+import qualified Data.Text.IO               as TIO
+import qualified Data.Time                  as TI
 
-import           System.Environment
+
 import           System.IO
 
-import Control.Lens.Operators
-import Control.Monad.Trans.Reader
+import           Turtle.Prelude             ( home )
 
-data TemplateHeaders where
-  NameT :: String -> TemplateHeaders
-  DateT  :: forall t. t ~ TI.UTCTime => t -> TemplateHeaders
-  MoodT :: TemplateHeaders
-  ProductivityT :: TemplateHeaders
-  MeditationT :: TemplateHeaders
-  AlcoholT :: TemplateHeaders
-  CigaretteT :: TemplateHeaders
-  RatingT :: TemplateHeaders
+
+data TemplateHeaders = NameT String
+                     | DateT TI.Day
+                     | MoodT
+                     | SleepT
+                     | MeditationT
+                     | AlcoholT
+                     | CigaretteT
+                     | ProductivityT
+                     | RatingT deriving (Eq, Ord)
 
 
 generateHeader :: String -> String
-generateHeader header = mconcat ["[",header,"]","\n\n"]
+generateHeader "Rating" = mconcat ["[","Rating","]"]
+generateHeader header   = mconcat ["[",header,"]","\n\n"]
 
 
 instance Show TemplateHeaders where
-  show (NameT a)     = "Name : " ++ a
-  show (DateT t)     = "Date : " ++ show (TI.utctDay t)
+  show (NameT a)     = "Name : " ++ a ++ "\n"
+  show (DateT t)     = "Date : " ++ show t ++ "\n\n"
   show MoodT         = generateHeader "Mood"
   show ProductivityT = generateHeader "ProductivityT"
   show MeditationT   = generateHeader "Meditation"
   show AlcoholT      = generateHeader "Alcohol"
+  show SleepT        = generateHeader "Sleep"
   show CigaretteT    = generateHeader "Cigarette"
   show RatingT       = generateHeader "Rating"
 
 
--- generates templates for user to fill in
--- writeTemplate :: IO ()
--- writeTemplate = undefined --do
---   date <- TI.getCurrentTime
---   configFile <- readFile "~/.config/Hygeia/config"
---   name <- NameT <$> parse P.parseInfo "couldn't parse name" configFile
---   entryFile <- openFile "~/.Hygeia/Entries/Entry-1.Hygeia" WriteMode
---   hClose entryFile
---   return ()
+optionalHeadersToGenerate :: OptHeader -> [TemplateHeaders]
+optionalHeadersToGenerate (OptH med alc cig ) = map fst . filter (\x -> snd x == True) $ zip [MeditationT, AlcoholT, CigaretteT] [med, alc, cig]
 
-writeTemplate = undefined
+
+writeTemplate :: String -> TI.Day -> OptHeader -> IO ()
+writeTemplate name time optHeaders = do
+   let optHeadersToInclude = optionalHeadersToGenerate optHeaders
+   let headers = sort $ [ NameT name, DateT time
+                        , MoodT, SleepT, ProductivityT, RatingT ] ++ optHeadersToInclude
+   homeDir <- home
+   writeFile (mconcat [homeDir ++ "/.Hygeia/", show time, ".entry"]) $ mconcat $ map show headers
+
+
+-- generates an entry file given a config
+generateTemplateFile :: ReaderT Config IO ()
+generateTemplateFile = do
+  conf <- ask
+  let write = conf ^. template . genTemplate . generateTemplate
+  let userName = conf ^. info . name
+  let optHeaders = conf ^. template . optionalHeaders
+  curDate <- TI.utctDay <$> liftIO TI.getCurrentTime
+  when write $ liftIO (writeTemplate userName curDate optHeaders)

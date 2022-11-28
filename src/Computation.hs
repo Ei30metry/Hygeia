@@ -18,6 +18,7 @@ import           Data.Type.Equality        ( TestEquality (testEquality) )
 import           GHC.Base                  ( Double )
 
 import           Parser.Input
+import           Control.Monad.Trans.Reader
 
 
 -- a Type representing one's mood with it's singleton definitions
@@ -156,5 +157,3 @@ headerToEData (AllHeaders a)    = undefined
 
 entryToEData :: forall a. (a ~ String) => [Header a] -> [EntryData]
 entryToEData = undefined
-
--- data DayReport =
