@@ -27,8 +27,7 @@ library
   exposed-modules:
       CLI
       Computation
-      Configuration.Config
-      Configuration.Daemon
+      Config
       Parser.ConfigFile
       Parser.Input
       Report.Email
@@ -42,6 +41,7 @@ library
   default-extensions:
       DataKinds
       DefaultSignatures
+      DeriveGeneric
       EmptyCase
       ExistentialQuantification
       FlexibleContexts
@@ -66,6 +66,7 @@ library
   build-depends:
       base >=4.7 && <5
     , bytestring
+    , lens
     , mime-mail
     , mtl
     , optparse-applicative >=0.17
@@ -88,6 +89,7 @@ executable Hygeia-exe
   default-extensions:
       DataKinds
       DefaultSignatures
+      DeriveGeneric
       EmptyCase
       ExistentialQuantification
       FlexibleContexts
@@ -114,6 +116,7 @@ executable Hygeia-exe
       Hygeia
     , base >=4.7 && <5
     , bytestring
+    , lens
     , mime-mail
     , mtl
     , optparse-applicative >=0.17
@@ -137,6 +140,7 @@ test-suite Hygeia-test
   default-extensions:
       DataKinds
       DefaultSignatures
+      DeriveGeneric
       EmptyCase
       ExistentialQuantification
       FlexibleContexts
@@ -163,6 +167,7 @@ test-suite Hygeia-test
       Hygeia
     , base >=4.7 && <5
     , bytestring
+    , lens
     , mime-mail
     , mtl
     , optparse-applicative >=0.17

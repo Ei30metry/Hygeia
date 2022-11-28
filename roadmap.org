@@ -1,6 +1,9 @@
 #+TITLE: Hygeia
 #+AUTHOR: Artin Ghasivand
 
+* Project strucutre
+1. parse the configuration file and then return a record type describing it
+2. pass the configuration to the ReaderT Monad Transformer
 * IDEA Computation
 + [ ] Compute all occurnces of a Mood in a given time stamp
 + [ ] Compute the average productivity of a given time stamp
@@ -10,7 +13,6 @@
 ** Having the ability the compare you perseption of your loved one with their own entry in order to see how much empathy you can feel while talking to them.
 
 * IDEA Report
-
 + [ ] Show a graph to represent different moods throughout the month and use the intensity for graphing them
 + [ ] Use statistical functions like variance, mean and median to graph your moods according to their value and their intensity
 
@@ -39,7 +41,6 @@
 ** Report [/]
 + [ ] Tell the Amount of days that patient felt a certain way or scored a certain number
 + [ ] Give percentages for the Moods, for example, 1/3 of the month you were feeling Neutral or ...
-
 
 * TODO Refactor
 

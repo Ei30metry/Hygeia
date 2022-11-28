@@ -4,22 +4,20 @@ module Computation where
 
 
 
-import Data.Semigroup.Singletons
-    ( PSemigroup(type (<>)), SSemigroup((%<>)) )
+import           Data.Semigroup.Singletons ( PSemigroup (type (<>)),
+                                             SSemigroup ((%<>)) )
 import           Data.Singletons
-import Data.Singletons.Base.Enum
-    ( PBounded(..),
-      PEnum(FromEnum, ToEnum),
-      SBounded(..),
-      FromEnumSym0,
-      SEnum(sFromEnum, sToEnum) )
+import           Data.Singletons.Base.Enum ( FromEnumSym0, PBounded (..),
+                                             PEnum (FromEnum, ToEnum),
+                                             SBounded (..),
+                                             SEnum (sFromEnum, sToEnum) )
 import           Data.Singletons.Base.TH
 import qualified Data.Time                 as TI
 import           Data.Type.Equality        ( TestEquality (testEquality) )
 
 import           GHC.Base                  ( Double )
 
-import Parser.Input
+import           Parser.Input
 
 
 -- a Type representing one's mood with it's singleton definitions
@@ -77,20 +75,26 @@ addMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b')
   return $ FromSing $ addSingMoodReports l r
 
 
-addMoodReports' :: MoodReport -> MoodReport -> MoodReport
-addMoodReports' (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b')))
+unsafeAddMoodReports :: MoodReport -> MoodReport -> MoodReport
+unsafeAddMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b')))
   = case testEquality a a' of
       Just Refl -> FromSing $ addSingMoodReports l r
       _         -> undefined
 
 
-instance Semigroup MoodReport where
-  (<>) = addMoodReports'
+
+-- (<!>) :: Maybe MoodReport -> Maybe MoodReport -> Maybe MoodReport
+-- mr <!> mr' = addMoodReports <$> mr <*> mr'
 
 
--- instance Monoid MoodReport where
---   mappend = (<>)
---   mempty = MR (Neutral, None)
+-- the reason of it being unsafe is that
+unsafeCombineMRList :: [MoodReport] -> [MoodReport]
+unsafeCombineMRList [] = []
+unsafeCombineMRList [a] = [a]
+unsafeCombineMRList moods@( MR x: MR x' : xs)
+  | fst x == fst x' = (MR x) `unsafeAddMoodReports` (MR x') : unsafeCombineMRList xs
+  | otherwise = MR x : MR x' : unsafeCombineMRList xs
+
 
 
 type Name = String
@@ -103,11 +107,7 @@ data Alcohol = Alcohol { drink :: String
 data Sleep = SP { wakeUpTime :: TI.DiffTime
                 , sleepTime  :: TI.DiffTime } deriving (Eq, Ord)
 
--- instance Show Sleep where
---   show (Sleep (H a, M b)) | a < 10 && b < 10 = mconcat ["0",show a,":", "0",show b]
---                           | a < 10 = mconcat ["0",show a,":",show b]
---                           | b < 10 = mconcat [show a,":","0",show b]
---                           | otherwise = mconcat [show a,":",show b]
+
 
 newtype Meditation = Med [String] deriving (Eq, Ord)
 
@@ -127,6 +127,7 @@ data Cigarette = Cigarette { number   :: Double
                            , tar      :: Double } deriving (Eq, Ord)
 
 
+-- the prefix of E stand for entry
 data EntryData = EName Name
                | EDate TI.Day
                | EMoodS [MoodReport]
@@ -141,19 +142,19 @@ data EntryData = EName Name
 -- parses the Name header type into the Name data type in order to compute
 
 headerToEData :: forall a. (a ~ String) => (Header a) -> EntryData
-headerToEData (NameH a) = EName a
-headerToEData (DateH a) = undefined
-headerToEData (MoodH a) = undefined
-headerToEData (SleepH a) = undefined
+headerToEData (NameH a)         = EName a
+headerToEData (DateH a)         = undefined
+headerToEData (MoodH a)         = undefined
+headerToEData (SleepH a)        = undefined
 headerToEData (ProductivityH a) = undefined
-headerToEData (MeditationH a) = undefined
-headerToEData (AlcoholH a) = undefined
-headerToEData (CigaretteH a) = undefined
-headerToEData (RatingH a) = undefined
-headerToEData (AllHeaders a) = undefined
-
--- the prefix of E stand for entry
+headerToEData (MeditationH a)   = undefined
+headerToEData (AlcoholH a)      = undefined
+headerToEData (CigaretteH a)    = undefined
+headerToEData (RatingH a)       = undefined
+headerToEData (AllHeaders a)    = undefined
 
 
--- data DayReport = DR { name :: EntryData
---                     , date :: EntryData
+entryToEData :: forall a. (a ~ String) => [Header a] -> [EntryData]
+entryToEData = undefined
+
+-- data DayReport =

@@ -1,7 +1,5 @@
 module Report.Template where
 
-import qualified Configuration.Config                        as C
-
 import           Control.Monad.Trans.Cont
 
 import           Data.Functor
@@ -44,8 +42,8 @@ instance Show TemplateHeaders where
 
 
 -- generates templates for user to fill in
-generateTemplate :: IO ()
-generateTemplate = undefined --do
+writeTemplate :: IO ()
+writeTemplate = undefined --do
   -- date <- DateT <$> TI.getCurrentTime
   -- configFile <- readFile "~/.config/Hygeia/config"
   -- name <- NameT <$> parse P.parseInfo "couldn't parse name" configFile

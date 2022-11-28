@@ -22,6 +22,7 @@ description:         Please see the README on GitHub at <https://github.com/gith
 default-extensions:
 - DataKinds
 - DefaultSignatures
+- DeriveGeneric
 - EmptyCase
 - ExistentialQuantification
 - FlexibleContexts
@@ -60,6 +61,7 @@ dependencies:
 - unix
 - mtl
 - transformers
+- lens
 
 library:
   source-dirs: src

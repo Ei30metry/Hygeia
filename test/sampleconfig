@@ -9,7 +9,10 @@ Daemon :
 
 Template :
     generate_template = True
-    optional_headers = Meditation - Alcohol - Cigarette ...
+    optional_headers :
+            meditation = True
+            alcohol = True
+            cigarette = True
 
 Report :
     email_report = True
