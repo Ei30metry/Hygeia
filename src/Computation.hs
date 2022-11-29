@@ -140,12 +140,12 @@ data EntryData = EName Name
                | ERating Rating
          deriving (Eq, Ord)
 
--- parses the Name header type into the Name data type in order to compute
+-- converts the Name header type into the Name data type in order to compute
 
 headerToEData :: forall a. (a ~ String) => (Header a) -> EntryData
 headerToEData (NameH a)         = EName a
 headerToEData (DateH a)         = undefined
-headerToEData (MoodH a)         = undefined
+headerToEData (MoodReportH a)         = undefined
 headerToEData (SleepH a)        = undefined
 headerToEData (ProductivityH a) = undefined
 headerToEData (MeditationH a)   = undefined

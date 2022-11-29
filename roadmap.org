@@ -78,3 +78,7 @@
 
 ** Cabal configuration [/]
 + [ ] Fix the parsec version
+
+
+Wakeup = date + diff time
+Sleep = date + diff time

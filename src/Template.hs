@@ -5,7 +5,7 @@ import           Config
 import           Control.Lens.Operators ((^.))
 import           Control.Monad              ( when )
 import           Control.Monad.IO.Class     ( liftIO )
-import           Control.Monad.Trans.Reader
+import           Control.Monad.Trans.Reader (ask, ReaderT (..))
 
 import           Data.List                  ( sort )
 import qualified Data.Text                  as T
@@ -13,7 +13,7 @@ import qualified Data.Text.IO               as TIO
 import qualified Data.Time                  as TI
 
 
-import           System.IO
+import           System.IO (writeFile)
 
 import           Turtle.Prelude             ( home )
 
@@ -46,17 +46,18 @@ instance Show TemplateHeaders where
   show RatingT       = generateHeader "Rating"
 
 
+-- generates a list of Optional Headers based on the configuration
 optionalHeadersToGenerate :: OptHeader -> [TemplateHeaders]
-optionalHeadersToGenerate (OptH med alc cig ) = map fst . filter (\x -> snd x == True) $ zip [MeditationT, AlcoholT, CigaretteT] [med, alc, cig]
+optionalHeadersToGenerate (OptH m a c) = [fst x | x <- zip [MeditationT, AlcoholT, CigaretteT] [m, a, c], snd x]
 
-
+-- write the template entry file to a file with the date as its name
 writeTemplate :: String -> TI.Day -> OptHeader -> IO ()
-writeTemplate name time optHeaders = do
+writeTemplate name date optHeaders = do
    let optHeadersToInclude = optionalHeadersToGenerate optHeaders
-   let headers = sort $ [ NameT name, DateT time
+   let headers = sort $ [ NameT name, DateT date
                         , MoodT, SleepT, ProductivityT, RatingT ] ++ optHeadersToInclude
    homeDir <- home
-   writeFile (mconcat [homeDir ++ "/.Hygeia/", show time, ".entry"]) $ mconcat $ map show headers
+   writeFile (mconcat [homeDir ++ "/.Hygeia/", show date, ".entry"]) $ mconcat $ map show headers
 
 
 -- generates an entry file given a config

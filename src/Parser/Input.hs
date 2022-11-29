@@ -16,7 +16,7 @@ import           Text.ParserCombinators.Parsec ( GenParser, alphaNum, char,
 data Header a where
   NameH :: a -> Header a
   DateH :: (a,a,a) -> Header a
-  MoodH :: [(a,a)] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
+  MoodReportH :: [(a,a)] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
   SleepH :: (a,a) -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
   ProductivityH :: (a,a) -> Header a
   MeditationH :: [a] -> Header a
@@ -35,7 +35,7 @@ stringFloat = digit <|> char '.'
 instance (Show a) => Show (Header a) where
   show (NameH a)         = show a
   show (DateH a)         = show a
-  show (MoodH a)         = show a
+  show (MoodReportH a)         = show a
   show (SleepH a)        = show a
   show (ProductivityH a) = show a
   show (MeditationH a)   = show a
@@ -110,15 +110,15 @@ mood = header "Mood"
 
 
 -- Parses all the mood data constructors as stirngs
-parseMood' :: GenParser Char st String
-parseMood' = choice $ map string ["Neutral", "Angry", "Sad"
+parseMood :: GenParser Char st String
+parseMood = choice $ map string ["Neutral", "Angry", "Sad"
                                  ,"Excited", "Happy", "Focused", "Bored"]
 
 
 -- parses one mood
-parseMood :: GenParser Char st (String, String)
-parseMood = do
-  userMood <- parseMood'
+parseMoodReport :: GenParser Char st (String, String)
+parseMoodReport = do
+  userMood <- parseMood
   spaces
   char ':'
   spaces
@@ -128,12 +128,12 @@ parseMood = do
 
 
 
-parseMoods :: forall a st. (a ~ String) => GenParser Char st (Header a)
-parseMoods = do
+parseMoodReports :: forall a st. (a ~ String) => GenParser Char st (Header a)
+parseMoodReports = do
   mood
   many newline
-  l <- many1 parseMood <* many newline
-  return $ MoodH $ sortOn fst l
+  l <- many1 parseMoodReport <* many newline
+  return $ MoodReportH $ sortOn fst l
 
 
 
@@ -250,6 +250,6 @@ parseEntry :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseEntry = do
   entryParser <- many1 $ choice $ map try listOfParsers
   return . AllHeaders $ entryParser
- where listOfParsers = [ parseName, parseDate, parseMoods, parseSleep
+ where listOfParsers = [ parseName, parseDate, parseMoodReports, parseSleep
                        , parseAlcohol, parseMeditations, parseCigarette
                        , parseProductivity, parseRating ]
