@@ -44,7 +44,6 @@ library
       DeriveAnyClass
       DeriveGeneric
       EmptyCase
-      ExistentialQuantification
       FlexibleContexts
       FlexibleInstances
       GADTs
@@ -94,7 +93,6 @@ executable Hygeia-exe
       DeriveAnyClass
       DeriveGeneric
       EmptyCase
-      ExistentialQuantification
       FlexibleContexts
       FlexibleInstances
       GADTs
@@ -147,7 +145,6 @@ test-suite Hygeia-test
       DeriveAnyClass
       DeriveGeneric
       EmptyCase
-      ExistentialQuantification
       FlexibleContexts
       FlexibleInstances
       GADTs

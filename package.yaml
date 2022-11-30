@@ -25,7 +25,7 @@ default-extensions:
 - DeriveAnyClass
 - DeriveGeneric
 - EmptyCase
-- ExistentialQuantification
+# - ExistentialQuantification
 - FlexibleContexts
 - FlexibleInstances
 - GADTs

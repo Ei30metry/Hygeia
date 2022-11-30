@@ -3,8 +3,10 @@ module Parser.Input(Header (..),
                    ) where
 
 
+import           Data.Kind                     ( Type )
 import           Data.List                     ( sortOn )
 import           Data.Singletons.Base.TH       ( singletons )
+import           Data.Time.Clock               ( DiffTime (..), UTCTime (..) )
 
 import           Text.Parsec                   ( alphaNum )
 import           Text.Parsec.Char              ( newline )
@@ -13,7 +15,7 @@ import           Text.ParserCombinators.Parsec ( GenParser, alphaNum, char,
                                                  sepBy, spaces, string, try,
                                                  (<|>) )
 
-data Header a where
+data Header (a :: Type) where
   NameH :: a -> Header a
   DateH :: (a,a,a) -> Header a
   MoodReportH :: [(a,a)] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
@@ -23,7 +25,9 @@ data Header a where
   AlcoholH :: (a,a) -> Header a
   CigaretteH :: (a,a,a) -> Header a
   RatingH :: a -> Header a
-  AllHeaders :: [Header a] -> Header a
+  AllHeaders :: forall a. Show a => [Header a] -> Header [String]
+  -- AllHeaders :: forall (a :: Type) ([b] :: Type). Header a -> Header [b]
+  -- AllHeaders :: forall a b. (a :: Type) (b :: Type). [Header a] -> [Header b]
 
 
 stringFloat :: GenParser Char st Char
@@ -32,10 +36,11 @@ stringFloat = digit <|> char '.'
 -- instance Functor (Header a) where
 --   fmap f ((l :: a -> Header a) a) = f a
 
+--instance (forall (a :: Type). Show a) => Show (Header a) where
 instance (Show a) => Show (Header a) where
   show (NameH a)         = show a
   show (DateH a)         = show a
-  show (MoodReportH a)         = show a
+  show (MoodReportH a)   = show a
   show (SleepH a)        = show a
   show (ProductivityH a) = show a
   show (MeditationH a)   = show a
@@ -51,6 +56,8 @@ instance (Show a) => Show (Header a) where
 -- parses time in format of HH:MM
 time :: GenParser Char st String
 time = many1 digit <> many1 (char ':') <> many1 digit
+
+-- converts a tuple to UTCTime
 
 -- computes the time of Sleep and Wake up
 header :: String -> GenParser Char st String
@@ -82,14 +89,6 @@ dateSep = char '-' <|> char '/' <|> char '_' <|> char '\\'
 
 
 -- parses the date section
--- parseDate :: forall a st. (a ~ String ) => GenParser Char st (Header a)
--- parseDate = do
---   date
---   spaces
---   userDate <- many1 (alphaNum <|> dateSep)
---   many newline
---   return $ Date userDate
-
 parseDate :: forall a st. (a ~ String) => GenParser Char st (Header a)
 parseDate = do
   date
@@ -148,6 +147,7 @@ sleep = header "Sleep"
 
 -- parses the sleep header and it's data
 parseSleep :: forall a st. (a ~ String) => GenParser Char st (Header a)
+-- parseSleep = undefined
 parseSleep = do
   sleep
   many newline
@@ -246,8 +246,13 @@ parseRating = do
 
 
 -- parses the Entry written by the user (order of the entry doesn't matter)
-parseEntry :: forall a st. (a ~ String) => GenParser Char st (Header a)
+-- parseEntry :: forall a st. (a ~ Header String) => GenParser Char st (Header [a])
+-- parseEntry = undefined
+-- parseEntry :: GenParser Char st (Header [String])
+parseEntry :: forall a (st :: Type). (a ~ String) => GenParser Char st (Header [a])
 parseEntry = do
+  name <- parseName
+  date <- parseDate
   entryParser <- many1 $ choice $ map try listOfParsers
   return . AllHeaders $ entryParser
  where listOfParsers = [ parseName, parseDate, parseMoodReports, parseSleep

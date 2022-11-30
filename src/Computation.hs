@@ -82,6 +82,13 @@ unsafeAddMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 
       Just Refl -> FromSing $ addSingMoodReports l r
       _         -> undefined
 
+-- converts a tuple to UTCTime
+tupleToUTCTime :: (String,String,String,String,String,String) -> TI.UTCTime
+tupleToUTCTime (a,b,c,d,e,f) = MD.UTCTime day (MD.secondsToDiffTime seconds)
+  where day = fromJulian (read @Integer a) (fromEnum (read @Months b)) (read @Int c)
+        d' = (read d, read e) :: (Integer, Integer)
+        seconds = (* 60) $ (60 * fst d') + snd d' + read @Integer f
+
 
 
 -- (<!>) :: Maybe MoodReport -> Maybe MoodReport -> Maybe MoodReport
@@ -140,6 +147,7 @@ data EntryData = EName Name
                | ERating Rating
          deriving (Eq, Ord)
 
+
 -- converts the Name header type into the Name data type in order to compute
 
 headerToEData :: forall a. (a ~ String) => (Header a) -> EntryData
@@ -152,8 +160,13 @@ headerToEData (MeditationH a)   = undefined
 headerToEData (AlcoholH a)      = undefined
 headerToEData (CigaretteH a)    = undefined
 headerToEData (RatingH a)       = undefined
-headerToEData (AllHeaders a)    = undefined
+-- headerToEData (AllHeaders a)    = undefined
 
+
+getDate :: [Header a] -> [Header a]
+getDate [] = []
+getDate (DateH a: xs) = [DateH a]
+getDate (x:xs) = getDate xs
 
 entryToEData :: forall a. (a ~ String) => [Header a] -> [EntryData]
 entryToEData = undefined
