@@ -93,7 +93,7 @@ User Instructions:
  There are two ways for writting the entries:
 
     1. Telling the program to generate template files for the user to fill in.
-       the template will automatically generate dates, name and headers for the user 
+       the template will automatically generate dates, name and headers for the user based on the configuration file
 
     2. User decides to write the entry and templates won't be generated 
  

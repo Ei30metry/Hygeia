@@ -4,21 +4,23 @@ module Computation where
 
 
 
-import           Data.Semigroup.Singletons ( PSemigroup (type (<>)),
-                                             SSemigroup ((%<>)) )
-import           Data.Singletons
-import           Data.Singletons.Base.Enum ( FromEnumSym0, PBounded (..),
-                                             PEnum (FromEnum, ToEnum),
-                                             SBounded (..),
-                                             SEnum (sFromEnum, sToEnum) )
-import           Data.Singletons.Base.TH
-import qualified Data.Time                 as TI
-import           Data.Type.Equality        ( TestEquality (testEquality) )
+import           Control.Monad.Trans.Reader
 
-import           GHC.Base                  ( Double )
+import           Data.Kind                  ( Type, Constraint )
+import           Data.Semigroup.Singletons  ( PSemigroup (type (<>)),
+                                              SSemigroup ((%<>)) )
+import           Data.Singletons
+import           Data.Singletons.Base.Enum  ( FromEnumSym0, PBounded (..),
+                                              PEnum (FromEnum, ToEnum),
+                                              SBounded (..),
+                                              SEnum (sFromEnum, sToEnum) )
+import           Data.Singletons.Base.TH
+import Data.Time (DiffTime (..), UTCTime (..), Day (..))
+import           Data.Type.Equality         ( TestEquality (testEquality) )
+
+import           GHC.Base                   ( Double )
 
 import           Parser.Input
-import           Control.Monad.Trans.Reader
 
 
 -- a Type representing one's mood with it's singleton definitions
@@ -61,7 +63,7 @@ data Rating = Awful
             | Bad
             | Normal
             | Good
-            | Great deriving (Show, Eq, Ord, Enum, Read,Bounded)
+            | Great deriving (Show, Eq, Ord, Enum, Read, Bounded)
 
 
 -- this function will only work if our SMoods are the same
@@ -83,11 +85,11 @@ unsafeAddMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 
       _         -> undefined
 
 -- converts a tuple to UTCTime
-tupleToUTCTime :: (String,String,String,String,String,String) -> TI.UTCTime
-tupleToUTCTime (a,b,c,d,e,f) = MD.UTCTime day (MD.secondsToDiffTime seconds)
-  where day = fromJulian (read @Integer a) (fromEnum (read @Months b)) (read @Int c)
-        d' = (read d, read e) :: (Integer, Integer)
-        seconds = (* 60) $ (60 * fst d') + snd d' + read @Integer f
+-- tupleToUTCTime :: (String,String,String,String,String,String) -> TI.UTCTime
+-- tupleToUTCTime (a,b,c,d,e,f) = MD.UTCTime day (MD.secondsToDiffTime seconds)
+--   where day = fromJulian (read @Integer a) (fromEnum (read @Months b)) (read @Int c)
+--         d' = (read d, read e) :: (Integer, Integer)
+--         seconds = (* 60) $ (60 * fst d') + snd d' + read @Integer f
 
 
 
@@ -112,8 +114,9 @@ type HeaderToComp b = forall a. (a ~ String ) => Header a -> b
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int } deriving (Eq, Ord)
 
-data Sleep = SP { wakeUpTime :: TI.DiffTime
-                , sleepTime  :: TI.DiffTime } deriving (Eq, Ord)
+-- Record Representation of sleep data
+data Sleep = SP { wakeUpTime :: DiffTime
+                , sleepTime  :: DiffTime } deriving (Eq, Ord)
 
 
 
@@ -135,25 +138,25 @@ data Cigarette = Cigarette { number   :: Double
                            , tar      :: Double } deriving (Eq, Ord)
 
 
--- the prefix of E stand for entry
-data EntryData = EName Name
-               | EDate TI.Day
-               | EMoodS [MoodReport]
-               | ESleep Sleep
-               | EProductivity Productivity
-               | EMeditation Meditation
-               | EAlcohol Alcohol
-               | ECigarette Cigarette
-               | ERating Rating
-         deriving (Eq, Ord)
+data EntryData (a :: Type) where
+  EName :: forall a. (a ~ Name) => a -> EntryData a
+  EDate :: forall a. (a ~ Day) => a -> EntryData a
+  EMoodS :: forall a. (a ~ [MoodReport]) => a -> EntryData a
+  ESleep :: forall a. (a ~ Sleep) => a -> EntryData a
+  EProductivity :: forall a. (a ~ Productivity) => a -> EntryData a
+  EMeditation :: forall a. (a ~ Meditation) => a -> EntryData a
+  EAlcohol :: forall a. (a ~ Alcohol) => a -> EntryData a
+  ECigarette :: forall a. (a ~ Cigarette) => a -> EntryData a
+  ERating :: forall a. (a ~ Rating) => a -> EntryData a
+
 
 
 -- converts the Name header type into the Name data type in order to compute
 
-headerToEData :: forall a. (a ~ String) => (Header a) -> EntryData
-headerToEData (NameH a)         = EName a
+headerToEData :: forall a (b :: Type). (Show a) => (Header a) -> EntryData b
+headerToEData (NameH a)         = undefined
 headerToEData (DateH a)         = undefined
-headerToEData (MoodReportH a)         = undefined
+headerToEData (MoodReportH a)   = undefined
 headerToEData (SleepH a)        = undefined
 headerToEData (ProductivityH a) = undefined
 headerToEData (MeditationH a)   = undefined
@@ -162,11 +165,10 @@ headerToEData (CigaretteH a)    = undefined
 headerToEData (RatingH a)       = undefined
 -- headerToEData (AllHeaders a)    = undefined
 
+-- getDate :: [Header a] -> [Header a]
+-- getDate []            = []
+-- getDate (DateH a: xs) = [DateH a]
+-- getDate (x:xs)        = getDate xs
 
-getDate :: [Header a] -> [Header a]
-getDate [] = []
-getDate (DateH a: xs) = [DateH a]
-getDate (x:xs) = getDate xs
-
-entryToEData :: forall a. (a ~ String) => [Header a] -> [EntryData]
-entryToEData = undefined
+-- entryToEData :: forall a. (a ~ String) => [Header a] -> [EntryData]
+-- entryToEData = undefined

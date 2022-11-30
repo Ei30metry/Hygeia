@@ -15,6 +15,7 @@ import           Text.ParserCombinators.Parsec ( GenParser, alphaNum, char,
                                                  sepBy, spaces, string, try,
                                                  (<|>) )
 
+
 data Header (a :: Type) where
   NameH :: a -> Header a
   DateH :: (a,a,a) -> Header a
@@ -25,9 +26,7 @@ data Header (a :: Type) where
   AlcoholH :: (a,a) -> Header a
   CigaretteH :: (a,a,a) -> Header a
   RatingH :: a -> Header a
-  AllHeaders :: forall a. Show a => [Header a] -> Header [String]
-  -- AllHeaders :: forall (a :: Type) ([b] :: Type). Header a -> Header [b]
-  -- AllHeaders :: forall a b. (a :: Type) (b :: Type). [Header a] -> [Header b]
+  AllHeaders :: forall a. Show a => [Header a] -> Header [a]
 
 
 stringFloat :: GenParser Char st Char
@@ -246,9 +245,6 @@ parseRating = do
 
 
 -- parses the Entry written by the user (order of the entry doesn't matter)
--- parseEntry :: forall a st. (a ~ Header String) => GenParser Char st (Header [a])
--- parseEntry = undefined
--- parseEntry :: GenParser Char st (Header [String])
 parseEntry :: forall a (st :: Type). (a ~ String) => GenParser Char st (Header [a])
 parseEntry = do
   name <- parseName
