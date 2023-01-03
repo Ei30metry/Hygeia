@@ -1,12 +1,10 @@
-{-# LANGUAGE PolyKinds #-}
-
 module Computation where
 
 
 
 import           Control.Monad.Trans.Reader
 
-import           Data.Kind                  ( Type, Constraint )
+import           Data.Kind                  ( Constraint, Type )
 import           Data.Semigroup.Singletons  ( PSemigroup (type (<>)),
                                               SSemigroup ((%<>)) )
 import           Data.Singletons
@@ -15,7 +13,8 @@ import           Data.Singletons.Base.Enum  ( FromEnumSym0, PBounded (..),
                                               SBounded (..),
                                               SEnum (sFromEnum, sToEnum) )
 import           Data.Singletons.Base.TH
-import Data.Time (DiffTime (..), UTCTime (..), Day (..))
+import           Data.Time                  ( Day (..), DiffTime (..),
+                                              UTCTime (..) )
 import           Data.Type.Equality         ( TestEquality (testEquality) )
 
 import           GHC.Base                   ( Double )
@@ -55,7 +54,7 @@ singletons [d| instance Semigroup Intensity where
 
 instance Monoid Intensity where
   mappend = (<>)
-  mempty = None
+  mempty  = None
 
 
 -- Rating data type for rating the day
@@ -99,7 +98,7 @@ unsafeAddMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 
 
 -- the reason of it being unsafe is that
 unsafeCombineMRList :: [MoodReport] -> [MoodReport]
-unsafeCombineMRList [] = []
+unsafeCombineMRList []  = []
 unsafeCombineMRList [a] = [a]
 unsafeCombineMRList moods@( MR x: MR x' : xs)
   | fst x == fst x' = (MR x) `unsafeAddMoodReports` (MR x') : unsafeCombineMRList xs
@@ -138,37 +137,30 @@ data Cigarette = Cigarette { number   :: Double
                            , tar      :: Double } deriving (Eq, Ord)
 
 
-data EntryData (a :: Type) where
-  EName :: forall a. (a ~ Name) => a -> EntryData a
-  EDate :: forall a. (a ~ Day) => a -> EntryData a
-  EMoodS :: forall a. (a ~ [MoodReport]) => a -> EntryData a
-  ESleep :: forall a. (a ~ Sleep) => a -> EntryData a
-  EProductivity :: forall a. (a ~ Productivity) => a -> EntryData a
-  EMeditation :: forall a. (a ~ Meditation) => a -> EntryData a
-  EAlcohol :: forall a. (a ~ Alcohol) => a -> EntryData a
-  ECigarette :: forall a. (a ~ Cigarette) => a -> EntryData a
-  ERating :: forall a. (a ~ Rating) => a -> EntryData a
+singletons [d| data EntryData (a :: Type) where
+                EName :: a -> EntryData a
+                EDate :: a -> EntryData a
+                EMoodReports :: a -> EntryData a
+                ESleep :: a -> EntryData a
+                EProductivity :: a -> EntryData a
+                EMeditation :: a -> EntryData a
+                EAlcohol :: a -> EntryData a
+                ECigarette :: a -> EntryData a
+                ERating :: a -> EntryData a |]
 
 
 
--- converts the Name header type into the Name data type in order to compute
+-- allHeadersToHeaderList :: forall a. (a ~ String) => AllHeaders ([Header a]) -> [Header a]
+-- allHeadersToHeaderList (AllHeaders a) = a
 
-headerToEData :: forall a (b :: Type). (Show a) => (Header a) -> EntryData b
-headerToEData (NameH a)         = undefined
-headerToEData (DateH a)         = undefined
-headerToEData (MoodReportH a)   = undefined
-headerToEData (SleepH a)        = undefined
-headerToEData (ProductivityH a) = undefined
-headerToEData (MeditationH a)   = undefined
-headerToEData (AlcoholH a)      = undefined
-headerToEData (CigaretteH a)    = undefined
-headerToEData (RatingH a)       = undefined
--- headerToEData (AllHeaders a)    = undefined
 
--- getDate :: [Header a] -> [Header a]
--- getDate []            = []
--- getDate (DateH a: xs) = [DateH a]
--- getDate (x:xs)        = getDate xs
-
--- entryToEData :: forall a. (a ~ String) => [Header a] -> [EntryData]
--- entryToEData = undefined
+-- headerToEData :: forall (a :: Type). (Show a) => Header a -> EntryData a
+-- headerToEData (NameH name)                 = EName name
+-- headerToEData (DateH a)                    = undefined
+-- headerToEData (MoodReportH moodReports )   = EMoodReports moodReports
+-- headerToEData (SleepH a)                   = undefined
+-- headerToEData (ProductivityH productivity) = EProductivity productivity
+-- headerToEData (MeditationH meditation)     = EAlcohol meditation
+-- headerToEData (AlcoholH alcohol)           = EAlcohol alcohol
+-- headerToEData (CigaretteH cigarette )      = ECigarette cigarette
+-- headerToEData (RatingH alcohol)            = ERating alcohol

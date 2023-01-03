@@ -1,5 +1,6 @@
 module Parser.Input(Header (..),
-                   parseEntry
+                   parseEntry,
+                   AllHeaders (..)
                    ) where
 
 
@@ -26,7 +27,12 @@ data Header (a :: Type) where
   AlcoholH :: (a,a) -> Header a
   CigaretteH :: (a,a,a) -> Header a
   RatingH :: a -> Header a
-  AllHeaders :: forall a. Show a => [Header a] -> Header [a]
+--  AllHeaders :: forall a. Show a => [Header a] -> Header [a]
+
+
+-- a GADT to hold a list of headers
+data AllHeaders a where
+  AllHeaders :: forall a. (a ~ String) => [Header a] -> AllHeaders ([Header a])
 
 
 stringFloat :: GenParser Char st Char
@@ -46,7 +52,11 @@ instance (Show a) => Show (Header a) where
   show (AlcoholH a)      = show a
   show (CigaretteH a)    = show a
   show (RatingH a)       = show a
-  show (AllHeaders a)    = show a
+  -- show (AllHeaders a)    = show a
+
+instance (Show a) => Show (AllHeaders a) where
+  show (AllHeaders a) = show a
+
 
 -- parses '\n' charecters
 -- many newline :: GenParser Char st String
@@ -245,7 +255,7 @@ parseRating = do
 
 
 -- parses the Entry written by the user (order of the entry doesn't matter)
-parseEntry :: forall a (st :: Type). (a ~ String) => GenParser Char st (Header [a])
+parseEntry :: forall a (st :: Type). (a ~ String) => GenParser Char st (AllHeaders ([Header a]))
 parseEntry = do
   name <- parseName
   date <- parseDate
