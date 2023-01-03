@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -136,7 +136,7 @@ executable Hygeia-exe
 
 test-suite Hygeia-test
   type: exitcode-stdio-1.0
-  main-is: Spec.hs
+  main-is: Test.hs
   other-modules:
       Paths_Hygeia
   hs-source-dirs:
@@ -172,6 +172,7 @@ test-suite Hygeia-test
       Hygeia
     , base >=4.7 && <5
     , bytestring
+    , hedgehog
     , lens
     , mime-mail
     , mtl
@@ -180,6 +181,9 @@ test-suite Hygeia-test
     , process
     , singletons
     , singletons-base
+    , tasty
+    , tasty-golden
+    , tasty-hedgehog
     , text
     , time
     , transformers
