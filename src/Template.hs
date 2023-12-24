@@ -15,9 +15,6 @@ import qualified Data.Time                  as TI
 
 import           System.IO (writeFile)
 
-import           Turtle.Prelude             ( home )
-
-
 data TemplateHeaders = NameT String
                      | DateT TI.Day
                      | MoodT
@@ -56,7 +53,7 @@ writeTemplate name date optHeaders = do
    let optHeadersToInclude = optionalHeadersToGenerate optHeaders
    let headers = sort $ [ NameT name, DateT date
                         , MoodT, SleepT, ProductivityT, RatingT ] ++ optHeadersToInclude
-   homeDir <- home
+   homeDir <- undefined
    writeFile (mconcat [homeDir ++ "/.Hygeia/", show date, ".entry"]) $ mconcat $ map show headers
 
 

@@ -5,13 +5,18 @@ import qualified Data.ByteString     as B
 import           Options.Applicative
 
 
--- for now
+-- For now
 data Params = Params
 
+-- Environment for our computation
+data Env = Env { configFile       :: FilePath
+               , generateTemplate :: Bool
+               , startDaemon      :: Bool
+               , entryDirectory   :: FilePath }
+               deriving (Show, Eq)
 
 parseCmd :: Parser Params
 parseCmd = pure Params
-
 
 cliGenTemplate = undefined
 

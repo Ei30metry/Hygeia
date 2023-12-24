@@ -26,14 +26,12 @@ source-repository head
 library
   exposed-modules:
     CLI
-    -- , Computation
-    -- , Config
-    -- , Parser.ConfigFile
-    -- , Parser.Input
-    -- , Report.Email
-    -- , Report.Notification
-    -- , Report.PrettyPrint
-    -- , Template
+   , Computation
+   , Config
+   , Parser.ConfigFile
+   , Parser.Input
+   , Report.PrettyPrint
+   , Template
 
   other-modules:
       Paths_Hygeia
@@ -43,13 +41,13 @@ library
       base >=4.7 && <5
     , bytestring
     , lens
+    , time
     , mtl
-    , optparse-applicative >=0.17
+    , optparse-applicative
     , parsec
+    , transformers
     , process
     , text
-    , transformers
-    , turtle
     , unix
   default-language: GHC2021
 
@@ -70,7 +68,6 @@ executable Hygeia-exe
     , parsec
     , process
     , time
-    , transformers
     , unix
   default-language: Haskell2010
 
@@ -90,11 +87,8 @@ test-suite Hygeia-test
     , optparse-applicative 
     , parsec
     , process
-    , tasty
-    , tasty-golden
-    , tasty-hedgehog
+    , quickcheck
     , text
     , time
-    , transformers
     , unix
   default-language: Haskell2010

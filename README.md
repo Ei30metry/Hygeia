@@ -78,14 +78,14 @@ Productivity ratings:
  
 Meditatin entries:
  - _Meditation entries are written in the hours:minutes format and they'll be 
-    sumed durint the report process_
+    sumed during the report process_
     
 Alcohol entries:
  - _Alcohol entries are completed by writing the name of the drink followed by 
     a colon and the amount of shots drinked_
     
 Cigarette entries: 
- - _Cigarette entries are written by writtin the numer of cigarettes smoked and the amount of nicotine and tar 
+ - _Cigarette entries are the number of cigarettes smoked and the amount of nicotine and tar 
     the cigarette contained._
 
 User Instructions: 
@@ -103,4 +103,3 @@ User Instructions:
  Optional Headers like cigarette, Alcohol and ... should be specified by the user 
  in the config file located in ~/.Hygeia/config or any other directory that the 
  user specifies for Hygeia data during the instantiation process.
- 

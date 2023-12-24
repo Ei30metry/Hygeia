@@ -4,15 +4,15 @@ module Parser.Input(Header (..),
 
 
 import           Data.List                     ( sortOn )
-import           Data.Singletons.Base.TH       ( singletons )
 
-import           Text.Parsec                   ( alphaNum )
 import           Text.Parsec.Char              ( newline )
-import           Text.ParserCombinators.Parsec ( GenParser, alphaNum, char,
+import           Text.Parsec.String            ( Parser )
+import           Text.ParserCombinators.Parsec ( alphaNum, char,
                                                  choice, digit, many, many1,
                                                  sepBy, spaces, string, try,
                                                  (<|>) )
 
+-- FIX: How is this useful exactly? this isn't how GADTs work ..............
 data Header a where
   NameH :: a -> Header a
   DateH :: (a,a,a) -> Header a
@@ -26,7 +26,7 @@ data Header a where
   AllHeaders :: [Header a] -> Header a
 
 
-stringFloat :: GenParser Char st Char
+stringFloat :: Parser Char 
 stringFloat = digit <|> char '.'
 
 -- instance Functor (Header a) where
@@ -45,23 +45,20 @@ instance (Show a) => Show (Header a) where
   show (AllHeaders a)    = show a
 
 -- parses '\n' charecters
--- many newline :: GenParser Char st String
--- many newline = many (char '\n')
-
 -- parses time in format of HH:MM
-time :: GenParser Char st String
+time :: Parser String
 time = many1 digit <> many1 (char ':') <> many1 digit
 
 -- computes the time of Sleep and Wake up
-header :: String -> GenParser Char st String
+header :: String -> Parser String
 header h = string $ mconcat ["[", h, "]"]
 
 -- parses the name section
-name :: GenParser Char st String
+name :: Parser String
 name = string "Name :"
 
 -- parses the name section
-parseName :: forall a st. (a ~ String) => GenParser Char st (Header a)
+parseName :: forall a st. (a ~ String) => Parser (Header a)
 parseName = do
   name
   spaces
@@ -73,16 +70,16 @@ parseName = do
 
 
 -- parses the date section
-date :: GenParser Char st String
+date :: Parser String
 date = string "Date :" <|> string "Date:"
 
 
-dateSep :: GenParser Char st Char
+dateSep :: Parser Char
 dateSep = char '-' <|> char '/' <|> char '_' <|> char '\\'
 
 
 -- parses the date section
--- parseDate :: forall a st. (a ~ String ) => GenParser Char st (Header a)
+-- parseDate :: forall a st. (a ~ String ) => Parser (Header a)
 -- parseDate = do
 --   date
 --   spaces
@@ -90,7 +87,7 @@ dateSep = char '-' <|> char '/' <|> char '_' <|> char '\\'
 --   many newline
 --   return $ Date userDate
 
-parseDate :: forall a st. (a ~ String) => GenParser Char st (Header a)
+parseDate :: forall a st. (a ~ String) => Parser (Header a)
 parseDate = do
   date
   spaces
@@ -105,18 +102,18 @@ parseDate = do
 -- parses the mood
 -- refactor with a list function
 
-mood :: GenParser Char st String
+mood :: Parser String
 mood = header "Mood"
 
 
 -- Parses all the mood data constructors as stirngs
-parseMood :: GenParser Char st String
+parseMood :: Parser String
 parseMood = choice $ map string ["Neutral", "Angry", "Sad"
                                  ,"Excited", "Happy", "Focused", "Bored"]
 
 
 -- parses one mood
-parseMoodReport :: GenParser Char st (String, String)
+parseMoodReport :: Parser (String, String)
 parseMoodReport = do
   userMood <- parseMood
   spaces
@@ -128,7 +125,7 @@ parseMoodReport = do
 
 
 
-parseMoodReports :: forall a st. (a ~ String) => GenParser Char st (Header a)
+parseMoodReports :: forall a st. (a ~ String) => Parser (Header a)
 parseMoodReports = do
   mood
   many newline
@@ -138,16 +135,16 @@ parseMoodReports = do
 
 
 -- parses all the possible Intensities
-parseIntensity :: GenParser Char st String
+parseIntensity :: Parser String
 parseIntensity = choice $ map string ["Low", "Medium", "High", "Extreme"]
 
 -- parses the sleep header
-sleep :: GenParser Char st String
+sleep :: Parser String
 sleep = header "Sleep"
 
 
 -- parses the sleep header and it's data
-parseSleep :: forall a st. (a ~ String) => GenParser Char st (Header a)
+parseSleep :: forall a st. (a ~ String) => Parser (Header a)
 parseSleep = do
   sleep
   many newline
@@ -161,12 +158,12 @@ parseSleep = do
 
 
 -- alcohol header
-alcohol :: GenParser Char st String
+alcohol :: Parser String
 alcohol = header "Alcohol"
 
 
 -- parses the alcohol header and the data in it
-parseAlcohol :: forall a st. (a ~ String) => GenParser Char st (Header a)
+parseAlcohol :: forall a st. (a ~ String) => Parser (Header a)
 parseAlcohol = do
   alcohol
   many newline
@@ -177,12 +174,12 @@ parseAlcohol = do
 
 
 -- parses the cigarette header
-cigarette :: GenParser Char st String
+cigarette :: Parser String
 cigarette = header "Cigarette"
 
 
 -- parses the cigarette header and the data in it
-parseCigarette :: forall a st. (a ~ String) => GenParser Char st (Header a)
+parseCigarette :: forall a st. (a ~ String) => Parser (Header a)
 parseCigarette = do
   cigarette
   many newline
@@ -199,11 +196,11 @@ parseCigarette = do
 
 
 -- | Parses the meditation header
-meditation :: GenParser Char st String
+meditation :: Parser String
 meditation = header "Meditation"
 
 -- parses the meditatin header and the data in it
-parseMeditations :: forall a st. (a ~ String) => GenParser Char st (Header a)
+parseMeditations :: forall a st. (a ~ String) => Parser (Header a)
 parseMeditations = do
   meditation
   many newline
@@ -211,12 +208,12 @@ parseMeditations = do
   many newline
   return $ MeditationH meditations
 
--- | Parses the productivity header 
-productivity :: GenParser Char st String
+-- | Parses the productivity header
+productivity :: Parser String
 productivity = header "Productivity"
 
 -- parses the productivity header and the information in it
-parseProductivity :: forall a st. (a ~ String) => GenParser Char st (Header a)
+parseProductivity :: forall a st. (a ~ String) => Parser (Header a)
 parseProductivity = do
   productivity
   many newline
@@ -227,26 +224,22 @@ parseProductivity = do
 
 
 -- parses the rating header
-rating :: GenParser Char st String
+rating :: Parser String
 rating = header "Rating"
 
 
 -- parses the different rating a user might give
-parseRating' :: GenParser Char st String
+parseRating' :: Parser String
 parseRating' = choice $ map string ["Great", "Good", "Normal", "Bad", "Awful"]
 
 
 -- parses the whole Rating header (section)
-parseRating :: forall a st. (a ~ String) => GenParser Char st (Header a)
-parseRating = do
-  rating
-  many newline
-  prsd <- parseRating'
-  return $ RatingH prsd
+parseRating :: Parser (Header String)
+parseRating = rating >> many newline >> RatingH <$> parseRating'
 
 
 -- parses the Entry written by the user (order of the entry doesn't matter)
-parseEntry :: forall a st. (a ~ String) => GenParser Char st (Header a)
+parseEntry :: Parser (Header String)
 parseEntry = do
   entryParser <- many1 $ choice $ map try listOfParsers
   return . AllHeaders $ entryParser

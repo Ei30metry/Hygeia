@@ -1,21 +1,6 @@
-{-# LANGUAGE PolyKinds #-}
-
 module Computation where
 
-
-
-import           Data.Semigroup.Singletons ( PSemigroup (type (<>)),
-                                             SSemigroup ((%<>)) )
-import           Data.Singletons
-import           Data.Singletons.Base.Enum ( FromEnumSym0, PBounded (..),
-                                             PEnum (FromEnum, ToEnum),
-                                             SBounded (..),
-                                             SEnum (sFromEnum, sToEnum) )
-import           Data.Singletons.Base.TH
 import qualified Data.Time                 as TI
-import           Data.Type.Equality        ( TestEquality (testEquality) )
-
-import           GHC.Base                  ( Double )
 
 import           Parser.Input
 import           Control.Monad.Trans.Reader
@@ -26,29 +11,30 @@ data Mood = Angry
           | Sad
           | Neutral
           | Happy
-          | Excited deriving (Read, Eq, Ord, Show) |]
+          | Excited deriving (Read, Eq, Ord, Show)
 
 -- Intensity of a mood
 -- The None is not supposed to be used in a MoodReport but it is only here to
 -- serve as a mempty for our Monoid instance
-singletons [d| data Intensity = None
-                              | Low
-                              | Medium
-                              | High
-                              | Extreme deriving (Show, Read, Eq, Ord, Enum, Bounded) |]
+data Intensity = None
+               | Low
+               | Medium
+               | High
+               | Extreme
+               deriving (Show, Read, Eq, Ord, Enum, Bounded)
 
 -- using newtype to be able to coerce
-singletons [d| newtype MoodReport = MR (Mood, Intensity) deriving (Show, Eq, Ord)|]
+newtype MoodReport = MR (Mood, Intensity) deriving (Show, Eq, Ord)
 
 
 computeIntensity :: Intensity -> Intensity -> Intensity
 computeIntensity x y | fromEnum x == fromEnum y = x
                      | fromEnum x > fromEnum y = x
-                     | otherwise = y 
+                     | otherwise = y
 
 
 instance Semigroup Intensity where
-  x <> y = computeIntensity x y 
+  x <> y = computeIntensity x y
 
 
 instance Monoid Intensity where
@@ -64,23 +50,22 @@ data Rating = Awful
             | Great deriving (Show, Eq, Ord, Enum, Read, Bounded)
 
 
--- this function will only work if our SMoods are the same
-
 -- safe function to add MoodReports
 addMoodReports :: MoodReport -> MoodReport -> Maybe MoodReport
-addMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b'))) = do
-  Refl <- testEquality a a'
-  return $ FromSing $ addSingMoodReports l r
+addMoodReports = undefined
+-- addMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b'))) = do
+--   Refl <- testEquality a a'
+--   return $ FromSing $ addSingMoodReports l r
 
 
 unsafeAddMoodReports :: MoodReport -> MoodReport -> MoodReport
-unsafeAddMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b')))
-  = case testEquality a a' of
-      Just Refl -> FromSing $ addSingMoodReports l r
-      _         -> undefined
+unsafeAddMoodReports = undefined
+-- unsafeAddMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b')))
+--   = case testEquality a a' of
+--       Just Refl -> FromSing $ addSingMoodReports l r
+--       _         -> undefined
 
 
--- the reason of it being unsafe is that
 unsafeCombineMRList :: [MoodReport] -> [MoodReport]
 unsafeCombineMRList [] = []
 unsafeCombineMRList [a] = [a]
@@ -92,7 +77,7 @@ unsafeCombineMRList moods@( MR x: MR x' : xs)
 
 type Name = String
 
-type HeaderToComp b = forall a. (a ~ String ) => Header a -> b
+type HeaderToComp b = Header String -> b
 
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int } deriving (Eq, Ord)
@@ -133,8 +118,8 @@ data EntryData = EName Name
          deriving (Eq, Ord)
 
 -- converts the Name header type into the Name data type in order to compute
-headerToEData :: forall a. (a ~ String) => (Header a) -> EntryData
-headerToEData (NameH a)         = EName a
+headerToEData :: forall a. Header a -> EntryData
+headerToEData (NameH a)         = undefined
 headerToEData (DateH a)         = undefined
 headerToEData (MoodReportH a)         = undefined
 headerToEData (SleepH a)        = undefined
@@ -146,5 +131,5 @@ headerToEData (RatingH a)       = undefined
 headerToEData (AllHeaders a)    = undefined
 
 
-entryToEData :: forall a. (a ~ String) => [Header a] -> [EntryData]
+entryToEData :: forall a. [Header a] -> [EntryData]
 entryToEData = undefined
