@@ -3,30 +3,31 @@ module Parser.Input(Header (..),
                    ) where
 
 
+import           Computation
+
 import           Data.List                     ( sortOn )
+import           Data.Time                     ( Day )
 
 import           Text.Parsec.Char              ( newline )
 import           Text.Parsec.String            ( Parser )
-import           Text.ParserCombinators.Parsec ( alphaNum, char,
-                                                 choice, digit, many, many1,
-                                                 sepBy, spaces, string, try,
-                                                 (<|>) )
+import           Text.ParserCombinators.Parsec ( alphaNum, char, choice, digit,
+                                                 many, many1, sepBy, spaces,
+                                                 string, try, (<|>) )
 
 -- FIX: How is this useful exactly? this isn't how GADTs work ..............
 data Header a where
-  NameH :: a -> Header a
-  DateH :: (a,a,a) -> Header a
-  MoodReportH :: [(a,a)] -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
-  SleepH :: (a,a) -> Header a -- when writting the show instance, the strings should me mconcated with a newline charecter
-  ProductivityH :: (a,a) -> Header a
-  MeditationH :: [a] -> Header a
-  AlcoholH :: (a,a) -> Header a
-  CigaretteH :: (a,a,a) -> Header a
-  RatingH :: a -> Header a
-  AllHeaders :: [Header a] -> Header a
+  NameH :: a -> Header Name
+  DateH :: (a,a,a) -> Header Day
+  MoodReportH :: [(a,a)] -> Header MoodReport 
+  SleepH :: (a,a) -> Header Sleep 
+  ProductivityH :: (a,a) -> Header Productivity
+  MeditationH :: [a] -> Header Meditation
+  AlcoholH :: (a,a) -> Header Alcohol
+  CigaretteH :: (a,a,a) -> Header Cigarette
+  RatingH :: a -> Header Rating
 
 
-stringFloat :: Parser Char 
+stringFloat :: Parser Char
 stringFloat = digit <|> char '.'
 
 -- instance Functor (Header a) where
@@ -42,7 +43,6 @@ instance (Show a) => Show (Header a) where
   show (AlcoholH a)      = show a
   show (CigaretteH a)    = show a
   show (RatingH a)       = show a
-  show (AllHeaders a)    = show a
 
 -- parses '\n' charecters
 -- parses time in format of HH:MM
@@ -58,7 +58,7 @@ name :: Parser String
 name = string "Name :"
 
 -- parses the name section
-parseName :: forall a st. (a ~ String) => Parser (Header a)
+parseName :: Parser (Header a)
 parseName = do
   name
   spaces
@@ -87,7 +87,7 @@ dateSep = char '-' <|> char '/' <|> char '_' <|> char '\\'
 --   many newline
 --   return $ Date userDate
 
-parseDate :: forall a st. (a ~ String) => Parser (Header a)
+parseDate :: Parser (Header a)
 parseDate = do
   date
   spaces
@@ -124,14 +124,12 @@ parseMoodReport = do
   return (userMood, moodIntensity)
 
 
-
-parseMoodReports :: forall a st. (a ~ String) => Parser (Header a)
+parseMoodReports :: Parser (Header a)
 parseMoodReports = do
   mood
   many newline
   l <- many1 parseMoodReport <* many newline
   return $ MoodReportH $ sortOn fst l
-
 
 
 -- parses all the possible Intensities
@@ -144,7 +142,7 @@ sleep = header "Sleep"
 
 
 -- parses the sleep header and it's data
-parseSleep :: forall a st. (a ~ String) => Parser (Header a)
+parseSleep :: Parser (Header a)
 parseSleep = do
   sleep
   many newline
@@ -163,7 +161,7 @@ alcohol = header "Alcohol"
 
 
 -- parses the alcohol header and the data in it
-parseAlcohol :: forall a st. (a ~ String) => Parser (Header a)
+parseAlcohol :: Parser (Header a)
 parseAlcohol = do
   alcohol
   many newline
@@ -179,7 +177,7 @@ cigarette = header "Cigarette"
 
 
 -- parses the cigarette header and the data in it
-parseCigarette :: forall a st. (a ~ String) => Parser (Header a)
+parseCigarette :: Parser (Header a)
 parseCigarette = do
   cigarette
   many newline
@@ -200,7 +198,7 @@ meditation :: Parser String
 meditation = header "Meditation"
 
 -- parses the meditatin header and the data in it
-parseMeditations :: forall a st. (a ~ String) => Parser (Header a)
+parseMeditations :: Parser (Header a)
 parseMeditations = do
   meditation
   many newline
@@ -213,7 +211,7 @@ productivity :: Parser String
 productivity = header "Productivity"
 
 -- parses the productivity header and the information in it
-parseProductivity :: forall a st. (a ~ String) => Parser (Header a)
+parseProductivity :: Parser (Header a)
 parseProductivity = do
   productivity
   many newline
@@ -239,7 +237,7 @@ parseRating = rating >> many newline >> RatingH <$> parseRating'
 
 
 -- parses the Entry written by the user (order of the entry doesn't matter)
-parseEntry :: Parser (Header String)
+parseEntry :: Parser [Header a]
 parseEntry = do
   entryParser <- many1 $ choice $ map try listOfParsers
   return . AllHeaders $ entryParser

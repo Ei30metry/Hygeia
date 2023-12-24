@@ -2,7 +2,7 @@ module Computation where
 
 import qualified Data.Time                 as TI
 
-import           Parser.Input
+-- import           Parser.Input
 import           Control.Monad.Trans.Reader
 
 
@@ -77,8 +77,6 @@ unsafeCombineMRList moods@( MR x: MR x' : xs)
 
 type Name = String
 
-type HeaderToComp b = Header String -> b
-
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int } deriving (Eq, Ord)
 
@@ -107,7 +105,7 @@ data Cigarette = Cigarette { number   :: Double
 
 -- the prefix of E stand for entry
 data EntryData = EName Name
-               | EDate TI.Day
+               | EDay TI.Day
                | EMoodS [MoodReport]
                | ESleep Sleep
                | EProductivity Productivity
@@ -118,18 +116,18 @@ data EntryData = EName Name
          deriving (Eq, Ord)
 
 -- converts the Name header type into the Name data type in order to compute
-headerToEData :: forall a. Header a -> EntryData
-headerToEData (NameH a)         = undefined
-headerToEData (DateH a)         = undefined
-headerToEData (MoodReportH a)         = undefined
-headerToEData (SleepH a)        = undefined
-headerToEData (ProductivityH a) = undefined
-headerToEData (MeditationH a)   = undefined
-headerToEData (AlcoholH a)      = undefined
-headerToEData (CigaretteH a)    = undefined
-headerToEData (RatingH a)       = undefined
-headerToEData (AllHeaders a)    = undefined
+-- headerToEData :: forall a. Header a -> EntryData
+-- headerToEData (NameH a)         = undefined
+-- headerToEData (DateH a)         = undefined
+-- headerToEData (MoodReportH a)         = undefined
+-- headerToEData (SleepH a)        = undefined
+-- headerToEData (ProductivityH a) = undefined
+-- headerToEData (MeditationH a)   = undefined
+-- headerToEData (AlcoholH a)      = undefined
+-- headerToEData (CigaretteH a)    = undefined
+-- headerToEData (RatingH a)       = undefined
+-- headerToEData (AllHeaders a)    = undefined
 
 
-entryToEData :: forall a. [Header a] -> [EntryData]
-entryToEData = undefined
+-- entryToEData :: forall a. [Header a] -> [EntryData]
+-- entryToEData = undefined
