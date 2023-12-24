@@ -50,6 +50,7 @@ library
     , text
     , unix
   default-language: GHC2021
+  default-extensions: GADTs
 
 executable Hygeia-exe
   main-is: Main.hs

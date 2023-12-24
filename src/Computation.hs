@@ -1,6 +1,6 @@
 module Computation where
 
-import qualified Data.Time                 as TI
+import Data.Time (Day, DiffTime)
 
 -- import           Parser.Input
 import           Control.Monad.Trans.Reader
@@ -66,6 +66,7 @@ unsafeAddMoodReports = undefined
 --       _         -> undefined
 
 
+-- lift to Either 
 unsafeCombineMRList :: [MoodReport] -> [MoodReport]
 unsafeCombineMRList [] = []
 unsafeCombineMRList [a] = [a]
@@ -74,16 +75,13 @@ unsafeCombineMRList moods@( MR x: MR x' : xs)
   | otherwise = MR x : MR x' : unsafeCombineMRList xs
 
 
-
 type Name = String
 
 data Alcohol = Alcohol { drink :: String
-                       , shots :: Int } deriving (Eq, Ord)
+                       , shots :: Int } deriving (Eq, Ord, Show)
 
-data Sleep = SP { wakeUpTime :: TI.DiffTime
-                , sleepTime  :: TI.DiffTime } deriving (Eq, Ord)
-
-
+data Sleep = SP { wakeUpTime :: DiffTime
+                , sleepTime  :: DiffTime } deriving (Eq, Ord, Show)
 
 newtype Meditation = Med [String] deriving (Eq, Ord)
 
@@ -100,12 +98,11 @@ instance Show Productivity where
 
 data Cigarette = Cigarette { number   :: Double
                            , nitocone :: Double
-                           , tar      :: Double } deriving (Eq, Ord)
+                           , tar      :: Double }
+                           deriving (Eq, Ord, Show)
 
-
--- the prefix of E stand for entry
 data EntryData = EName Name
-               | EDay TI.Day
+               | EDay Day
                | EMoodS [MoodReport]
                | ESleep Sleep
                | EProductivity Productivity
