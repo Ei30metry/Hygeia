@@ -35,7 +35,7 @@ stringFloat = digit <|> char '.'
 instance (Show a) => Show (Header a) where
   show (NameH a)         = show a
   show (DateH a)         = show a
-  show (MoodReportH a)         = show a
+  show (MoodReportH a)   = show a
   show (SleepH a)        = show a
   show (ProductivityH a) = show a
   show (MeditationH a)   = show a
@@ -198,7 +198,7 @@ parseCigarette = do
   return $ CigaretteH (number,nicotine,tar)
 
 
--- parses the meditation header
+-- | Parses the meditation header
 meditation :: GenParser Char st String
 meditation = header "Meditation"
 
@@ -211,7 +211,7 @@ parseMeditations = do
   many newline
   return $ MeditationH meditations
 
-
+-- | Parses the productivity header 
 productivity :: GenParser Char st String
 productivity = header "Productivity"
 

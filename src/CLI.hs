@@ -1,8 +1,16 @@
 module CLI where
 
-import qualified Data.Text           as T
-import qualified Data.Text.IO        as TIO
+import qualified Data.ByteString     as B
+
 import           Options.Applicative
+
+
+-- for now
+data Params = Params
+
+
+parseCmd :: Parser Params
+parseCmd = pure Params
 
 
 cliGenTemplate = undefined

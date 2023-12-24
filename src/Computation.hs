@@ -22,11 +22,11 @@ import           Control.Monad.Trans.Reader
 
 
 -- a Type representing one's mood with it's singleton definitions
-singletons [d| data Mood = Angry
-                         | Sad
-                         | Neutral
-                         | Happy
-                         | Excited deriving (Read, Eq, Ord, Show) |]
+data Mood = Angry
+          | Sad
+          | Neutral
+          | Happy
+          | Excited deriving (Read, Eq, Ord, Show) |]
 
 -- Intensity of a mood
 -- The None is not supposed to be used in a MoodReport but it is only here to
@@ -41,14 +41,14 @@ singletons [d| data Intensity = None
 singletons [d| newtype MoodReport = MR (Mood, Intensity) deriving (Show, Eq, Ord)|]
 
 
-singletons [d| computeIntensity :: Intensity -> Intensity -> Intensity
-               computeIntensity x y | fromEnum x == fromEnum y = x
-                                    | fromEnum x > fromEnum y = x
-                                    | otherwise = y |]
+computeIntensity :: Intensity -> Intensity -> Intensity
+computeIntensity x y | fromEnum x == fromEnum y = x
+                     | fromEnum x > fromEnum y = x
+                     | otherwise = y 
 
 
-singletons [d| instance Semigroup Intensity where
-                 x <> y = computeIntensity x y |]
+instance Semigroup Intensity where
+  x <> y = computeIntensity x y 
 
 
 instance Monoid Intensity where
@@ -61,13 +61,10 @@ data Rating = Awful
             | Bad
             | Normal
             | Good
-            | Great deriving (Show, Eq, Ord, Enum, Read,Bounded)
+            | Great deriving (Show, Eq, Ord, Enum, Read, Bounded)
 
 
 -- this function will only work if our SMoods are the same
-addSingMoodReports :: forall a a' (b :: Intensity) (c :: Intensity). SMoodReport ('MR '(a, b)) -> SMoodReport ('MR '(a, c)) -> SMoodReport ('MR '(a, b <> c))
-addSingMoodReports (SMR (STuple2 a b)) (SMR (STuple2 a' c)) = SMR $ STuple2 a (b %<> c)
-
 
 -- safe function to add MoodReports
 addMoodReports :: MoodReport -> MoodReport -> Maybe MoodReport
@@ -81,11 +78,6 @@ unsafeAddMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 
   = case testEquality a a' of
       Just Refl -> FromSing $ addSingMoodReports l r
       _         -> undefined
-
-
-
--- (<!>) :: Maybe MoodReport -> Maybe MoodReport -> Maybe MoodReport
--- mr <!> mr' = addMoodReports <$> mr <*> mr'
 
 
 -- the reason of it being unsafe is that
@@ -141,7 +133,6 @@ data EntryData = EName Name
          deriving (Eq, Ord)
 
 -- converts the Name header type into the Name data type in order to compute
-
 headerToEData :: forall a. (a ~ String) => (Header a) -> EntryData
 headerToEData (NameH a)         = EName a
 headerToEData (DateH a)         = undefined

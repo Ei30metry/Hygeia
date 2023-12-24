@@ -1,16 +1,15 @@
 module Parser.ConfigFile where
 
+import           Config
+
 import           Control.Monad.Trans.Reader    ()
 
 import           Text.Parsec                   ( alphaNum )
 import           Text.Parsec.Char              ( newline )
 import           Text.ParserCombinators.Parsec ( GenParser, alphaNum, char,
                                                  choice, digit, many, many1,
-                                                 sepBy, spaces, string, (<|>) , oneOf, parse)
-
-import Config
-
-
+                                                 oneOf, parse, sepBy, spaces,
+                                                 string, (<|>) )
 
 tOf :: GenParser Char st Bool
 tOf = read <$> (choice $ map string ["True", "False"])
