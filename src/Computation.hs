@@ -1,9 +1,11 @@
 module Computation where
 
-import Data.Time (Day, DiffTime)
-
--- import           Parser.Input
+import           Control.Monad              ( join, (<=<), foldM )
 import           Control.Monad.Trans.Reader
+
+import           Data.Coerce
+import           Data.List                  ( groupBy, sortOn, concat, sort )
+import           Data.Time                  ( Day, DiffTime )
 
 
 -- a Type representing one's mood with it's singleton definitions
@@ -24,8 +26,12 @@ data Intensity = None
                deriving (Show, Read, Eq, Ord, Enum, Bounded)
 
 -- using newtype to be able to coerce
-newtype MoodReport = MR (Mood, Intensity) deriving (Show, Eq, Ord)
+-- get rid of this and combine it into Mood itself.
+newtype MoodReport = MR { getMR :: (Mood, Intensity) }
+   deriving (Eq, Ord)
 
+instance Show MoodReport where
+  show (MR (a,b)) = mconcat ["(" , show a, " , " ,show b, ")"]
 
 computeIntensity :: Intensity -> Intensity -> Intensity
 computeIntensity x y | fromEnum x == fromEnum y = x
@@ -47,43 +53,48 @@ data Rating = Awful
             | Bad
             | Normal
             | Good
-            | Great deriving (Show, Eq, Ord, Enum, Read, Bounded)
+            | Great
+            deriving (Show, Eq, Ord, Enum, Read, Bounded)
 
 
 -- safe function to add MoodReports
-addMoodReports :: MoodReport -> MoodReport -> Maybe MoodReport
-addMoodReports = undefined
--- addMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b'))) = do
---   Refl <- testEquality a a'
---   return $ FromSing $ addSingMoodReports l r
+combineMoodReports :: MoodReport -> MoodReport -> Maybe MoodReport
+combineMoodReports (MR (a,b)) (MR (c,d))
+  | a == c = Just $ MR (a, b <> d)
+  | otherwise = Nothing
 
 
-unsafeAddMoodReports :: MoodReport -> MoodReport -> MoodReport
-unsafeAddMoodReports = undefined
--- unsafeAddMoodReports (FromSing l@(SMR (STuple2 a b))) (FromSing r@(SMR (STuple2 a' b')))
---   = case testEquality a a' of
---       Just Refl -> FromSing $ addSingMoodReports l r
---       _         -> undefined
+mrList = map MR [(Happy,High), (Sad,Low), (Happy,Extreme), (Sad, Extreme), (Angry,Medium), (Neutral,Medium), (Neutral, High), (Happy,Extreme), (Excited,Low), (Sad, High)]
+
+-- lift to Either
+-- NOTE: write tests
+combineMRList :: [MoodReport] -> Maybe [MoodReport]
+combineMRList = traverse foldMoods . groupBy (\x y -> getMRMood x == getMRMood y) . sort
+  where
+    foldMoods mr = head' mr >>= \mrh -> foldM combineMoodReports mrh mr -- don't use head
+
+-- | Safe head
+head' [] = Nothing
+head' (x:xs) = Just x
 
 
--- lift to Either 
-unsafeCombineMRList :: [MoodReport] -> [MoodReport]
-unsafeCombineMRList [] = []
-unsafeCombineMRList [a] = [a]
-unsafeCombineMRList moods@( MR x: MR x' : xs)
-  | fst x == fst x' = (MR x) `unsafeAddMoodReports` (MR x') : unsafeCombineMRList xs
-  | otherwise = MR x : MR x' : unsafeCombineMRList xs
+getMRMood = fst . getMR
+getMRIntensity = snd . getMR
 
 
 type Name = String
 
+
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int } deriving (Eq, Ord, Show)
+
 
 data Sleep = SP { wakeUpTime :: DiffTime
                 , sleepTime  :: DiffTime } deriving (Eq, Ord, Show)
 
+
 newtype Meditation = Med [String] deriving (Eq, Ord)
+
 
 newtype Productivity = Pro (Int,Int) deriving (Eq, Ord)
 
@@ -101,6 +112,7 @@ data Cigarette = Cigarette { number   :: Double
                            , tar      :: Double }
                            deriving (Eq, Ord, Show)
 
+
 data EntryData = EName Name
                | EDay Day
                | EMoodS [MoodReport]
@@ -110,7 +122,7 @@ data EntryData = EName Name
                | EAlcohol Alcohol
                | ECigarette Cigarette
                | ERating Rating
-         deriving (Eq, Ord)
+         deriving (Eq, Ord, Show)
 
 -- converts the Name header type into the Name data type in order to compute
 -- headerToEData :: forall a. Header a -> EntryData
