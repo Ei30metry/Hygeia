@@ -1,19 +1,23 @@
 module Computation where
 
-import           Control.Monad              ( join, (<=<), foldM )
+import           Control.Monad              ( foldM, join, (<=<) )
 import           Control.Monad.Trans.Reader
 
 import           Data.Coerce
-import           Data.List                  ( groupBy, sortOn, concat, sort )
+import           Data.List                  ( concat, groupBy, sort, sortOn )
 import           Data.Time                  ( Day, DiffTime )
+
+import           GHC.Generics
 
 
 -- a Type representing one's mood with it's singleton definitions
-data Mood = Angry
-          | Sad
+data Mood = Angry Intensity
+          | Sad Intensity
           | Neutral
-          | Happy
-          | Excited deriving (Read, Eq, Ord, Show)
+          | Happy Intensity
+          | Excited Intensity
+          deriving (Read, Eq, Ord, Show)
+
 
 -- Intensity of a mood
 -- The None is not supposed to be used in a MoodReport but it is only here to
@@ -25,19 +29,18 @@ data Intensity = None
                | Extreme
                deriving (Show, Read, Eq, Ord, Enum, Bounded)
 
--- using newtype to be able to coerce
--- get rid of this and combine it into Mood itself.
-newtype MoodReport = MR { getMR :: (Mood, Intensity) }
-   deriving (Eq, Ord)
-
-instance Show MoodReport where
-  show (MR (a,b)) = mconcat ["(" , show a, " , " ,show b, ")"]
-
 computeIntensity :: Intensity -> Intensity -> Intensity
 computeIntensity x y | fromEnum x == fromEnum y = x
                      | fromEnum x > fromEnum y = x
                      | otherwise = y
 
+sameMood :: Mood -> Mood -> Bool
+sameMood (Angry _) (Angry _)     = True
+sameMood (Sad _) (Sad _)         = True
+sameMood Neutral Neutral         = True
+sameMood (Happy _) (Happy _)     = True
+sameMood (Excited _) (Excited _) = True
+sameMood _ _                     = False
 
 instance Semigroup Intensity where
   x <> y = computeIntensity x y
@@ -58,28 +61,29 @@ data Rating = Awful
 
 
 -- safe function to add MoodReports
-combineMoodReports :: MoodReport -> MoodReport -> Maybe MoodReport
-combineMoodReports (MR (a,b)) (MR (c,d))
-  | a == c = Just $ MR (a, b <> d)
-  | otherwise = Nothing
+combineMoods :: Mood -> Mood -> Maybe Mood
+combineMoods (Angry x) (Angry y)     = Just $ Angry (x <> y)
+combineMoods (Sad x) (Sad y)         = Just $ Sad (x <> y)
+combineMoods Neutral Neutral         = Just Neutral
+combineMoods (Happy x) (Happy y)     = Just $ Happy (x <> y)
+combineMoods (Excited x) (Excited y) = Just $ Excited (x <> y)
+combineMoods _ _                     = Nothing
 
 
-mrList = map MR [(Happy,High), (Sad,Low), (Happy,Extreme), (Sad, Extreme), (Angry,Medium), (Neutral,Medium), (Neutral, High), (Happy,Extreme), (Excited,Low), (Sad, High)]
+mrList = [Happy High, Sad Low, Happy Extreme
+         ,Sad Extreme, Angry Medium, Neutral
+         ,Neutral, Happy Extreme, Excited Low
+         ,Sad High, Angry High] -- lift to Either
 
--- lift to Either
 -- NOTE: write tests
-combineMRList :: [MoodReport] -> Maybe [MoodReport]
-combineMRList = traverse foldMoods . groupBy (\x y -> getMRMood x == getMRMood y) . sort
+combineMoodList :: [Mood] -> Maybe [Mood]
+combineMoodList = traverse foldMoods . groupBy sameMood . sort
   where
-    foldMoods mr = head' mr >>= \mrh -> foldM combineMoodReports mrh mr -- don't use head
+    foldMoods ms = head' ms >>= \m -> foldM combineMoods m ms -- don't use head
 
 -- | Safe head
-head' [] = Nothing
+head' []     = Nothing
 head' (x:xs) = Just x
-
-
-getMRMood = fst . getMR
-getMRIntensity = snd . getMR
 
 
 type Name = String
@@ -113,30 +117,13 @@ data Cigarette = Cigarette { number   :: Double
                            deriving (Eq, Ord, Show)
 
 
-data EntryData = EName Name
-               | EDay Day
-               | EMoodS [MoodReport]
-               | ESleep Sleep
-               | EProductivity Productivity
-               | EMeditation Meditation
-               | EAlcohol Alcohol
-               | ECigarette Cigarette
-               | ERating Rating
+data Entry = EName Name
+           | EDay Day
+           | EMoodS [Mood]
+           | ESleep Sleep
+           | EProductivity Productivity
+           | EMeditation Meditation
+           | EAlcohol Alcohol
+           | ECigarette Cigarette
+           | ERating Rating
          deriving (Eq, Ord, Show)
-
--- converts the Name header type into the Name data type in order to compute
--- headerToEData :: forall a. Header a -> EntryData
--- headerToEData (NameH a)         = undefined
--- headerToEData (DateH a)         = undefined
--- headerToEData (MoodReportH a)         = undefined
--- headerToEData (SleepH a)        = undefined
--- headerToEData (ProductivityH a) = undefined
--- headerToEData (MeditationH a)   = undefined
--- headerToEData (AlcoholH a)      = undefined
--- headerToEData (CigaretteH a)    = undefined
--- headerToEData (RatingH a)       = undefined
--- headerToEData (AllHeaders a)    = undefined
-
-
--- entryToEData :: forall a. [Header a] -> [EntryData]
--- entryToEData = undefined
