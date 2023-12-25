@@ -17,7 +17,7 @@ import           Text.ParserCombinators.Parsec ( alphaNum, char, choice, digit,
 -- FIX: How is this useful exactly? this isn't how GADTs work ..............
 data Header = NameH Name 
             | DateH Day 
-            | MoodReportH [MoodReport] 
+            | MoodH [Mood] 
             | SleepH Sleep 
             | ProductivityH Productivity 
             | MeditationH [Meditation] 
