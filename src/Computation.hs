@@ -40,7 +40,7 @@ sameMood (Sad _) (Sad _)         = True
 sameMood Neutral Neutral         = True
 sameMood (Happy _) (Happy _)     = True
 sameMood (Excited _) (Excited _) = True
-sameMood _ _                     = False 
+sameMood _ _                     = False
 
 instance Semigroup Intensity where
   x <> y = computeIntensity x y
@@ -64,10 +64,10 @@ data Rating = Awful
 combineMoods :: Mood -> Mood -> Maybe Mood
 combineMoods (Angry x) (Angry y)     = Just $ Angry (x <> y)
 combineMoods (Sad x) (Sad y)         = Just $ Sad (x <> y)
-combineMoods Neutral Neutral         = Just Neutral 
+combineMoods Neutral Neutral         = Just Neutral
 combineMoods (Happy x) (Happy y)     = Just $ Happy (x <> y)
 combineMoods (Excited x) (Excited y) = Just $ Excited (x <> y)
-combineMoods _ _                     = Nothing 
+combineMoods _ _                     = Nothing
 
 
 mrList = [Happy High, Sad Low, Happy Extreme
@@ -117,13 +117,13 @@ data Cigarette = Cigarette { number   :: Double
                            deriving (Eq, Ord, Show)
 
 
-data EntryData = EName Name
-               | EDay Day
-               | EMoodS [Mood]
-               | ESleep Sleep
-               | EProductivity Productivity
-               | EMeditation Meditation
-               | EAlcohol Alcohol
-               | ECigarette Cigarette
-               | ERating Rating
+data Entry = EName Name
+           | EDay Day
+           | EMoodS [Mood]
+           | ESleep Sleep
+           | EProductivity Productivity
+           | EMeditation Meditation
+           | EAlcohol Alcohol
+           | ECigarette Cigarette
+           | ERating Rating
          deriving (Eq, Ord, Show)
