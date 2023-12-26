@@ -1,4 +1,4 @@
-module Parser.Entry( parseEntries, parseDay) where
+module Parser.Entry( parseEntries, parseDay ) where
 
 
 import           Computation                   ( Alcohol (..),
@@ -8,18 +8,26 @@ import           Computation                   ( Alcohol (..),
                                                  Productivity (..), Rating (..),
                                                  Sleep (..) )
 
-import           Control.Monad.Trans.Maybe
+import           Control.Monad                 ( (<=<), (=<<) )
+import           Control.Monad.Except          ( Except, MonadError (..),
+                                                 liftEither )
+import           Control.Monad.Trans
 
+import           Data.ByteString.Char8         ( ByteString )
 import           Data.Functor                  ( (<&>) )
 import           Data.List                     ( sortOn )
 import           Data.Time
 
-import           Text.Parsec.Char              ( newline )
-import           Text.Parsec.String            ( Parser )
+import           Text.Parsec                   ( ParsecT, try )
 import           Text.ParserCombinators.Parsec ( alphaNum, char, choice, digit,
-                                                 many, many1, sepBy, spaces,
-                                                 string, try, (<|>) )
-import           Text.Read                     ( readMaybe )
+                                                 many, many1, newline, sepBy,
+                                                 spaces, string, (<|>) )
+import           Text.Read                     ( readEither )
+
+
+
+type Parser a = ParsecT ByteString () (Except String) a
+
 
 stringFloat :: Parser Char
 stringFloat = digit <|> char '.'
@@ -57,7 +65,7 @@ dateSep = char '-'
 
 -- FIX partial
 parseDay :: Parser Day
-parseDay = read <$> many (digit <|> dateSep)
+parseDay = many (digit <|> dateSep) >>= liftEither . readEither
 
 parseDateEntry :: Parser Entry
 parseDateEntry = do
@@ -79,6 +87,7 @@ parseMood' = moods >>= \case
       "Sad"     -> return Sad
       "Excited" -> return Excited
       "Happy"   -> return Happy
+      x         -> throwError ("Unknown Mood " <> "'" <> show x <> "'")
   where
     moods = choice $ map string ["Neutral", "Angry", "Sad"
                                 ,"Excited", "Happy"]
@@ -111,6 +120,7 @@ parseIntensity = intensities >>= \case
   "Medium"  -> return Medium
   "High"    -> return High
   "Extreme" -> return Extreme
+  x         -> throwError ("Unknown Intensity " <> "'" <> show x <> "'")
   where intensities = choice $ map string ["Low", "Medium", "High", "Extreme"]
 
 -- -- parses the sleep header
@@ -145,7 +155,7 @@ parseAlcoholEntry = do
   alcohol
   many newline
   drink <- (many1 alphaNum <* spaces) <* string ":"
-  shots <- read <$> (spaces *> many1 digit)
+  shots <- liftEither . readEither =<< (spaces *> many1 digit)
   many newline
   return . EAlcohol $ Alcohol drink shots
 
@@ -161,13 +171,13 @@ parseCigaretteEntry = do
   cigarette
   many newline
   (string "Number :" <* spaces) <|> (string "number :" <* spaces)
-  number <- read <$> many1 digit
+  number <- liftEither . readEither =<< many1 digit
   many newline
   (string "Nicotine :" <* spaces) <|> (string "nicotine :" <* spaces)
-  nicotine <- read <$> many1 stringFloat
+  nicotine <- liftEither . readEither =<< many1 stringFloat
   many newline
   (string "Tar :" <* spaces) <|> (string "tar :" <* spaces)
-  tar <- read <$> many1 stringFloat
+  tar <- liftEither . readEither =<< many1 stringFloat
   many newline
   return . ECigarette $ Cigarette number nicotine tar
 
@@ -193,8 +203,8 @@ parseProductivityEntry :: Parser Entry
 parseProductivityEntry = do
   productivity
   many newline
-  done <- read <$> many1 digit <* char '/'
-  shouldHave <- read <$> many1 digit
+  done <- liftEither . readEither =<< many1 digit <* char '/'
+  shouldHave <- liftEither . readEither =<< many1 digit
   many newline
   return . EProductivity $ Pro (done,shouldHave)
 
@@ -203,7 +213,7 @@ rating :: Parser String
 rating = header "Rating"
 
 
--- -- parses the different rating a user might give
+-- parses the different rating a user might give
 parseRating' :: Parser Rating
 parseRating' = rates >>= \case
     "Great"  -> return Great
@@ -211,6 +221,7 @@ parseRating' = rates >>= \case
     "Normal" -> return Normal
     "Bad"    -> return Bad
     "Awful"  -> return Awful
+    x        -> throwError ("Unknown Rating " <> "'" <> show x <> "'")
   where
     rates = choice $ map string ["Great", "Good", "Normal", "Bad", "Awful"]
 
