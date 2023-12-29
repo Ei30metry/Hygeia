@@ -2,21 +2,23 @@ module Template (generateTemplateFile) where
 
 import           Config
 
-import           Control.Lens.Operators ((^.))
+import           Control.Lens.Operators     ( (^.) )
 import           Control.Monad              ( when )
 import           Control.Monad.IO.Class     ( liftIO )
-import           Control.Monad.Trans.Reader (ask, ReaderT (..))
+import           Control.Monad.Trans.Reader ( ReaderT (..), ask )
 
+import           Data.ByteString.Char8      ( ByteString )
+import qualified Data.ByteString.Char8      as B
 import           Data.List                  ( sort )
 import qualified Data.Text                  as T
 import qualified Data.Text.IO               as TIO
-import qualified Data.Time                  as TI
+import           Data.Time                  ( Day, getCurrentTime, utctDay )
 
+import           System.Directory           ( getHomeDirectory )
+import           System.IO                  ( writeFile )
 
-import           System.IO (writeFile)
-
-data TemplateHeaders = NameT String
-                     | DateT TI.Day
+data TemplateHeaders = NameT ByteString
+                     | DateT Day
                      | MoodT
                      | SleepT
                      | MeditationT
@@ -32,7 +34,7 @@ generateHeader header   = mconcat ["[",header,"]","\n\n"]
 
 
 instance Show TemplateHeaders where
-  show (NameT a)     = "Name : " ++ a ++ "\n"
+  show (NameT a)     = "Name : " ++ B.unpack a ++ "\n"
   show (DateT t)     = "Date : " ++ show t ++ "\n\n"
   show MoodT         = generateHeader "Mood"
   show ProductivityT = generateHeader "ProductivityT"
@@ -48,13 +50,13 @@ optionalHeadersToGenerate :: OptHeader -> [TemplateHeaders]
 optionalHeadersToGenerate (OptH m a c) = [fst x | x <- zip [MeditationT, AlcoholT, CigaretteT] [m, a, c], snd x]
 
 -- write the template entry file to a file with the date as its name
-writeTemplate :: String -> TI.Day -> OptHeader -> IO ()
+writeTemplate :: ByteString -> Day -> OptHeader -> IO ()
 writeTemplate name date optHeaders = do
    let optHeadersToInclude = optionalHeadersToGenerate optHeaders
    let headers = sort $ [ NameT name, DateT date
                         , MoodT, SleepT, ProductivityT, RatingT ] ++ optHeadersToInclude
-   homeDir <- undefined
-   writeFile (mconcat [homeDir ++ "/.Hygeia/", show date, ".entry"]) $ mconcat $ map show headers
+   homeDir <- getHomeDirectory
+   B.writeFile (mconcat [homeDir <> "/.Hygeia/", show date, ".entry"]) $ mconcat $ map (B.pack . show) headers
 
 
 -- generates an entry file given a config
@@ -64,5 +66,5 @@ generateTemplateFile = do
   let write = conf ^. template . genTemplate . generateTemplate
   let userName = conf ^. info . name
   let optHeaders = conf ^. template . optionalHeaders
-  curDate <- TI.utctDay <$> liftIO TI.getCurrentTime
+  curDate <- utctDay <$> liftIO getCurrentTime
   when write $ liftIO (writeTemplate userName curDate optHeaders)

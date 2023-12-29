@@ -1,11 +1,19 @@
-module Computation where
+module Computation (module Computation.Util
+                   ,module Computation.Types
+                   ,module Computation.Monad) where
+
+import           Computation.Monad
+import           Computation.Types
+import           Computation.Util
 
 import           Control.Monad              ( foldM, join, (<=<) )
 import           Control.Monad.Trans.Reader
 
 import           Data.Coerce
 import           Data.List                  ( concat, groupBy, sort, sortOn )
-import           Data.Time                  ( Day, DiffTime )
+import           Data.Time                  ( Day, DiffTime, defaultTimeLocale,
+                                              formatTime )
+import           Data.Vector                ( Vector )
 
 import           GHC.Generics
 
@@ -75,7 +83,7 @@ mrList = [Happy High, Sad Low, Happy Extreme
          ,Neutral, Happy Extreme, Excited Low
          ,Sad High, Angry High] -- lift to Either
 
--- NOTE: write tests
+
 combineMoodList :: [Mood] -> Maybe [Mood]
 combineMoodList = traverse foldMoods . groupBy sameMood . sort
   where
@@ -94,8 +102,11 @@ data Alcohol = Alcohol { drink :: String
 
 
 data Sleep = SP { wakeUpTime :: DiffTime
-                , sleepTime  :: DiffTime } deriving (Eq, Ord, Show)
+                , sleepTime  :: DiffTime } deriving (Eq, Ord)
 
+instance Show Sleep where
+  show (SP w s) = mconcat ["wake up: ",formatTime defaultTimeLocale "%H:%M" w,"\n"
+                          ,"Sleep: ",formatTime defaultTimeLocale "%H:%M" s]
 
 newtype Meditation = Med [String] deriving (Eq, Ord)
 
@@ -117,13 +128,15 @@ data Cigarette = Cigarette { number   :: Double
                            deriving (Eq, Ord, Show)
 
 
-data Entry = EName Name
-           | EDay Day
-           | EMoodS [Mood]
-           | ESleep Sleep
-           | EProductivity Productivity
-           | EMeditation Meditation
-           | EAlcohol Alcohol
-           | ECigarette Cigarette
-           | ERating Rating
-         deriving (Eq, Ord, Show)
+data Entry = Entry { entryDay          :: Day
+                   , entryMoods        :: [Mood]
+                   , entrySleep        :: Sleep
+                   , entryProductivity :: Productivity
+                   , entryMeditation   :: Meditation
+                   , entryAlcohol      :: Alcohol
+                   , entryCigarette    :: Cigarette
+                   , entryRating       :: Rating }
+            deriving (Eq, Ord, Show)
+
+
+type Entries = Vector Entry

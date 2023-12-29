@@ -30,6 +30,7 @@ library
    , Config
    , Parser.ConfigFile
    , Parser.Entry
+   , Parser.Monad
    , Report.PrettyPrint
    , Template
 
@@ -40,8 +41,10 @@ library
   build-depends:
       base >=4.7 && <5
     , bytestring
+    , directory
     , lens
     , time
+    , vector
     , mtl
     , optparse-applicative
     , parsec
@@ -51,7 +54,8 @@ library
     , unix
   default-language: GHC2021
   default-extensions: GADTs
-                     ,LambdaCase
+                    , LambdaCase
+                    , OverloadedStrings
 
 executable Hygeia-exe
   main-is: Main.hs

@@ -2,31 +2,32 @@ module Parser.ConfigFile where
 
 import           Config
 
-import           Text.Parsec                   ( alphaNum )
-import           Text.Parsec.Char              ( newline )
-import           Text.Parsec.String            ( Parser )                     -- TODO Migrate to Text.Parsec.ByteString
-import           Text.ParserCombinators.Parsec ( alphaNum, char, choice, digit,
-                                                 many, many1, oneOf, parse,
-                                                 sepBy, spaces, string, (<|>) )
-import           Text.Read                     ( readEither )
+import           Control.Monad.Except  ( liftEither )
+
+import           Data.ByteString.Char8 ( ByteString, pack )
+
+import           Parser.Monad
+
+import           Text.Parsec.Char      ( newline )
+import           Text.Read             ( readEither )
 
 -- TODO: use readEither and hoist it into Parser
 tOf :: Parser Bool
-tOf = read <$> choice (map string ["True", "False"])
+tOf = liftEither . readEither =<< choice (map string ["True", "False"])
 
 parseInfo :: Parser InfoConf
 parseInfo = do
   string "Info :"
   many newline >> spaces
   string "name =" <* spaces
-  name <- many1 alphaNum
+  name <- pack <$> many1 alphaNum
   spaces
-  lName <- many1 alphaNum
+  lName <- pack <$> many1 alphaNum
   many newline >> spaces
   string "email =" <* spaces
-  email <- many1 (alphaNum <|> char '.' <|> char '@')
+  email <- pack <$> many1 (alphaNum <|> char '.' <|> char '@')
   many newline
-  return $ Info (name ++ " " ++ lName) email
+  return $ Info (name <> " " <> lName) email
 
 -- parses the daemon section of user's config file
 parseDaemon :: Parser DaemonConfig
@@ -35,8 +36,8 @@ parseDaemon = do
   many newline
   spaces
   string "run_daemon" >> spaces >> char '=' >> spaces
-  value <- string "True" <|> string "False"
-  return $ DConf (read @Bool value)
+  value <- liftEither . readEither =<< string "True" <|> string "False"
+  return $ DConf value
 
 
 parseOptionalHeaders :: Parser OptHeader
@@ -70,7 +71,8 @@ parseReport = do
   many newline >>  spaces
   string "email_report_frequency =" >> spaces
   emailReportFreq <- many1 digit <* spaces
-  return $ RepConf emailRep (read emailReportFreq)
+  emailRRep <- liftEither (readEither emailReportFreq)
+  return $ RepConf emailRep emailRRep
 
 
 -- parses all of the config file and returns a config type to pass to the Reader Monad

@@ -5,11 +5,13 @@ module Config where
 import           Control.Lens           ( makeLenses )
 import           Control.Lens.Operators
 
+import           Data.ByteString.Char8  ( ByteString )
+
 import           GHC.Generics
 
 
-data InfoConf = Info { _name  :: String
-                     , _email :: String } deriving (Eq, Show, Generic)
+data InfoConf = Info { _name  :: ByteString
+                     , _email :: ByteString } deriving (Eq, Show, Generic)
 
 
 newtype DaemonConfig = DConf { _runDaemon :: Bool } deriving (Show, Eq, Generic)

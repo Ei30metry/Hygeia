@@ -1,43 +1,39 @@
 module Parser.Entry( parseEntries, parseDay ) where
 
 
-import           Computation                   ( Alcohol (..),
-                                                 Cigarette (Cigarette),
-                                                 Entry (..), Intensity (..),
-                                                 Meditation (..), Mood (..),
-                                                 Productivity (..), Rating (..),
-                                                 Sleep (..) )
+import           Computation           ( Alcohol (..), Cigarette (Cigarette),
+                                         Entry (..), Intensity (..),
+                                         Meditation (..), Mood (..),
+                                         Productivity (..), Rating (..),
+                                         Sleep (..) )
 
-import           Control.Monad                 ( (<=<), (=<<) )
-import           Control.Monad.Except          ( Except, MonadError (..),
-                                                 liftEither )
-import           Control.Monad.Trans
+import           Control.Lens          ( bimap )
+import           Control.Monad         ( (<=<), (=<<) )
+import           Control.Monad.Except  ( liftEither )
 
-import           Data.ByteString.Char8         ( ByteString )
-import           Data.Functor                  ( (<&>) )
-import           Data.List                     ( sortOn )
-import           Data.Time
+import           Data.ByteString.Char8 ( ByteString, unpack )
+import           Data.Functor          ( (<&>) )
+import           Data.List             ( sortOn )
+import           Data.Time             ( Day, DiffTime, secondsToDiffTime )
 
-import           Text.Parsec                   ( ParsecT, try )
-import           Text.ParserCombinators.Parsec ( alphaNum, char, choice, digit,
-                                                 many, many1, newline, sepBy,
-                                                 spaces, string, (<|>) )
-import           Text.Read                     ( readEither )
+import           Parser.Monad
 
-
-
-type Parser a = ParsecT ByteString () (Except String) a
+import           Text.Read             ( readEither )
 
 
 stringFloat :: Parser Char
 stringFloat = digit <|> char '.'
 
 -- parses time in format of HH:MM
-time :: Parser String
-time = many1 digit <> many1 (char ':') <> many1 digit
+time :: Parser Integer
+time = do
+  hour <- liftEither . readEither =<< many1 digit
+  many1 (char ':')
+  minute <- liftEither . readEither =<< many1 digit
+  return $ (hour * 3600) + (minute * 60)
 
 -- computes the time of Sleep and Wake up
-header :: String -> Parser String
+header :: String -> Parser ByteString
 header h = string $ mconcat ["[", h, "]"]
 
 -- parses the name section
@@ -139,8 +135,7 @@ parseSleepEntry = do
   (string "Sleep :" <* spaces) <|> (string "sleep :" <* spaces)
   sleepTime <- time
   many newline
-  return . ESleep $ blah (wakeUpTime, sleepTime)
-  where blah = undefined
+  (return . ESleep) (SP (secondsToDiffTime wakeUpTime) (secondsToDiffTime sleepTime))
 
 
 -- -- alcohol header
@@ -165,7 +160,6 @@ cigarette = header "Cigarette"
 
 
 -- parses the cigarette header and the data in it
--- Note: add parseCigaretteEntries
 parseCigaretteEntry :: Parser Entry
 parseCigaretteEntry = do
   cigarette
@@ -232,8 +226,9 @@ parseRatingEntry = rating >> many newline >> ERating <$> parseRating'
 
 
 -- -- parses the Entry written by the user (order of the entry doesn't matter)
-parseEntries :: Parser [Entry]
-parseEntries = many1 $ choice $ map try parsers
- where parsers = [ parseNameEntry, parseDateEntry, parseMoodEntries, parseSleepEntry
-                 , parseAlcoholEntry, parseMeditationsEntry, parseCigaretteEntry
-                 , parseProductivityEntry, parseRatingEntry ]
+parseEntries :: Parser Entry
+parseEntries = undefined
+-- parseEntries = many1 $ choice $ map try parsers
+--  where parsers = [ parseNameEntry, parseDateEntry, parseMoodEntries, parseSleepEntry
+--                  , parseAlcoholEntry, parseMeditationsEntry, parseCigaretteEntry
+--                  , parseProductivityEntry, parseRatingEntry ]
