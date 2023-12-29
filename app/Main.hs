@@ -1,10 +1,19 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
-import           Parser.Entry ( parseDay )
+import qualified Data.ByteString.Char8  as B
 
-import           Text.Parsec
+import           Parser.Entry           ( parseDay, parseEntries )
+import           Parser.Monad           ( runParser )
+
+import           Text.Parsec            ( parse, runParserT )
+import           Text.Parsec.ByteString
+
 
 main :: IO ()
-main = case parse parseDay "" "2023-13-19" of
-          Right x -> print x
-          Left y  -> print y
+main = do
+  sample <- B.readFile "/Users/artin/Programming/projects/Hygeia/test/sample2.txt"
+  case runParser parseEntries sample of
+    Right x -> print x
+    Left y  -> putStrLn y
