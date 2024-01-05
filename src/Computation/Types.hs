@@ -3,10 +3,9 @@
 module Computation.Types where
 
 import           Control.Monad              ( foldM, join, (<=<) )
-import           Control.Monad.Trans.Reader
+import Computation.Utils
 
-import           Data.Coerce
-import           Data.List                  ( concat, groupBy, sort, sortOn )
+import           Data.List                  ( groupBy, sort )
 import           Data.Time                  ( Day, DiffTime, defaultTimeLocale,
                                               formatTime )
 import           Data.Vector                ( Vector )
@@ -32,10 +31,12 @@ data Intensity = None
                | Extreme
                deriving (Show, Read, Eq, Ord, Enum, Bounded)
 
+
 computeIntensity :: Intensity -> Intensity -> Intensity
 computeIntensity x y | fromEnum x == fromEnum y = x
                      | fromEnum x > fromEnum y = x
                      | otherwise = y
+
 
 sameMood :: Mood -> Mood -> Bool
 sameMood (Angry _) (Angry _)     = True
@@ -44,6 +45,7 @@ sameMood Neutral Neutral         = True
 sameMood (Happy _) (Happy _)     = True
 sameMood (Excited _) (Excited _) = True
 sameMood _ _                     = False
+
 
 instance Semigroup Intensity where
   x <> y = computeIntensity x y
@@ -73,20 +75,10 @@ combineMoods (Excited x) (Excited y) = Just $ Excited (x <> y)
 combineMoods _ _                     = Nothing
 
 
-mrList = [Happy High, Sad Low, Happy Extreme
-         ,Sad Extreme, Angry Medium, Neutral
-         ,Neutral, Happy Extreme, Excited Low
-         ,Sad High, Angry High] -- lift to Either
-
-
 combineMoodList :: [Mood] -> Maybe [Mood]
 combineMoodList = traverse foldMoods . groupBy sameMood . sort
   where
     foldMoods ms = head' ms >>= \m -> foldM combineMoods m ms -- don't use head
-
--- | Safe head
-head' []     = Nothing
-head' (x:xs) = Just x
 
 
 type Name = String
@@ -127,9 +119,9 @@ data Entry = Entry { entryDay          :: Day
                    , entryMoods        :: [Mood]
                    , entrySleep        :: Sleep
                    , entryProductivity :: Productivity
-                   , entryMeditation   :: Meditation
-                   , entryAlcohol      :: Alcohol
-                   , entryCigarette    :: Cigarette
+                   , entryMeditation   :: Maybe Meditation
+                   , entryAlcohol      :: Maybe Alcohol
+                   , entryCigarette    :: Maybe Cigarette
                    , entryRating       :: Rating }
             deriving (Eq, Ord, Show)
 

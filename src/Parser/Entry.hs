@@ -21,6 +21,9 @@ import           Parser.Monad
 
 import           Text.Read             ( readEither )
 
+data SomeEntry where
+  SomeEntry :: forall b. b -> SomeEntry
+
 
 stringFloat :: Parser Char
 stringFloat = digit <|> char '.'
@@ -60,7 +63,6 @@ date = string "Date :" <|> string "Date:"
 dateSep :: Parser Char
 dateSep = char '-'
 
--- FIX partial
 parseDay :: Parser Day
 parseDay = many (digit <|> dateSep) >>= liftEither . readEither
 
@@ -103,11 +105,12 @@ parseMood = do
 
 
 -- | Parses Mood
-parseMoodEntries :: Parser Moods
+parseMoodEntries :: Parser (String ,SomeEntry)
 parseMoodEntries = do
   mood
   many newline
-  fromList <$> many1 parseMood <* many newline
+  moods <- fromList <$> many1 parseMood <* many newline
+  return ("Mood",SomeEntry moods)
 
 
 -- | Parses Intensities
@@ -126,7 +129,7 @@ sleep = header "Sleep"
 
 
 -- -- parses the sleep header and it's data
-parseSleepEntry :: Parser Sleep
+parseSleepEntry :: Parser (String, SomeEntry)
 parseSleepEntry = do
   sleep
   many newline
@@ -136,24 +139,24 @@ parseSleepEntry = do
   (string "Sleep :" <* spaces) <|> (string "sleep :" <* spaces)
   sleepTime <- time
   many newline
-  return  (SP (secondsToDiffTime wakeUpTime) (secondsToDiffTime sleepTime))
+  return  ("Sleep", SomeEntry $ SP (secondsToDiffTime wakeUpTime) (secondsToDiffTime sleepTime))
 
 
--- -- alcohol header
+-- alcohol header
 alcohol :: Parser String
 alcohol = header "Alcohol"
 
 
 -- NOTE: add parseAlcoholEntries
 -- parses the alcohol header and the data in it
-parseAlcoholEntry :: Parser Alcohol
+parseAlcoholEntry :: Parser (String ,SomeEntry)
 parseAlcoholEntry = do
   alcohol
   many newline
   drink <- (many1 alphaNum <* spaces) <* string ":"
   shots <- liftEither . readEither =<< (spaces *> many1 digit)
   many newline
-  return (Alcohol drink shots)
+  return ("Alcohol", SomeEntry $ Alcohol drink shots)
 
 -- -- parses the cigarette header
 cigarette :: Parser String
@@ -161,7 +164,7 @@ cigarette = header "Cigarette"
 
 
 -- parses the cigarette header and the data in it
-parseCigaretteEntry :: Parser Cigarette
+parseCigaretteEntry :: Parser (String,SomeEntry)
 parseCigaretteEntry = do
   cigarette
   many newline
@@ -174,34 +177,34 @@ parseCigaretteEntry = do
   (string "Tar :" <* spaces) <|> (string "tar :" <* spaces)
   tar <- liftEither . readEither =<< many1 stringFloat
   many newline
-  return $ Cigarette number nicotine tar
+  return ("Cigarette", SomeEntry $ Cigarette number nicotine tar)
 
 -- | Parses the meditation header
 meditation :: Parser String
 meditation = header "Meditation"
 
 -- parses the meditatin header and the data in it
-parseMeditationsEntry :: Parser Meditation
+parseMeditationsEntry :: Parser (String,SomeEntry)
 parseMeditationsEntry = do
   meditation
   many newline
   meditations <- many1 (many1 (digit <|> char ':') <* many newline)
   many newline
-  return . Med $ fromList meditations
+  return ("Meditation" ,SomeEntry . Med $ fromList meditations)
 
 -- | Parses the productivity header
 productivity :: Parser String
 productivity = header "Productivity"
 
 -- parses the productivity header and the information in it
-parseProductivityEntry :: Parser Productivity
+parseProductivityEntry :: Parser (String, SomeEntry)
 parseProductivityEntry = do
   productivity
   many newline
   done <- liftEither . readEither =<< many1 digit <* char '/'
   shouldHave <- liftEither . readEither =<< many1 digit
   many newline
-  return $ Pro (done,shouldHave)
+  return $ ("Productivity", SomeEntry $ Pro (done,shouldHave))
 
 -- parses the rating header
 rating :: Parser String
@@ -222,14 +225,26 @@ parseRating' = rates >>= \case
 
 
 -- parses the whole Rating header (section)
-parseRatingEntry :: Parser Rating
-parseRatingEntry = rating >> many newline >> parseRating'
+parseRatingEntry :: Parser (String,SomeEntry)
+parseRatingEntry = rating >> many newline >> parseRating' >>= return . ("Rating", ) . SomeEntry 
 
 
 -- parses the Entry written by the user (order of the entry doesn't matter)
-parseEntries :: Parser Entry
-parseEntries = undefined 
--- parseEntries = many1 $ choice $ map try parsers
---  where parsers = [ parseNameEntry, parseDateEntry, parseMoodEntries, parseSleepEntry
---                  , parseAlcoholEntry, parseMeditationsEntry, parseCigaretteEntry
---                  , parseProductivityEntry, parseRatingEntry ]
+-- parse headers, figure out the entries that were written, fold the function list on kleisli composition and then apply everythigng to the parsed text
+parseEntries :: Parser [(String,SomeEntry)]
+parseEntries = undefined -- do
+  -- name <- parseNameEntry
+  -- day <- parseDateEntry
+  -- many1 . choice $ map try [parseAlcoholEntry,parseCigaretteEntry,parseMeditationsEntry,parseMoodEntries,parseRatingEntry,parseProductivityEntry]
+  
+  
+{-
+parse headers, accumulate everything between them in the fst of a tuple, then by pattern matching on fst, we get to find what parser we will have to apply, and how we should crewate the Entry type. 
+
+parseHeaders :: Parser [String]
+parseHeaders = many1 (skipNonHeaders *> headers) 
+  where
+    skipNonHeaders = (try $ many (noneOf "[")) 
+    headers = choice $ map try [rating,productivity,alcohol,meditation,cigarette,mood,sleep]
+
+-}

@@ -1,4 +1,0 @@
--- | 
-
-module Computation.Util where
-

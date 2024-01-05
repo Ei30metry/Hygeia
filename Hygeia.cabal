@@ -25,14 +25,16 @@ source-repository head
 
 library
   exposed-modules:
-    CLI
-   , Computation
-   , Config
-   , Parser.ConfigFile
-   , Parser.Entry
-   , Parser.Monad
-   , Report.PrettyPrint
-   , Template
+        CLI
+      , Computation
+      , Computation.Utils
+      , Computation.Monad
+      , Config
+      , Parser.ConfigFile
+      , Parser.Entry
+      , Parser.Monad
+      , Report.PrettyPrint
+      , Template
 
   other-modules:
       Paths_Hygeia
