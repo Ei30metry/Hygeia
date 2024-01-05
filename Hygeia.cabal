@@ -28,6 +28,7 @@ library
         CLI
       , Computation
       , Computation.Utils
+      , Computation.Types
       , Computation.Monad
       , Config
       , Parser.ConfigFile

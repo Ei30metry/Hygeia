@@ -116,12 +116,12 @@ data Cigarette = Cigarette { number   :: Double
 
 
 data Entry = Entry { entryDay          :: Day
-                   , entryMoods        :: [Mood]
+                   , entryMoods        :: Moods
                    , entrySleep        :: Sleep
                    , entryProductivity :: Productivity
-                   , entryMeditation   :: Maybe Meditation
-                   , entryAlcohol      :: Maybe Alcohol
-                   , entryCigarette    :: Maybe Cigarette
+                   , entryMeditation   :: Meditation
+                   , entryAlcohol      :: Alcohol
+                   , entryCigarette    :: Cigarette
                    , entryRating       :: Rating }
             deriving (Eq, Ord, Show)
 

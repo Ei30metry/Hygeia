@@ -8,7 +8,7 @@ module Parser.Monad (Parser, try, alphaNum, char, choice
 
 import           Control.Monad                 ( join, (<=<), void )
 import           Control.Monad.Except          ( Except (..), MonadError (..),
-                                                 runExcept )
+                                                 runExcept, liftEither )
 
 import           Data.ByteString.Char8         ( ByteString )
 
@@ -26,3 +26,4 @@ runParser parser = join . convert . runExcept . runParserT parser () ""
   where convert (Right (Left x))  = Right . Left $ show x
         convert (Right (Right y)) = Right (Right y)
         convert (Left z)          = Left z
+
