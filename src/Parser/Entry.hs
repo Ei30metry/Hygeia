@@ -5,7 +5,7 @@ import           Computation           ( Alcohol (..), Cigarette (Cigarette),
                                          Entry (..), Intensity (..),
                                          Meditation (..), Mood (..),
                                          Productivity (..), Rating (..),
-                                         Sleep (..) )
+                                         Sleep (..), Name, Moods )
 
 import           Control.Lens          ( bimap )
 import           Control.Monad         ( (<=<), (=<<) )
@@ -15,6 +15,7 @@ import           Data.ByteString.Char8 ( ByteString, unpack )
 import           Data.Functor          ( (<&>) )
 import           Data.List             ( sortOn )
 import           Data.Time             ( Day, DiffTime, secondsToDiffTime )
+import           Data.Vector           ( fromList )
 
 import           Parser.Monad
 
@@ -33,7 +34,7 @@ time = do
   return $ (hour * 3600) + (minute * 60)
 
 -- computes the time of Sleep and Wake up
-header :: String -> Parser ByteString
+header :: String -> Parser String
 header h = string $ mconcat ["[", h, "]"]
 
 -- parses the name section
@@ -41,7 +42,7 @@ name :: Parser String
 name = string "Name :"
 
 -- parses the name section
-parseNameEntry :: Parser Entry
+parseNameEntry :: Parser Name
 parseNameEntry = do
     name
     spaces
@@ -49,7 +50,7 @@ parseNameEntry = do
     spaces
     userLName <- many1 alphaNum
     many newline
-    return . EName $ (userName ++ " " ++  userLName)
+    return (userName ++ " " ++  userLName)
 
 -- parses the date section
 date :: Parser String
@@ -63,13 +64,13 @@ dateSep = char '-'
 parseDay :: Parser Day
 parseDay = many (digit <|> dateSep) >>= liftEither . readEither
 
-parseDateEntry :: Parser Entry
+parseDateEntry :: Parser Day
 parseDateEntry = do
   date
   spaces
   day <- parseDay
   many newline
-  return (EDay day)
+  return day
 
 mood :: Parser String
 mood = header "Mood"
@@ -102,11 +103,11 @@ parseMood = do
 
 
 -- | Parses Mood
-parseMoodEntries :: Parser Entry
+parseMoodEntries :: Parser Moods
 parseMoodEntries = do
   mood
   many newline
-  EMoodS <$> many1 parseMood <* many newline
+  fromList <$> many1 parseMood <* many newline
 
 
 -- | Parses Intensities
@@ -125,7 +126,7 @@ sleep = header "Sleep"
 
 
 -- -- parses the sleep header and it's data
-parseSleepEntry :: Parser Entry
+parseSleepEntry :: Parser Sleep
 parseSleepEntry = do
   sleep
   many newline
@@ -135,7 +136,7 @@ parseSleepEntry = do
   (string "Sleep :" <* spaces) <|> (string "sleep :" <* spaces)
   sleepTime <- time
   many newline
-  (return . ESleep) (SP (secondsToDiffTime wakeUpTime) (secondsToDiffTime sleepTime))
+  return  (SP (secondsToDiffTime wakeUpTime) (secondsToDiffTime sleepTime))
 
 
 -- -- alcohol header
@@ -145,14 +146,14 @@ alcohol = header "Alcohol"
 
 -- NOTE: add parseAlcoholEntries
 -- parses the alcohol header and the data in it
-parseAlcoholEntry :: Parser Entry
+parseAlcoholEntry :: Parser Alcohol
 parseAlcoholEntry = do
   alcohol
   many newline
   drink <- (many1 alphaNum <* spaces) <* string ":"
   shots <- liftEither . readEither =<< (spaces *> many1 digit)
   many newline
-  return . EAlcohol $ Alcohol drink shots
+  return (Alcohol drink shots)
 
 -- -- parses the cigarette header
 cigarette :: Parser String
@@ -160,7 +161,7 @@ cigarette = header "Cigarette"
 
 
 -- parses the cigarette header and the data in it
-parseCigaretteEntry :: Parser Entry
+parseCigaretteEntry :: Parser Cigarette
 parseCigaretteEntry = do
   cigarette
   many newline
@@ -173,34 +174,34 @@ parseCigaretteEntry = do
   (string "Tar :" <* spaces) <|> (string "tar :" <* spaces)
   tar <- liftEither . readEither =<< many1 stringFloat
   many newline
-  return . ECigarette $ Cigarette number nicotine tar
+  return $ Cigarette number nicotine tar
 
 -- | Parses the meditation header
 meditation :: Parser String
 meditation = header "Meditation"
 
 -- parses the meditatin header and the data in it
-parseMeditationsEntry :: Parser Entry
+parseMeditationsEntry :: Parser Meditation
 parseMeditationsEntry = do
   meditation
   many newline
   meditations <- many1 (many1 (digit <|> char ':') <* many newline)
   many newline
-  return . EMeditation $ Med meditations
+  return . Med $ fromList meditations
 
 -- | Parses the productivity header
 productivity :: Parser String
 productivity = header "Productivity"
 
 -- parses the productivity header and the information in it
-parseProductivityEntry :: Parser Entry
+parseProductivityEntry :: Parser Productivity
 parseProductivityEntry = do
   productivity
   many newline
   done <- liftEither . readEither =<< many1 digit <* char '/'
   shouldHave <- liftEither . readEither =<< many1 digit
   many newline
-  return . EProductivity $ Pro (done,shouldHave)
+  return $ Pro (done,shouldHave)
 
 -- parses the rating header
 rating :: Parser String
@@ -221,13 +222,13 @@ parseRating' = rates >>= \case
 
 
 -- parses the whole Rating header (section)
-parseRatingEntry :: Parser Entry
-parseRatingEntry = rating >> many newline >> ERating <$> parseRating'
+parseRatingEntry :: Parser Rating
+parseRatingEntry = rating >> many newline >> parseRating'
 
 
--- -- parses the Entry written by the user (order of the entry doesn't matter)
+-- parses the Entry written by the user (order of the entry doesn't matter)
 parseEntries :: Parser Entry
-parseEntries = undefined
+parseEntries = undefined 
 -- parseEntries = many1 $ choice $ map try parsers
 --  where parsers = [ parseNameEntry, parseDateEntry, parseMoodEntries, parseSleepEntry
 --                  , parseAlcoholEntry, parseMeditationsEntry, parseCigaretteEntry
