@@ -6,7 +6,10 @@ import           Computation.Monad
 import           Computation.Types
 import           Computation.Utils
 
+import           Config
+
 import           Data.Vector       ( Vector )
 
 
--- a Type representing one's mood with it's singleton definitions
+defaultConfig :: Config
+defaultConfig = undefined

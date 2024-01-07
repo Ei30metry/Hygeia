@@ -27,6 +27,7 @@ library
   exposed-modules:
         CLI
       , Computation
+      , Daemon
       , Computation.Utils
       , Computation.Types
       , Computation.Monad
@@ -34,6 +35,7 @@ library
       , Parser.ConfigFile
       , Parser.Entry
       , Parser.Monad
+      , Parser.Types
       , Report.PrettyPrint
       , Template
 
@@ -47,18 +49,23 @@ library
     , directory
     , lens
     , time
+    , opaleye
     , vector
     , mtl
+    , stm
     , optparse-applicative
     , parsec
     , transformers
     , process
     , text
     , unix
+    , extra
   default-language: GHC2021
   default-extensions: GADTs
                     , LambdaCase
                     , OverloadedStrings
+                    , TypeFamilies
+                    
 
 executable Hygeia-exe
   main-is: Main.hs
@@ -73,6 +80,7 @@ executable Hygeia-exe
     , bytestring
     , lens
     , mtl
+    , opaleye
     , optparse-applicative 
     , parsec
     , process

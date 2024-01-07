@@ -1,10 +1,11 @@
-module Template (generateTemplateFile) where
+module Template () where
 
 import           Config
 
+import           Control.Applicative        ( Alternative )
 import           Control.Lens.Operators     ( (^.) )
-import           Control.Monad              ( when )
-import           Control.Monad.IO.Class     ( liftIO )
+import           Control.Monad              ( guard )
+import           Control.Monad.IO.Class     ( MonadIO, liftIO )
 import           Control.Monad.Trans.Reader ( ReaderT (..), ask )
 
 import           Data.ByteString.Char8      ( ByteString )
@@ -12,7 +13,8 @@ import qualified Data.ByteString.Char8      as B
 import           Data.List                  ( sort )
 import qualified Data.Text                  as T
 import qualified Data.Text.IO               as TIO
-import           Data.Time                  ( Day, getCurrentTime, utctDay )
+import           Data.Time                  ( Day, UTCTime, getCurrentTime,
+                                              utctDay )
 
 import           System.Directory           ( getHomeDirectory )
 import           System.IO                  ( writeFile )
@@ -44,27 +46,29 @@ instance Show TemplateHeaders where
   show CigaretteT    = generateHeader "Cigarette"
   show RatingT       = generateHeader "Rating"
 
-
 -- generates a list of Optional Headers based on the configuration
 optionalHeadersToGenerate :: OptHeader -> [TemplateHeaders]
 optionalHeadersToGenerate (OptH m a c) = [fst x | x <- zip [MeditationT, AlcoholT, CigaretteT] [m, a, c], snd x]
 
 -- write the template entry file to a file with the date as its name
-writeTemplate :: ByteString -> Day -> OptHeader -> IO ()
-writeTemplate name date optHeaders = do
-   let optHeadersToInclude = optionalHeadersToGenerate optHeaders
-   let headers = sort $ [ NameT name, DateT date
+createTemplate :: FilePath -> ByteString -> Day -> OptHeader -> (FilePath,ByteString)
+createTemplate entryPath name date optHeaders = (templatePath, entry)
+  where
+   optHeadersToInclude = optionalHeadersToGenerate optHeaders
+   templatePath = mconcat [entryPath <> "/.Hygeia/", show date, ".entry"]
+   entry = mconcat $ map (B.pack . show) headers
+   headers = sort $ [ NameT name, DateT date
                         , MoodT, SleepT, ProductivityT, RatingT ] ++ optHeadersToInclude
-   homeDir <- getHomeDirectory
-   B.writeFile (mconcat [homeDir <> "/.Hygeia/", show date, ".entry"]) $ mconcat $ map (B.pack . show) headers
 
-
--- generates an entry file given a config
-generateTemplateFile :: ReaderT Config IO ()
-generateTemplateFile = do
+-- | generates an entry file given a config
+generateTemplateFile :: (Alternative m , MonadIO m) => UTCTime -> ReaderT Config m ()
+generateTemplateFile time = do
   conf <- ask
-  let write = conf ^. template . genTemplate . generateTemplate
-  let userName = conf ^. info . name
-  let optHeaders = conf ^. template . optionalHeaders
-  curDate <- utctDay <$> liftIO getCurrentTime
-  when write $ liftIO (writeTemplate userName curDate optHeaders)
+  let write = conf ^. entryConf . templateConf . genTemplate
+  guard write
+  let userName = conf ^. userInfo . name
+      optHeaders = conf ^. entryConf . templateConf . optionalHeaders
+      curDate = utctDay time
+      entryPath = conf ^. entryConf . entryDirectory
+      (path, content) = (createTemplate entryPath userName curDate optHeaders)
+  liftIO $ B.writeFile path content

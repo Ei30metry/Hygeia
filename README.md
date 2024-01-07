@@ -8,7 +8,6 @@ Hygeia is a Daemon which does simple analysis on your mood entries and then give
 Default format :
 
 ``` text
-Name : FName LName
 Date : YYYY-MM-DD
 
 [Mood]
