@@ -5,7 +5,10 @@ module Config where
 import           Control.Lens                     ( makeLenses )
 import           Control.Lens.Operators
 
+import           Daemon
+
 import           Data.ByteString.Char8            ( ByteString )
+import           Data.YAML                        ( FromYAML, ToYAML )
 
 import           GHC.Generics
 
@@ -14,16 +17,17 @@ import           System.Posix.ByteString.FilePath
 
 
 data UserInfo = Info { _name  :: ByteString
-                     , _email :: ByteString } deriving (Eq, Show, Generic)
-
+                     , _email :: Maybe ByteString } deriving (Eq, Show, Generic)
 
 data DaemonConf = DaemonConf { _runDaemon :: Bool
                              , _osInfo    :: OsInfo } deriving (Show, Eq, Generic)
 
-data LaunchService = LaunchService deriving (Eq, Show)
+type OS = String
 
-data OsInfo = OsInfo { _osName        :: String
-                     , _launchService :: LaunchService } deriving (Show, Eq)
+data OsInfo = OsInfo { _osName             :: OS
+                     , _serviceManagerInfo :: ServiceManager } deriving (Show, Eq)
+
+
 
 data EntryConf = EntryConf { _daemonConf     :: DaemonConf
                            , _templateConf   :: TemplateConf
@@ -36,13 +40,18 @@ data OptHeader = OptH { _meditation :: Bool
 data TemplateConf = TempConf { _genTemplate     :: Bool
                              , _optionalHeaders :: OptHeader } deriving (Eq, Show, Generic)
 
-
-data ReportConf = RepConf { _emailReport          :: Bool
-                          , _emailReportFrequency :: Int } deriving (Eq, Show, Generic)
-
 data Config = Config { _userInfo  :: UserInfo
-                     , _entryConf :: EntryConf
-                     , _report    :: ReportConf } deriving (Show, Eq, Generic)
+                     , _entryConf :: EntryConf } deriving (Show, Eq, Generic)
+
+defaultConfig :: Config
+defaultConfig = Config userInfo' entryConf'
+  where
+    osInfo' = OsInfo os Launchd
+    daemonConf' = DaemonConf True osInfo'
+    optHeader' = OptH True True True
+    templateConf' = TempConf True optHeader'
+    userInfo' = Info "Artin Ghasivand" (Just "ghasivand.artin@gmail.com")
+    entryConf' = EntryConf daemonConf' templateConf' "/Users/artin/Documents/Hygeia/"
 
 
 makeLenses ''UserInfo
@@ -50,5 +59,5 @@ makeLenses ''DaemonConf
 makeLenses ''EntryConf
 makeLenses ''OptHeader
 makeLenses ''TemplateConf
-makeLenses ''ReportConf
 makeLenses ''Config
+makeLenses ''OsInfo

@@ -35,7 +35,7 @@
 
 ** CLI [/]
 + [ ] Being able to Edit the Entries and then recompute again
-+ [ ] Asks if you want to add new sections like Alcohol Cigarette and ...
++ [ ] Asks if you want to add new sections like Drink, Cigarette and ...
 + [ ] Asks for Email to Send Weekly and Monthly report to it
 
 ** Report [/]

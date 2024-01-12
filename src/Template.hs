@@ -1,4 +1,4 @@
-module Template () where
+module Template where
 
 import           Config
 
@@ -24,7 +24,7 @@ data TemplateHeaders = NameT ByteString
                      | MoodT
                      | SleepT
                      | MeditationT
-                     | AlcoholT
+                     | DrinkT
                      | CigaretteT
                      | ProductivityT
                      | RatingT deriving (Eq, Ord)
@@ -41,34 +41,33 @@ instance Show TemplateHeaders where
   show MoodT         = generateHeader "Mood"
   show ProductivityT = generateHeader "ProductivityT"
   show MeditationT   = generateHeader "Meditation"
-  show AlcoholT      = generateHeader "Alcohol"
+  show DrinkT        = generateHeader "Drink"
   show SleepT        = generateHeader "Sleep"
   show CigaretteT    = generateHeader "Cigarette"
   show RatingT       = generateHeader "Rating"
 
 -- generates a list of Optional Headers based on the configuration
 optionalHeadersToGenerate :: OptHeader -> [TemplateHeaders]
-optionalHeadersToGenerate (OptH m a c) = [fst x | x <- zip [MeditationT, AlcoholT, CigaretteT] [m, a, c], snd x]
+optionalHeadersToGenerate (OptH m a c) = [fst x | x <- zip [MeditationT, DrinkT, CigaretteT] [m, a, c], snd x]
 
 -- write the template entry file to a file with the date as its name
-createTemplate :: FilePath -> ByteString -> Day -> OptHeader -> (FilePath,ByteString)
-createTemplate entryPath name date optHeaders = (templatePath, entry)
+createTemplate :: FilePath -> ByteString -> Day -> OptHeader -> ByteString
+createTemplate entryPath name date optHeaders = mconcat $ map (B.pack . show) headers
   where
-   optHeadersToInclude = optionalHeadersToGenerate optHeaders
-   templatePath = mconcat [entryPath <> "/.Hygeia/", show date, ".entry"]
-   entry = mconcat $ map (B.pack . show) headers
-   headers = sort $ [ NameT name, DateT date
-                        , MoodT, SleepT, ProductivityT, RatingT ] ++ optHeadersToInclude
+    optHeadersToInclude = optionalHeadersToGenerate optHeaders
+    headers = [ NameT name, DateT date
+              , MoodT, SleepT
+              , ProductivityT, RatingT ] ++ optHeadersToInclude
 
 -- | generates an entry file given a config
-generateTemplateFile :: (Alternative m , MonadIO m) => UTCTime -> ReaderT Config m ()
-generateTemplateFile time = do
+writeTemplate :: (Alternative m , MonadIO m) => UTCTime -> ReaderT Config m ()
+writeTemplate time = do
   conf <- ask
   let write = conf ^. entryConf . templateConf . genTemplate
   guard write
   let userName = conf ^. userInfo . name
       optHeaders = conf ^. entryConf . templateConf . optionalHeaders
-      curDate = utctDay time
+      date = utctDay time
       entryPath = conf ^. entryConf . entryDirectory
-      (path, content) = (createTemplate entryPath userName curDate optHeaders)
-  liftIO $ B.writeFile path content
+      path = mconcat [entryPath <> "/.Hygeia/", show date, ".entry"]
+  liftIO $ B.writeFile path (createTemplate entryPath userName date optHeaders)

@@ -32,7 +32,7 @@ library
       , Computation.Types
       , Computation.Monad
       , Config
-      , Parser.ConfigFile
+      , Parser.Config
       , Parser.Entry
       , Parser.Monad
       , Parser.Types
@@ -60,11 +60,21 @@ library
     , text
     , unix
     , extra
+    , HsYAML
   default-language: GHC2021
   default-extensions: GADTs
                     , LambdaCase
                     , OverloadedStrings
                     , TypeFamilies
+                    , PatternSynonyms
+                    , DataKinds
+                    , PolyKinds
+                    , FlexibleContexts
+                    , UndecidableInstances
+                    , AllowAmbiguousTypes
+                    , MultiParamTypeClasses
+                    , FlexibleInstances
+                    , TypeFamilyDependencies
                     
 
 executable Hygeia-exe

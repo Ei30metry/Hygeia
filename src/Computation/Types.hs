@@ -2,13 +2,14 @@
 
 module Computation.Types where
 
-import           Control.Monad              ( foldM, join, (<=<) )
-import Computation.Utils
+import           Computation.Utils
 
-import           Data.List                  ( groupBy, sort )
-import           Data.Time                  ( Day, DiffTime, defaultTimeLocale,
-                                              formatTime )
-import           Data.Vector                ( Vector )
+import           Control.Monad     ( foldM, join, (<=<) )
+
+import           Data.List         ( groupBy, sort )
+import           Data.Time         ( Day, DiffTime, defaultTimeLocale,
+                                     formatTime )
+import           Data.Vector       ( Vector )
 
 
 data Mood = Angry Intensity
@@ -87,6 +88,7 @@ type Name = String
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int } deriving (Eq, Ord, Show)
 
+type Drinks = Vector Alcohol
 
 data Sleep = SP { wakeUpTime :: DiffTime
                 , sleepTime  :: DiffTime } deriving (Eq, Ord)
@@ -95,8 +97,9 @@ instance Show Sleep where
   show (SP w s) = mconcat ["wake up: ",formatTime defaultTimeLocale "%H:%M" w,"\n"
                           ,"Sleep: ",formatTime defaultTimeLocale "%H:%M" s]
 
-newtype Meditation = Med (Vector String) deriving (Eq, Ord)
+newtype Meditation = Med String deriving (Eq, Ord)
 
+type Meditations = Vector Meditation
 
 newtype Productivity = Pro (Int,Int) deriving (Eq, Ord)
 
@@ -119,8 +122,8 @@ data Entry = Entry { entryDay          :: Day
                    , entryMoods        :: Moods
                    , entrySleep        :: Sleep
                    , entryProductivity :: Productivity
-                   , entryMeditation   :: Meditation
-                   , entryAlcohol      :: Alcohol
+                   , entryMeditations  :: Meditations
+                   , entryDrinks       :: Drinks
                    , entryCigarette    :: Cigarette
                    , entryRating       :: Rating }
             deriving (Eq, Ord, Show)
