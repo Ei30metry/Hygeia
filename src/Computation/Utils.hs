@@ -11,8 +11,9 @@ import           Control.Monad.Extra
 import           Data.ByteString.Char8 ( ByteString )
 import qualified Data.ByteString.Char8 as B
 import           Data.Maybe
+import           Data.Time             ( DiffTime )
+import           Data.Vector           ( Vector )
 
 -- | Safe head
 head' []     = Nothing
 head' (x:xs) = Just x
-

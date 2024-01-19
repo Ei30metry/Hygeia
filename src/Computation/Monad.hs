@@ -83,22 +83,21 @@ withComp = withReaderT
 mapComp = mapReaderT
 
 
--- not good enough, make it more strict. it shouldn't work for any type that is the result of a type constructor to a type.
+-- not good enough, make it more strict. it shouldn't work for any type that is the result of a type constructor to a type. Not possible!
+-- The only way to ensure the above invariant is to write an inductive instance declaration. Which only works for the things we have written.
 type family UnListLike a where
   UnListLike (Vector a) = a
   UnListLike ([a])      = a
   UnListLike a          = a
 
 -- Remember that we don't have a way to combine incompatible moods. Ex: Happy High, Sad Low
--- therefore, we would need to keep them both, hence Vector Mood, (Moods)
+-- therefore, we need to keep them both, hence Vector Mood, (Moods)
 -- same thing for ()
+-- For things like Moods, Meditaiotns, Cigarettes and Drinks, use a special type 'BlahSummary', record more information
+-- in order to pretty-print them down the road
 type family SummaryContainer a | a -> a where
-  SummaryContainer Rating       = Rating
-  SummaryContainer Productivity = Productivity
-  SummaryContainer Sleep        = Sleep
-  SummaryContainer Meditations  = Meditations
-  SummaryContainer Drinks       = Drinks
-  SummaryContainer Moods        = Moods
+  SummaryContainer a = a
+
 
 class Summarizable a where
   summary :: a -> SummaryContainer (UnListLike a)
@@ -112,6 +111,24 @@ instance Summarizable (Vector a) => Summarizable [a] where
 instance Summarizable (Vector Rating) where
   summary xss = toEnum . (`div` length xss) . sum $ fmap fromEnum xss
 
-
 instance Summarizable (Vector Productivity) where
-  summary xss = undefined
+  summary xss = Pro . blah . (/ (fromIntegral $ length xss)) . sum $ fmap (\(Pro x) -> (fst x) / (snd x)) xss
+    where blah = undefined
+
+instance Summarizable (Vector Moods) where
+  summary = undefined
+
+instance Summarizable (Vector Sleep) where
+  summary = undefined
+
+instance Summarizable (Vector Drinks) where
+  summary = undefined
+
+instance Summarizable (Vector Cigarette) where
+  summary = undefined
+
+instance Summarizable (Vector Meditations) where
+  summary = undefined
+
+instance Summarizable Entry where
+  summary (Entry d m s p me dr c r) = Entry d (summary m) (summary s) (summary p) (summary me) (summary dr) (summary c) (summary r)

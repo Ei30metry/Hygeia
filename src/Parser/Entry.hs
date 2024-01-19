@@ -1,12 +1,13 @@
 module Parser.Entry( parseEntry, parseDay) where
 
 import           Computation           ( Alcohol (Alcohol),
-                                         Cigarette (Cigarette), Drinks,
+                                         Cigarette (Cigarette), Drinks (..),
                                          Entry (..), Intensity (..),
-                                         Meditation (..), Meditations,
-                                         Mood (..), Moods, Name,
+                                         Meditation (..), Meditations (..),
+                                         Meditation,
+                                         Mood (..), Moods (..), Name,
                                          Productivity (..), Rating (..),
-                                         Sleep (..) )
+                                         Sleep (..), mkMeditaitons )
 
 import           Control.Lens          ( bimap )
 import           Control.Monad         ( (<=<), (=<<) )
@@ -18,7 +19,7 @@ import           Data.Foldable         ( find )
 import           Data.Functor          ( (<&>) )
 import           Data.List             ( sortOn )
 import           Data.Time             ( Day, DiffTime, secondsToDiffTime )
-import           Data.Vector           ( fromList )
+import           Data.Vector           ( fromList, Vector )
 
 import           Parser.Monad
 import           Parser.Types
@@ -98,7 +99,7 @@ parseMoods = do
   mood
   many newline
   moods <- fromList <$> many1 parseMood <* many newline
-  return (HMoods moods)
+  return . HMoods $ coerce moods
 
 
 -- | Parses Intensities
@@ -147,7 +148,7 @@ parseDrinks = do
   many newline
   drinks <- many1 parseAlcohol
   many newline
-  return . HDrinks $ fromList drinks
+  return . HDrinks . coerce $ fromList drinks
 
 -- -- parses the cigarette header
 cigarette :: Parser String
@@ -179,9 +180,10 @@ parseMeditations :: Parser Header
 parseMeditations = do
   meditation
   many newline
-  meditations <- many1 (many1 (digit <|> char ':') <* many newline)
+  meds <- fromList . map (coerce @_ @Meditation) <$> many (many1 digit <* many newline)
   many newline
-  return . HMeditation . coerce $ fromList meditations
+  meditations <- liftEither $ mkMeditaitons meds
+  return (HMeditation meditations)
 
 -- | Parses the productivity header
 productivity :: Parser String

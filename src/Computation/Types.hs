@@ -1,15 +1,18 @@
+{-# LANGUAGE TupleSections #-}
 -- |
-
 module Computation.Types where
 
 import           Computation.Utils
 
-import           Control.Monad     ( foldM, join, (<=<) )
+import           Control.Monad     ( foldM, join, (<=<), (=<<) )
 
 import           Data.List         ( groupBy, sort )
 import           Data.Time         ( Day, DiffTime, defaultTimeLocale,
-                                     formatTime )
+                                     formatTime, secondsToDiffTime )
 import           Data.Vector       ( Vector )
+import qualified Data.Vector       as V
+
+import           Text.Read         ( readEither )
 
 
 data Mood = Angry Intensity
@@ -20,7 +23,7 @@ data Mood = Angry Intensity
           deriving (Read, Eq, Ord, Show)
 
 
-type Moods = Vector Mood
+newtype Moods = Moods (Vector Mood) deriving (Eq, Ord, Show)
 
 -- Intensity of a mood
 -- The None is not supposed to be used in a MoodReport but it is only here to
@@ -88,7 +91,7 @@ type Name = String
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int } deriving (Eq, Ord, Show)
 
-type Drinks = Vector Alcohol
+newtype Drinks = Drinks (Vector Alcohol) deriving (Show, Eq)
 
 data Sleep = SP { wakeUpTime :: DiffTime
                 , sleepTime  :: DiffTime } deriving (Eq, Ord)
@@ -97,11 +100,18 @@ instance Show Sleep where
   show (SP w s) = mconcat ["wake up: ",formatTime defaultTimeLocale "%H:%M" w,"\n"
                           ,"Sleep: ",formatTime defaultTimeLocale "%H:%M" s]
 
-newtype Meditation = Med String deriving (Eq, Ord)
+newtype Meditation = Med { unMed :: String } deriving (Eq, Ord)
+newtype Meditations = Meds (Vector Meditation, DiffTime) deriving (Eq, Show)
 
-type Meditations = Vector Meditation
 
-newtype Productivity = Pro (Int,Int) deriving (Eq, Ord)
+mkMeditaitons :: Vector Meditation -> Either String Meditations 
+mkMeditaitons meds =
+  Meds . (meds,) . V.sum
+    <$>
+    mapM (return . secondsToDiffTime . (60*) <=< readEither @Integer . unMed) meds
+
+
+newtype Productivity = Pro (Double,Double) deriving (Eq, Ord)
 
 
 instance Show Meditation where
@@ -126,7 +136,7 @@ data Entry = Entry { entryDay          :: Day
                    , entryDrinks       :: Drinks
                    , entryCigarette    :: Cigarette
                    , entryRating       :: Rating }
-            deriving (Eq, Ord, Show)
+            deriving (Eq, Show)
 
 
 type Entries = Vector Entry

@@ -28,8 +28,8 @@ Name of the drink : shots
 
 OPT [Meditation]
 
-HH:MM
-HH:MM
+MM
+MM
 ...
 
 OPT [Cigarette] 
