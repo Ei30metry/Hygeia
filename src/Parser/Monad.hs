@@ -2,22 +2,24 @@
 
 module Parser.Monad (Parser, try, alphaNum, char, choice
                     ,digit, many, many1, newline, sepBy
-                    ,spaces, string, (<|>), throwError 
+                    ,spaces, string, (<|>), throwError
                     ,runParser, manyTill, anyChar, skipMany
-                    ,satisfy, void, lookAhead, optional, noneOf,eof) where
+                    ,satisfy, void, lookAhead, optional, noneOf,eof, readExcept) where
 
-import           Control.Monad                 ( join, (<=<), void )
+import           Control.Monad                 ( join, void, (<=<) )
 import           Control.Monad.Except          ( Except (..), MonadError (..),
-                                                 runExcept, liftEither )
+                                                 liftEither, runExcept )
 
 import           Data.ByteString.Char8         ( ByteString )
 
 import           Text.Parsec                   ( ParseError, ParsecT, anyChar,
-                                                 manyTill, runParserT, skipMany,
-                                                 try, lookAhead, optional, noneOf, eof )
+                                                 eof, lookAhead, manyTill,
+                                                 noneOf, optional, runParserT,
+                                                 skipMany, try )
 import           Text.ParserCombinators.Parsec ( alphaNum, char, choice, digit,
                                                  many, many1, newline, satisfy,
                                                  sepBy, spaces, string, (<|>) )
+import           Text.Read                     ( readEither )
 
 type Parser a = ParsecT ByteString () (Except String) a
 
@@ -27,3 +29,6 @@ runParser parser = join . convert . runExcept . runParserT parser () ""
         convert (Right (Right y)) = Right (Right y)
         convert (Left z)          = Left z
 
+
+readExcept :: Read a => String -> Parser a
+readExcept = liftEither . readEither

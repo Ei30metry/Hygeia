@@ -42,15 +42,6 @@ computeIntensity x y | fromEnum x == fromEnum y = x
                      | otherwise = y
 
 
-sameMood :: Mood -> Mood -> Bool
-sameMood (Angry _) (Angry _)     = True
-sameMood (Sad _) (Sad _)         = True
-sameMood Neutral Neutral         = True
-sameMood (Happy _) (Happy _)     = True
-sameMood (Excited _) (Excited _) = True
-sameMood _ _                     = False
-
-
 instance Semigroup Intensity where
   x <> y = computeIntensity x y
 
@@ -59,6 +50,14 @@ instance Monoid Intensity where
   mappend = (<>)
   mempty = None
 
+
+sameMood :: Mood -> Mood -> Bool
+sameMood (Angry _) (Angry _)     = True
+sameMood (Sad _) (Sad _)         = True
+sameMood Neutral Neutral         = True
+sameMood (Happy _) (Happy _)     = True
+sameMood (Excited _) (Excited _) = True
+sameMood _ _                     = False
 
 -- Rating data type for rating the day
 data Rating = Awful
@@ -100,9 +99,18 @@ instance Show Sleep where
   show (SP w s) = mconcat ["wake up: ",formatTime defaultTimeLocale "%H:%M" w,"\n"
                           ,"Sleep: ",formatTime defaultTimeLocale "%H:%M" s]
 
+
 newtype Meditation = Med { unMed :: String } deriving (Eq, Ord)
 newtype Meditations = Meds (Vector Meditation, DiffTime) deriving (Eq, Show)
 
+
+instance Semigroup Meditations where
+  (Meds (a,s1)) <> (Meds (b,s2)) = Meds (a <> b, s1 + s2)
+
+instance Monoid Meditations where
+  mempty = Meds (V.empty, 0)
+  mappend = (<>)
+  
 
 mkMeditaitons :: Vector Meditation -> Either String Meditations 
 mkMeditaitons meds =
@@ -111,7 +119,14 @@ mkMeditaitons meds =
     mapM (return . secondsToDiffTime . (60*) <=< readEither @Integer . unMed) meds
 
 
-newtype Productivity = Pro (Double,Double) deriving (Eq, Ord)
+newtype Productivity = Pro { unPro :: Rational } deriving (Eq, Ord)
+
+instance Semigroup Productivity where
+  (Pro a) <> (Pro b) = Pro $ a + b
+
+instance Monoid Productivity where
+  mappend = (<>)
+  mempty = Pro 0 
 
 
 instance Show Meditation where
@@ -123,7 +138,7 @@ instance Show Productivity where
 
 
 data Cigarette = Cigarette { number   :: Double
-                           , nitocone :: Double
+                           , nicotine :: Double
                            , tar      :: Double }
                            deriving (Eq, Ord, Show)
 

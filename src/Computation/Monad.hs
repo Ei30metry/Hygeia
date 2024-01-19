@@ -11,9 +11,11 @@ import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Writer
 
 import           Data.ByteString.Lazy.Char8 ( ByteString )
+import           Data.Foldable
 import           Data.Kind
 import           Data.Time                  ( Day )
 import           Data.Vector                ( Vector, fromList, toList )
+import qualified Data.Vector                as V
 
 data CompError
 
@@ -112,14 +114,13 @@ instance Summarizable (Vector Rating) where
   summary xss = toEnum . (`div` length xss) . sum $ fmap fromEnum xss
 
 instance Summarizable (Vector Productivity) where
-  summary xss = Pro . blah . (/ (fromIntegral $ length xss)) . sum $ fmap (\(Pro x) -> (fst x) / (snd x)) xss
-    where blah = undefined
+  summary = fold
 
 instance Summarizable (Vector Moods) where
   summary = undefined
 
 instance Summarizable (Vector Sleep) where
-  summary = undefined
+  summary = id
 
 instance Summarizable (Vector Drinks) where
   summary = undefined
@@ -128,7 +129,7 @@ instance Summarizable (Vector Cigarette) where
   summary = undefined
 
 instance Summarizable (Vector Meditations) where
-  summary = undefined
+  summary = fold
 
 instance Summarizable Entry where
   summary (Entry d m s p me dr c r) = Entry d (summary m) (summary s) (summary p) (summary me) (summary dr) (summary c) (summary r)

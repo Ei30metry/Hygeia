@@ -4,11 +4,11 @@ import           Computation           ( Alcohol (Alcohol),
                                          Cigarette (Cigarette), Drinks (..),
                                          Entry (..), Intensity (..),
                                          Meditation (..), Meditations (..),
-                                         Meditation,
                                          Mood (..), Moods (..), Name,
                                          Productivity (..), Rating (..),
                                          Sleep (..), mkMeditaitons )
 
+import           Control.Applicative   ( liftA2, liftA3 )
 import           Control.Lens          ( bimap )
 import           Control.Monad         ( (<=<), (=<<) )
 import           Control.Monad.Except  ( Except, MonadError, liftEither )
@@ -18,8 +18,9 @@ import           Data.Coerce
 import           Data.Foldable         ( find )
 import           Data.Functor          ( (<&>) )
 import           Data.List             ( sortOn )
+import           Data.Ratio
 import           Data.Time             ( Day, DiffTime, secondsToDiffTime )
-import           Data.Vector           ( fromList, Vector )
+import           Data.Vector           ( Vector, fromList )
 
 import           Parser.Monad
 import           Parser.Types
@@ -33,9 +34,9 @@ stringFloat = digit <|> char '.'
 -- | parses time in format of HH:MM
 time :: Parser Integer
 time = do
-  hour <- liftEither . readEither =<< many1 digit
+  hour <- readExcept =<< many1 digit
   many1 (char ':')
-  minute <- liftEither . readEither =<< many1 digit
+  minute <- readExcept =<< many1 digit
   return $ (hour * 3600) + (minute * 60)
 
 -- | computes the time of Sleep and Wake up
@@ -52,7 +53,7 @@ dateSep = char '-'
 
 
 parseDate :: Parser Day
-parseDate = many (digit <|> dateSep) >>= liftEither . readEither
+parseDate = many (digit <|> dateSep) >>= readExcept
 
 
 parseDay :: Parser Day
@@ -138,7 +139,7 @@ drink = header "Drink"
 parseAlcohol :: Parser Alcohol
 parseAlcohol = do
   drink <- (many1 alphaNum <* spaces) <* string ":"
-  shots <- liftEither . readEither =<< (spaces *> many1 digit)
+  shots <- readExcept =<< (spaces *> many1 digit)
   return $ Alcohol drink shots
 
 -- | parses the drink header and its data
@@ -150,7 +151,7 @@ parseDrinks = do
   many newline
   return . HDrinks . coerce $ fromList drinks
 
--- -- parses the cigarette header
+-- parses the cigarette header
 cigarette :: Parser String
 cigarette = header "Cigarette"
 
@@ -161,13 +162,13 @@ parseCigarette = do
   cigarette
   many newline
   (string "Number :" <* spaces) <|> (string "number :" <* spaces)
-  number <- liftEither . readEither =<< many1 digit
+  number <- readExcept =<< many1 digit
   many newline
   (string "Nicotine :" <* spaces) <|> (string "nicotine :" <* spaces)
-  nicotine <- liftEither . readEither =<< many1 stringFloat
+  nicotine <- readExcept =<< many1 stringFloat
   many newline
   (string "Tar :" <* spaces) <|> (string "tar :" <* spaces)
-  tar <- liftEither . readEither =<< many1 stringFloat
+  tar <- readExcept =<< many1 stringFloat
   many newline
   return . HCigarette $ Cigarette number nicotine tar
 
@@ -194,10 +195,11 @@ parseProductivity :: Parser Header
 parseProductivity = do
   productivity
   many newline
-  done <- liftEither . readEither =<< many1 digit <* char '/'
-  shouldHave <- liftEither . readEither =<< many1 digit
+  done <- many1 digit <* char '/'
+  shouldHaveDone <- many1 digit
   many newline
-  return . HProductivity $ Pro (done,shouldHave)
+  productivity <- liftA2 (%) (readExcept done) (readExcept shouldHaveDone)
+  return $ HProductivity (Pro productivity)
 
 -- | parses the rating header
 rating :: Parser String
