@@ -18,6 +18,7 @@ import           Options.Applicative.Builder
 
 import qualified Text.Parsec                 as P
 import           Text.Read                   ( readEither )
+
 {-
 
 Command line interface
@@ -76,6 +77,7 @@ Subcommands:
 -}
 
 
+-- verbosity flag that prints the exact entries. 
 -- probably have to change the location of this
 -- defaultConfig :: Config
 -- instead of subcommands for parseGenerate and parseSummary, use options

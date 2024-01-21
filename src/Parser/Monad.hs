@@ -4,7 +4,7 @@ module Parser.Monad (Parser, try, alphaNum, char, choice
                     ,digit, many, many1, newline, sepBy
                     ,spaces, string, (<|>), throwError
                     ,runParser, manyTill, anyChar, skipMany
-                    ,satisfy, void, lookAhead, optional, noneOf,eof, readExcept) where
+                    ,satisfy, void, lookAhead, optional, noneOf,eof, readExcept, space) where
 
 import           Control.Monad                 ( join, void, (<=<) )
 import           Control.Monad.Except          ( Except (..), MonadError (..),
@@ -18,7 +18,8 @@ import           Text.Parsec                   ( ParseError, ParsecT, anyChar,
                                                  skipMany, try )
 import           Text.ParserCombinators.Parsec ( alphaNum, char, choice, digit,
                                                  many, many1, newline, satisfy,
-                                                 sepBy, spaces, string, (<|>) )
+                                                 sepBy, space, spaces, string,
+                                                 (<|>) )
 import           Text.Read                     ( readEither )
 
 type Parser a = ParsecT ByteString () (Except String) a
@@ -30,5 +31,6 @@ runParser parser = join . convert . runExcept . runParserT parser () ""
         convert (Left z)          = Left z
 
 
+{-# INLINE readExcept #-}
 readExcept :: Read a => String -> Parser a
 readExcept = liftEither . readEither

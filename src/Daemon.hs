@@ -41,6 +41,9 @@ serviceManagerCommand Systemd = "systemctl"
 serviceManagerCommand SrvMan  = "SrvMan.exe"
 
 
+serviceManager _ = Launchd
+
+
 data ServiceManagerFile = XML
                         -- | UnitFile
                         -- | windws stuff

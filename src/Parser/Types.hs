@@ -18,6 +18,7 @@ data Header = HProductivity Productivity
             deriving (Show, Eq)
 
 
+{-# INLINE maybeToEither #-}
 maybeToEither :: e -> Maybe a -> Either e a
 maybeToEither e Nothing  = Left e
 maybeToEither e (Just x) = Right x

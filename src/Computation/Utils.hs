@@ -15,5 +15,6 @@ import           Data.Time             ( DiffTime )
 import           Data.Vector           ( Vector )
 
 -- | Safe head
+{-# INLINE head' #-}
 head' []     = Nothing
 head' (x:xs) = Just x

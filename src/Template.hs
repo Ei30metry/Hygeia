@@ -63,11 +63,11 @@ createTemplate entryPath name date optHeaders = mconcat $ map (B.pack . show) he
 writeTemplate :: (Alternative m , MonadIO m) => UTCTime -> ReaderT Config m ()
 writeTemplate time = do
   conf <- ask
-  let write = conf ^. entryConf . templateConf . genTemplate
+  let write = conf ^. templateConf . genTemplate
   guard write
-  let userName = conf ^. userInfo . name
-      optHeaders = conf ^. entryConf . templateConf . optionalHeaders
+  let userName = B.pack $ conf ^. userInfo . name
+      optHeaders = conf ^. optionalHeaders
       date = utctDay time
-      entryPath = conf ^. entryConf . entryDirectory
+      entryPath = conf ^. entryDirectory
       path = mconcat [entryPath <> "/.Hygeia/", show date, ".entry"]
   liftIO $ B.writeFile path (createTemplate entryPath userName date optHeaders)

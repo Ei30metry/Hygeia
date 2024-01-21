@@ -21,12 +21,13 @@ tequila : 5
 
 [Meditation]
 
-0:20
-0:25
-0:15
+20
+25
+15
 
 [Cigarette]
 
+Name : Cigarettes are bad
 Number : 7
 Nicotine : 0.6
 Tar : 0.7

@@ -1,19 +1,12 @@
-Info :
-    name = Artin Ghasivand
-    email = ghasivand.artin@gmail.com
+daemon: true
 
+name: Artin Ghasivand
 
-Daemon :
-    run_daemon = True
+entry-directory: "/Users/artin/Documents/Hygeia/"
 
+template: true
 
-Template :
-    generate_template = True
-    optional_headers :
-            meditation = True
-            alcohol = True
-            cigarette = True
-
-Report :
-    email_report = True
-    email_report_frequency = 1 #this number value stands for weeks (in this case every week)
+optional-headers:
+  meditation: true
+  alcohol: false
+  cigarette: true

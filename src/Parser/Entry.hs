@@ -1,4 +1,4 @@
-module Parser.Entry( parseEntry, parseDay) where
+module Parser.Entry( parseEntry, parseDay, parseProductivity, parseMeditations) where
 
 import           Computation           ( Alcohol (Alcohol),
                                          Cigarette (Cigarette), Drinks (..),
@@ -155,11 +155,13 @@ parseDrinks = do
 cigarette :: Parser String
 cigarette = header "Cigarette"
 
-
 -- parses the cigarette header and the data in it
 parseCigarette :: Parser Header
 parseCigarette = do
   cigarette
+  many newline
+  (string "Name :" <* spaces) <|> (string "name :" <* spaces)
+  cigName <- many1 (alphaNum <|> char ' ') 
   many newline
   (string "Number :" <* spaces) <|> (string "number :" <* spaces)
   number <- readExcept =<< many1 digit
@@ -170,7 +172,7 @@ parseCigarette = do
   (string "Tar :" <* spaces) <|> (string "tar :" <* spaces)
   tar <- readExcept =<< many1 stringFloat
   many newline
-  return . HCigarette $ Cigarette number nicotine tar
+  return . HCigarette $ Cigarette cigName number nicotine tar
 
 -- | Parses the meditation header
 meditation :: Parser String
@@ -182,8 +184,8 @@ parseMeditations = do
   meditation
   many newline
   meds <- fromList . map (coerce @_ @Meditation) <$> many (many1 digit <* many newline)
-  many newline
   meditations <- liftEither $ mkMeditaitons meds
+  many newline
   return (HMeditation meditations)
 
 -- | Parses the productivity header
@@ -197,8 +199,8 @@ parseProductivity = do
   many newline
   done <- many1 digit <* char '/'
   shouldHaveDone <- many1 digit
-  many newline
   productivity <- liftA2 (%) (readExcept done) (readExcept shouldHaveDone)
+  many newline
   return $ HProductivity (Pro productivity)
 
 -- | parses the rating header

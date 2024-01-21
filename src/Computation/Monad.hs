@@ -120,7 +120,10 @@ instance Summarizable (Vector Moods) where
   summary = undefined
 
 instance Summarizable (Vector Sleep) where
-  summary = id
+  summary = averageSleepTime
+    where
+      averageSleepTime :: Vector Sleep -> Sleep 
+      averageSleepTime = undefined
 
 instance Summarizable (Vector Drinks) where
   summary = undefined

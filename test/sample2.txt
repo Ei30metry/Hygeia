@@ -14,14 +14,17 @@ Sleep : 23:00
 
 [Drink]
 
-Aragh : 4
+AlcoholIsTerrible : 4
 
 [Meditation]
 
-22:00
+22
+
+99
 
 [Cigarette]
 
+Name : blah
 Number : 23
 Nicotine : 0.1
 Tar : 0.1

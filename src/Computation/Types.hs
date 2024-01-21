@@ -7,6 +7,7 @@ import           Computation.Utils
 import           Control.Monad     ( foldM, join, (<=<), (=<<) )
 
 import           Data.List         ( groupBy, sort )
+import           Data.Ratio
 import           Data.Time         ( Day, DiffTime, defaultTimeLocale,
                                      formatTime, secondsToDiffTime )
 import           Data.Vector       ( Vector )
@@ -110,9 +111,9 @@ instance Semigroup Meditations where
 instance Monoid Meditations where
   mempty = Meds (V.empty, 0)
   mappend = (<>)
-  
 
-mkMeditaitons :: Vector Meditation -> Either String Meditations 
+
+mkMeditaitons :: Vector Meditation -> Either String Meditations
 mkMeditaitons meds =
   Meds . (meds,) . V.sum
     <$>
@@ -121,25 +122,25 @@ mkMeditaitons meds =
 
 newtype Productivity = Pro { unPro :: Rational } deriving (Eq, Ord)
 
+instance Show Productivity where
+  show (Pro a) = mconcat [show (numerator a) ,"/",show (denominator a)]
+
 instance Semigroup Productivity where
   (Pro a) <> (Pro b) = Pro $ a + b
 
 instance Monoid Productivity where
   mappend = (<>)
-  mempty = Pro 0 
+  mempty = Pro 0
 
 
 instance Show Meditation where
   show (Med a) = show a
 
 
-instance Show Productivity where
-  show (Pro a) = show a
-
-
-data Cigarette = Cigarette { number   :: Double
-                           , nicotine :: Double
-                           , tar      :: Double }
+data Cigarette = Cigarette { cigaretteName :: String
+                           , number        :: Double
+                           , nicotine      :: Double
+                           , tar           :: Double }
                            deriving (Eq, Ord, Show)
 
 
