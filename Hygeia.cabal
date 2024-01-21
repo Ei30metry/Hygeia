@@ -50,6 +50,9 @@ library
     , time
     , opaleye
     , vector
+    , ListLike
+    , containers
+    , conduit
     , mtl
     , stm
     , optparse-applicative
@@ -58,7 +61,6 @@ library
     , process
     , text
     , unix
-    , extra
     , HsYAML
   default-language: GHC2021
   default-extensions: GADTs

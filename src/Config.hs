@@ -8,7 +8,7 @@ import           Control.Lens.Operators
 import           Daemon
 
 import           Data.ByteString.Char8            ( ByteString )
-import           Data.Text                        ( unpack, Text )
+import           Data.Text                        ( Text, unpack )
 import           Data.YAML
 
 import           GHC.Generics
@@ -41,14 +41,6 @@ data Config = Config { _userInfo        :: UserInfo
                      , _optionalHeaders :: OptHeader
                      , _entryDirectory  :: FilePath } deriving (Show, Eq, Generic)
 
-defaultConfig :: Config
-defaultConfig = Config userInfo' daemonConf' templateConf' optHeader' "/Users/artin/Documents/Hygeia/"
-  where
-    osInfo' = OsInfo os (serviceManager os)
-    daemonConf' = DaemonConf True osInfo'
-    optHeader' = OptH True True True
-    templateConf' = TempConf True
-    userInfo' = Info "Artin Ghasivand"
 
 -- For now nothing is actually nested, but I have a feeling that things will escalate quickly.
 makeLenses ''UserInfo
@@ -72,7 +64,7 @@ instance FromYAML Config where
 
 
 instance FromYAML OptHeader where
-  parseYAML = withMap "OptHeader" $ \m -> do 
+  parseYAML = withMap "OptHeader" $ \m -> do
     med <- m .: "meditation" >>= withBool "meditation" return
     alco <- m .: "alcohol" >>= withBool "alcohol" return
     cig <- m .: "cigarette" >>= withBool "cigarette" return

@@ -2,6 +2,8 @@
 
 module Main where
 
+import           CLI
+
 import           Config
 
 import qualified Data.ByteString.Char8  as B
@@ -21,7 +23,9 @@ Version 1: Only print summary.
 Version 2: Print summary, if verbose flag is on, print exact entries too.
 -}
 
-main = mainConfig
+main = do
+  action <- cli
+  print action
 
 mainEntry :: IO ()
 mainEntry = do

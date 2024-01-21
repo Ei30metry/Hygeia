@@ -6,15 +6,19 @@ import           Computation.Utils
 
 import           Control.Monad     ( foldM, join, (<=<), (=<<) )
 
-import           Data.List         ( groupBy, sort )
+import           Data.Coerce
+import           Data.Foldable     ( toList )
+import           Data.List
+import           Data.Maybe
 import           Data.Ratio
+import           Data.Sequence     ( Seq (..), ViewL (..), ViewR (..) )
+import qualified Data.Sequence     as S
 import           Data.Time         ( Day, DiffTime, defaultTimeLocale,
                                      formatTime, secondsToDiffTime )
 import           Data.Vector       ( Vector )
 import qualified Data.Vector       as V
 
 import           Text.Read         ( readEither )
-
 
 data Mood = Angry Intensity
           | Sad Intensity
@@ -24,12 +28,11 @@ data Mood = Angry Intensity
           deriving (Read, Eq, Ord, Show)
 
 
-newtype Moods = Moods (Vector Mood) deriving (Eq, Ord, Show)
+-- use Seq instead of vector
+newtype Moods = Moods { unMoods :: (S.Seq Mood) } deriving (Eq, Ord, Show)
 
--- Intensity of a mood
--- The None is not supposed to be used in a MoodReport but it is only here to
--- serve as a mempty for our Monoid instance
-data Intensity = None
+-- | Intensity of a mood
+data Intensity = None      -- Only here because of mempty
                | Low
                | Medium
                | High
@@ -79,10 +82,24 @@ combineMoods (Excited x) (Excited y) = Just $ Excited (x <> y)
 combineMoods _ _                     = Nothing
 
 
-combineMoodList :: [Mood] -> Maybe [Mood]
-combineMoodList = traverse foldMoods . groupBy sameMood . sort
+-- This is a crime.
+condenseMoods :: Seq Mood -> Seq Mood
+condenseMoods = S.fromList . condenseMoods' . toList
+-- condenseMoods = fmap go . S.groupBy sameMood . S.sort
+--   where
+--     x <!> y = fromJust (combineMoods x y)
+--     getL (x :<| _) = x
+--     go xs
+--       | length xs == 1 = getL xs
+--       | otherwise = foldr (<!>) (getL xs) xs
+
+condenseMoods' :: [Mood] -> [Mood]
+condenseMoods' = fmap go . groupBy sameMood . sort
   where
-    foldMoods ms = head' ms >>= \m -> foldM combineMoods m ms -- don't use head
+    x <!> y = fromJust (combineMoods x y)
+    go xs
+      | length xs == 1 = head xs
+      | otherwise = foldr (<!>) (head xs) xs
 
 
 type Name = String
@@ -155,4 +172,4 @@ data Entry = Entry { entryDay          :: Day
             deriving (Eq, Show)
 
 
-type Entries = Vector Entry
+type Entries = S.Seq Entry

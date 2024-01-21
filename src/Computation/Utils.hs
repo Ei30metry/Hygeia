@@ -6,15 +6,14 @@ import           Config                ( DaemonConf (..) )
 
 import           Control.Applicative
 import           Control.Lens
-import           Control.Monad.Extra
 
 import           Data.ByteString.Char8 ( ByteString )
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ListLike         as L
 import           Data.Maybe
 import           Data.Time             ( DiffTime )
 import           Data.Vector           ( Vector )
 
--- | Safe head
-{-# INLINE head' #-}
-head' []     = Nothing
-head' (x:xs) = Just x
+
+
+label f x = (x, f x)

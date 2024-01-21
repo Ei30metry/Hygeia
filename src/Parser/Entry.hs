@@ -19,6 +19,7 @@ import           Data.Foldable         ( find )
 import           Data.Functor          ( (<&>) )
 import           Data.List             ( sortOn )
 import           Data.Ratio
+import qualified Data.Sequence         as S
 import           Data.Time             ( Day, DiffTime, secondsToDiffTime )
 import           Data.Vector           ( Vector, fromList )
 
@@ -99,7 +100,7 @@ parseMoods :: Parser Header
 parseMoods = do
   mood
   many newline
-  moods <- fromList <$> many1 parseMood <* many newline
+  moods <- S.fromList <$> many1 parseMood <* many newline
   return . HMoods $ coerce moods
 
 
@@ -161,7 +162,7 @@ parseCigarette = do
   cigarette
   many newline
   (string "Name :" <* spaces) <|> (string "name :" <* spaces)
-  cigName <- many1 (alphaNum <|> char ' ') 
+  cigName <- many1 (alphaNum <|> char ' ')
   many newline
   (string "Number :" <* spaces) <|> (string "number :" <* spaces)
   number <- readExcept =<< many1 digit

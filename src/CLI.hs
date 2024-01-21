@@ -3,12 +3,11 @@
 module CLI where
 
 import           Computation.Monad
-import           Computation.Types
 
-import           Config
+import qualified Config                      as C
 
-import           Control.Lens
 import           Control.Monad
+import           Control.Monad.Except
 
 import qualified Data.ByteString             as B
 import           Data.Time                   ( Day )
@@ -77,17 +76,44 @@ Subcommands:
 -}
 
 
--- verbosity flag that prints the exact entries. 
+-- verbosity flag that prints the exact entries.
 -- probably have to change the location of this
 -- defaultConfig :: Config
 -- instead of subcommands for parseGenerate and parseSummary, use options
 
-parseGenerate, parseDaemon, parseSummary :: Parser Action
-parseGenerate = undefined
-parseDaemon   = undefined
-parseSummary  = undefined
--- use some to get mul
-parseConfig   = undefined
+{-
+default value for Interval differs for every action.
+
+In Generate, it's Day "today"
+In Summary, it's All
+we would need a convinient way to convey this information 
+
+-}
+parseGenerate, parseDaemon, parseSummary, parseConfig :: Parser Action
+parseGenerate = Generete <$> parseInterval
+
+-- TODO: Should print available operations to the user 
+parseDaemon   = Daemon <$> argument (eitherReader helper) (metavar "METAVAR")
+  where helper "start"    = pure Start
+        helper "stop"     = pure Shutdown
+        helper "restart"  = pure Restart
+        helper "shutdown" = pure Shutdown
+        helper x          = throwError $ show x ++ " is not a daemon operation."
+
+-- TODO: Should print available entry fields to the user 
+parseSummary  = Summary <$> parseEntryField <*> parseInterval
+  where
+    parseEntryField = some (argument (eitherReader helper) (metavar "ENTRYFIELD"))
+    helper "mood"         = pure MoodField
+    helper "meditation"   = pure MeditationField
+    helper "cigarette"    = pure CigaretteField
+    helper "drink"        = pure DrinkField
+    helper "sleep"        = pure SleepField
+    helper "productivity" = pure ProductivityField
+    helper x              = throwError $ show x ++ " is not an entry field."
+    
+parseConfig = Config <$> subparser conCommands
+  where conCommands = undefined
 
 
 dateOption :: Parser Interval
@@ -98,17 +124,25 @@ dateOption  = Date <$> option dateParser (long "date" <> short 'D' <> metavar "Y
                                            Right x -> join $ Right (readEither x)
                                            Left e  -> Left (show e)
 
--- value All
+-- default value All
 dayOption, weekOption, monthOption, yearOption :: Parser Interval
 dayOption   = Day <$> option auto (long "day" <> short 'd' <> metavar "n")
 weekOption  = Week <$> option auto (long "week" <> short 's' <> metavar "n")
 monthOption = Month <$> option auto (long "month" <> short 'm' <> metavar "n")
 yearOption  = Year <$> option auto (long "year" <> short 'y' <> metavar "n")
 
+parseInterval = dayOption <|> weekOption <|> monthOption <|> yearOption
 
-parseCommand = subparser $ genCommand <> summCommand <> confCommand
+
+parseCommand = subparser $ genCommand <> summCommand <> confCommand <> daemonCommand
   where genCommand = command "generate" (info parseGenerate (progDesc "Generate an entry template"))
         summCommand = command "summary" (info parseSummary (progDesc "Show summary of the entries"))
         confCommand = command "config" (info parseSummary (progDesc "Configuration"))
+        daemonCommand = command "daemon" (info parseDaemon (progDesc "Daemon"))
 
-cli = undefined
+
+cli :: IO Action
+cli = do
+  execParser (info (parseCommand <**> helper)
+                          (fullDesc <> progDesc "blah"
+                           <> header "Hygeia"))

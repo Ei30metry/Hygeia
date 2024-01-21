@@ -4,18 +4,24 @@ module Computation.Monad where
 
 import           Computation.Types
 
-import           Config
+import qualified Config                     as C
 
+import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Writer
 
+import           Daemon
+
 import           Data.ByteString.Lazy.Char8 ( ByteString )
+import           Data.Coerce
 import           Data.Foldable
 import           Data.Kind
 import           Data.Time                  ( Day )
 import           Data.Vector                ( Vector, fromList, toList )
 import qualified Data.Vector                as V
+
+import           System.Info
 
 data CompError
 
@@ -45,13 +51,11 @@ data EntryField = MoodField
                 deriving (Show, Eq)
 
 -- rename Env to something else
-data Action = Summary Interval [EntryField]
+data Action = Summary [EntryField] Interval
             | Config ConfCommand
             | Generete Interval
             | Daemon DaemonCommand
             deriving Show
-
-data Env
 
 
 data Interval = Date Day
@@ -64,10 +68,19 @@ data Interval = Date Day
 
 data DaemonCommand = Start | Restart | Shutdown | Stop deriving (Eq, Show)
 
--- type Comp a = ReaderT Env (Except CompError) a
-type Comp a = ReaderT Config (Except CompError) a
+defaultConfig :: C.Config
+defaultConfig = C.Config userInfo' daemonConf' templateConf' optHeader' "/Users/artin/Documents/Hygeia/"
+  where
+    osInfo' = C.OsInfo os (serviceManager os)
+    daemonConf' = C.DaemonConf True osInfo'
+    optHeader' = C.OptH True True True
+    templateConf' = C.TempConf True
+    userInfo' = C.Info "Artin Ghasivand"
 
-runComp :: Comp a -> Config -> Either CompError a
+-- type Comp a = ReaderT Env (Except CompError) a
+type Comp a = ReaderT C.Config (Except CompError) a
+
+runComp :: Comp a -> C.Config -> Either CompError a
 runComp comp = runExcept . runReaderT comp
 
 -- saveEntry :: Entry -> IO ()
@@ -122,7 +135,7 @@ instance Summarizable (Vector Moods) where
 instance Summarizable (Vector Sleep) where
   summary = averageSleepTime
     where
-      averageSleepTime :: Vector Sleep -> Sleep 
+      averageSleepTime :: Vector Sleep -> Sleep
       averageSleepTime = undefined
 
 instance Summarizable (Vector Drinks) where
