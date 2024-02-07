@@ -8,8 +8,6 @@ import           Control.Monad
 import           Data.ByteString.Char8 ( ByteString )
 import           Data.Kind             ( Type )
 
-import           Opaleye
-
 import           System.Directory
 import           System.Process
 

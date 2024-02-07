@@ -48,11 +48,11 @@ library
     , directory
     , lens
     , time
-    , opaleye
     , vector
-    , ListLike
+    , sqlite-simple
     , containers
     , conduit
+    , split
     , mtl
     , stm
     , optparse-applicative

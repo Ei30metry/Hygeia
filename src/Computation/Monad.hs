@@ -29,16 +29,35 @@ data CompError
 
 type Days = Int
 
+data ConfCommand = Set ConfigField FieldValue
+                 | Edit
+                 | Cat ConfigField -- for now
+                 deriving (Show, Eq)
 
--- IDEA for future:we can use index the command type with the "command argument" of the CLI, and then do Trees That Grow.
--- Computation is actually nothing more than an interpreter for this small DSL. Love it.
--- Hmm, we can actually use algebraic effects.
--- String should become the fields of our config
--- TODO
-data ConfCommand = Set String -- for now.
-                 | Edit String -- for now
-                 | Cat String -- for now
-                 deriving (Show)
+{-
+Example:
+
+template takes a Bool
+entry-directory and name, take a String
+-}
+data FieldValue = BVal Bool
+                | SVal String
+                deriving (Show, Eq)
+
+
+data ConfigField = UserInfoField
+                 | EntryDirectoryField
+                 | DaemonField
+                 | TemplateField
+                 | OptionalHeaderField OHeaderField
+                 deriving (Show, Eq)
+
+
+data OHeaderField = OMeditation
+                  | OAlcohol
+                  | OCigarette
+                  deriving (Show, Eq)
+
 
 
 data EntryField = MoodField
@@ -66,7 +85,8 @@ data Interval = Date Day
               | All
               deriving (Show, Eq)
 
-data DaemonCommand = Start | Restart | Shutdown | Stop deriving (Eq, Show)
+data DaemonCommand = Start | Restart | Shutdown | Stop
+  deriving (Eq, Show)
 
 defaultConfig :: C.Config
 defaultConfig = C.Config userInfo' daemonConf' templateConf' optHeader' "/Users/artin/Documents/Hygeia/"
@@ -75,7 +95,7 @@ defaultConfig = C.Config userInfo' daemonConf' templateConf' optHeader' "/Users/
     daemonConf' = C.DaemonConf True osInfo'
     optHeader' = C.OptH True True True
     templateConf' = C.TempConf True
-    userInfo' = C.Info "Artin Ghasivand"
+    userInfo' = C.Info "Unknown"
 
 -- type Comp a = ReaderT Env (Except CompError) a
 type Comp a = ReaderT C.Config (Except CompError) a
