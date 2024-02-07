@@ -1,4 +1,4 @@
--- |
+-- | The monad used by Hygeia to compute a summary for the entries
 
 module Computation.Monad where
 
@@ -25,77 +25,24 @@ import           System.Info
 
 data CompError
 
--- Some of the things that we need to compute are not detailed in configuration file
 
 type Days = Int
 
-data ConfCommand = Set ConfigField FieldValue
-                 | Edit
-                 | Cat ConfigField -- for now
-                 deriving (Show, Eq)
-
-{-
-Example:
-
-template takes a Bool
-entry-directory and name, take a String
--}
-data FieldValue = BVal Bool
-                | SVal String
-                deriving (Show, Eq)
-
-
-data ConfigField = UserInfoField
-                 | EntryDirectoryField
-                 | DaemonField
-                 | TemplateField
-                 | OptionalHeaderField OHeaderField
-                 deriving (Show, Eq)
-
-
-data OHeaderField = OMeditation
-                  | OAlcohol
-                  | OCigarette
-                  deriving (Show, Eq)
-
-
-
-data EntryField = MoodField
-                | MeditationField
-                | CigaretteField
-                | DrinkField
-                | RatingField
-                | SleepField
-                | ProductivityField
-                deriving (Show, Eq)
-
--- rename Env to something else
-data Action = Summary [EntryField] Interval
-            | Config ConfCommand
-            | Generete Interval
-            | Daemon DaemonCommand
+data Action = Summary [C.EntryField] C.Interval
+            | Config C.ConfCommand
+            | Generete C.Interval
+            | Daemon C.DaemonCommand
             deriving Show
 
-
-data Interval = Date Day
-              | Month Int
-              | Day Int
-              | Year Int
-              | Week Int
-              | All
-              deriving (Show, Eq)
-
-data DaemonCommand = Start | Restart | Shutdown | Stop
-  deriving (Eq, Show)
 
 defaultConfig :: C.Config
 defaultConfig = C.Config userInfo' daemonConf' templateConf' optHeader' "/Users/artin/Documents/Hygeia/"
   where
-    osInfo' = C.OsInfo os (serviceManager os)
-    daemonConf' = C.DaemonConf True osInfo'
-    optHeader' = C.OptH True True True
+    osInfo'       = C.OsInfo os (serviceManager os)
+    daemonConf'   = C.DaemonConf True osInfo'
+    optHeader'    = C.OptH True True True
     templateConf' = C.TempConf True
-    userInfo' = C.Info "Unknown"
+    userInfo'     = C.Info "Unknown"
 
 -- type Comp a = ReaderT Env (Except CompError) a
 type Comp a = ReaderT C.Config (Except CompError) a

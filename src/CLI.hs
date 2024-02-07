@@ -181,7 +181,6 @@ parseCommand = subparser $ genCommand <> summCommand <> confCommand <> daemonCom
 
 
 cli :: IO Action
-cli = do
-  execParser (info (parseCommand <**> helper)
+cli = execParser (info (parseCommand <**> helper)
                           (fullDesc <> progDesc "blah"
                            <> header "Hygeia"))

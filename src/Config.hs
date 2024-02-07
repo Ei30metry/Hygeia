@@ -9,6 +9,7 @@ import           Daemon
 
 import           Data.ByteString.Char8            ( ByteString )
 import           Data.Text                        ( Text, unpack )
+import           Data.Time                        ( Day )
 import           Data.YAML
 
 import           GHC.Generics
@@ -69,3 +70,54 @@ instance FromYAML OptHeader where
     alco <- m .: "alcohol" >>= withBool "alcohol" return
     cig <- m .: "cigarette" >>= withBool "cigarette" return
     return (OptH med alco cig)
+
+
+data ConfCommand = Set ConfigField FieldValue
+                 | Edit
+                 | Cat ConfigField -- for now
+                 deriving (Show, Eq)
+
+
+data FieldValue = BVal Bool
+                | SVal String
+                deriving (Show, Eq)
+
+
+data ConfigField = UserInfoField
+                 | EntryDirectoryField
+                 | DaemonField
+                 | TemplateField
+                 | OptionalHeaderField OHeaderField
+                 deriving (Show, Eq)
+
+
+data OHeaderField = OMeditation
+                  | OAlcohol
+                  | OCigarette
+                  deriving (Show, Eq)
+
+
+
+data EntryField = MoodField
+                | MeditationField
+                | CigaretteField
+                | DrinkField
+                | RatingField
+                | SleepField
+                | ProductivityField
+                deriving (Show, Eq)
+
+
+type Days = Int
+
+
+data Interval = Date Day
+              | Month Int
+              | Day Int
+              | Year Int
+              | Week Int
+              | All
+              deriving (Show, Eq)
+
+data DaemonCommand = Start | Restart | Shutdown | Stop
+  deriving (Eq, Show)
