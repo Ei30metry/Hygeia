@@ -6,7 +6,8 @@ import           Computation           ( Alcohol (Alcohol),
                                          Meditation (..), Meditations (..),
                                          Mood (..), Moods (..), Name,
                                          Productivity (..), Rating (..),
-                                         Sleep (..), mkMeditaitons )
+                                         Sleep (..), mkMeditaitons)
+import qualified Computation.Types as CT
 
 import           Control.Applicative   ( liftA2, liftA3 )
 import           Control.Lens          ( bimap )
@@ -19,7 +20,6 @@ import           Data.Foldable         ( find )
 import           Data.Functor          ( (<&>) )
 import           Data.List             ( sortOn )
 import           Data.Ratio
-import qualified Data.Sequence         as S
 import           Data.Time             ( Day, DiffTime, secondsToDiffTime )
 
 import           Parser.Monad
@@ -226,7 +226,7 @@ parseRating :: Parser Header
 parseRating = (rating >> many newline >> parseRating') <&> HRating
 
 -- | parses the Entry written by the user (order of the entry doesn't matter)
-parseEntry :: Parser Entry
+parseEntry :: Parser (Entry CT.Parser)
 parseEntry = do
     day <- parseDay
     headers <- many1 (choice parsers)

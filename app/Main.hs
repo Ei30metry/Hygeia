@@ -31,7 +31,7 @@ mainEntry :: IO ()
 mainEntry = do
   sample <- B.readFile "/Users/artin/Programming/projects/Hygeia/test/sample2.txt"
   case runParser parseEntry sample of
-    Right x -> print x
+    Right _ -> putStrLn "Everything is cool"
     Left y  -> putStrLn y
 
 

@@ -95,8 +95,10 @@ data Alcohol = Alcohol { drink :: String
 
 newtype Drinks = Drinks [Alcohol] deriving (Show, Eq)
 
+
 data Sleep = SP { wakeUpTime :: DiffTime
                 , sleepTime  :: DiffTime } deriving (Eq, Ord)
+
 
 instance Show Sleep where
   show (SP w s) = mconcat ["wake up: ",formatTime defaultTimeLocale "%H:%M" w,"\n"
@@ -154,19 +156,29 @@ data Cigarette = Cigarette { cigaretteName :: String
 
 data Stage = Parser | Summaraizer deriving (Show, Eq)  
 
+type family UnList a where
+  UnList [Day]          = [Day]
+  UnList (Entry Parser) = Entry Parser
+  UnList [a]            = a
+  UnList a              = a
+
+
 type family SummaryType a | a -> a where
-  SummaryType Moods        = (Moods,Moods)
-  SummaryType Sleep        = ([Sleep],Sleep)
-  SummaryType Drinks       = (Drinks,Drinks)
-  SummaryType Rating       = ([Rating],Rating)
-  SummaryType Productivity = ([Productivity],Productivity)
-  SummaryType Cigarette    = ([Cigarette],[Cigarette])
-  SummaryType Meditations  = ([Meditations],Meditation)
+  SummaryType [Day]          = [Day]
+  SummaryType Moods          = ([Moods],Moods)
+  SummaryType Sleep          = ([Sleep],Sleep)
+  SummaryType Drinks         = ([Drinks],Drinks)
+  SummaryType Rating         = ([Rating],Rating)
+  SummaryType Productivity   = ([Productivity],Productivity)
+  SummaryType Cigarette      = ([Cigarette],[Cigarette])
+  SummaryType Meditations    = ([Meditations],Meditations)
+  SummaryType (Entry Parser) = Entry Summaraizer
 
 
 type family XXDay a where
   XXDay Parser      = Day
   XXDay Summaraizer = SummaryType Day
+
 
 type family XXMoods a where
   XXMoods Parser      = Moods
@@ -194,12 +206,12 @@ type family XXDrinks a where
 
 
 type family XXCigarette a where
-  XXCigarette Parser      = Drinks
-  XXCigarette Summaraizer = SummaryType Drinks
+  XXCigarette Parser      = Cigarette
+  XXCigarette Summaraizer = SummaryType Cigarette
 
 
 type family XXRating a where
-  XXRating Parser = Rating
+  XXRating Parser      = Rating
   XXRating Summaraizer = SummaryType Rating
   
 

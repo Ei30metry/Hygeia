@@ -49,19 +49,19 @@ type Comp a = ReaderT C.Config (Except CompError) a
 runComp :: Comp a -> C.Config -> Either CompError a
 runComp comp = runExcept . runReaderT comp
 
--- saveEntry :: Entry -> IO ()
+
+saveEntry :: Entry Summaraizer -> IO ()
 saveEntry = undefined
 
-combineEntries = undefined
 
-initialEntry = undefined
+combineEntries :: Entry Summaraizer -> Entry Summaraizer -> Maybe (Entry Summaraizer)
+combineEntries = undefined
 
 
 withComp = withReaderT
 
+
 mapComp = mapReaderT
-
-
 
 
 class Summarizable a where
@@ -70,8 +70,11 @@ class Summarizable a where
 instance {-# OVERLAPPABLE #-} ((SummaryType (UnList a)) ~ a) => Summarizable a where
   summary = id
 
+instance Summarizable [Day] where
+  summary = id
+
 instance Summarizable [Rating] where
-  summary xss = toEnum . (`div` length xss) . sum $ fmap fromEnum xss
+  summary xss = (xss, toEnum . (`div` length xss) . sum $ fmap fromEnum xss)
 
 instance Summarizable [Productivity] where
   summary = label fold
@@ -95,5 +98,9 @@ instance Summarizable [Meditations] where
   summary = label fold
 
 -- TODO Use the trees that grow approach in Entry
-instance Summarizable (Entry Summaraizer) where
-  summary (Entry d m s p me dr c r) = Entry d (summary m) (summary s) (summary p) (summary me) (summary dr) (summary c) (summary r)
+instance Summarizable (Entry Parser) where
+  summary (Entry d m s p me dr c r) = Entry undefined undefined undefined undefined undefined undefined undefined undefined -- Entry (summary d) (summary m) (summary s) (summary p) (summary me) (summary dr) (summary c) (summary r)
+
+
+instance Summarizable ([Entry Summaraizer]) where
+  summary = undefined
