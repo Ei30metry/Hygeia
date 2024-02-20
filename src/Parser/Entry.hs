@@ -21,7 +21,6 @@ import           Data.List             ( sortOn )
 import           Data.Ratio
 import qualified Data.Sequence         as S
 import           Data.Time             ( Day, DiffTime, secondsToDiffTime )
-import           Data.Vector           ( Vector, fromList )
 
 import           Parser.Monad
 import           Parser.Types
@@ -100,8 +99,7 @@ parseMoods :: Parser Header
 parseMoods = do
   mood
   many newline
-  moods <- S.fromList <$> many1 parseMood <* many newline
-  return . HMoods $ coerce moods
+  HMoods . coerce <$> many1 parseMood <* many newline
 
 
 -- | Parses Intensities
@@ -150,7 +148,7 @@ parseDrinks = do
   many newline
   drinks <- many1 parseAlcohol
   many newline
-  return . HDrinks . coerce $ fromList drinks
+  return . HDrinks . coerce $ drinks
 
 -- parses the cigarette header
 cigarette :: Parser String
@@ -184,7 +182,7 @@ parseMeditations :: Parser Header
 parseMeditations = do
   meditation
   many newline
-  meds <- fromList . map (coerce @_ @Meditation) <$> many (many1 digit <* many newline)
+  meds <- map (coerce @_ @Meditation) <$> many (many1 digit <* many newline)
   meditations <- liftEither $ mkMeditaitons meds
   many newline
   return (HMeditation meditations)
@@ -192,6 +190,9 @@ parseMeditations = do
 -- | Parses the productivity header
 productivity :: Parser String
 productivity = header "Productivity"
+
+productivity2 :: Parser String
+productivity2 = header "Productivity"
 
 -- parses the productivity header and the information in it
 parseProductivity :: Parser Header

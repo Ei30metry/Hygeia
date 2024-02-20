@@ -3,8 +3,9 @@
 module CLI where
 
 import           Computation.Monad
+import qualified Computation.Monad as M
 
-import qualified Config                      as C
+import           Config
 
 import           Control.Monad
 import           Control.Monad.Except
@@ -119,7 +120,7 @@ parseSummary = Summary <$> parseEntryField <*> parseInterval
     helper x              = Left $ show x ++ " is not an entry field."
 
 -- NOTE we shold do a check to see if the value passed is actually acceptable
-parseConfig = Config <$> subparser (catCommand <> editCommand <> setCommand)
+parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
   where
     editCommand = command "edit" (info (pure Edit) (progDesc "open config file in $EDITOR"))
     catCommand = command "cat" (info catC (progDesc "cat config field"))
@@ -155,6 +156,7 @@ parseConfig = Config <$> subparser (catCommand <> editCommand <> setCommand)
             "cigarette"  -> Right OCigarette
             unknown      -> Left ("Uknown Optional Header, " ++ unknown)
 
+
 dateOption :: Parser Interval
 dateOption  = Date <$> option dateParser (long "date" <> short 'D' <> metavar "YY-MM-DD")
   where
@@ -170,17 +172,18 @@ weekOption  = Week <$> option auto (long "week" <> short 's' <> metavar "n")
 monthOption = Month <$> option auto (long "month" <> short 'm' <> metavar "n")
 yearOption  = Year <$> option auto (long "year" <> short 'y' <> metavar "n")
 
+
 parseInterval = dayOption <|> weekOption <|> monthOption <|> yearOption
 
 
 parseCommand = subparser $ genCommand <> summCommand <> confCommand <> daemonCommand
-  where genCommand = command "generate" (info parseGenerate (progDesc "Generate an entry template"))
-        summCommand = command "summary" (info parseSummary (progDesc "Show summary of the entries"))
-        confCommand = command "config" (info parseConfig (progDesc "Configuration"))
+  where genCommand    = command "generate" (info parseGenerate (progDesc "Generate an entry template"))
+        summCommand   = command "summary" (info parseSummary (progDesc "Show summary of the entries"))
+        confCommand   = command "config" (info parseConfig (progDesc "Configuration"))
         daemonCommand = command "daemon" (info parseDaemon (progDesc "Daemon"))
 
 
 cli :: IO Action
 cli = execParser (info (parseCommand <**> helper)
                           (fullDesc <> progDesc "blah"
-                           <> header "Hygeia"))
+                                    <> header "Hygeia"))

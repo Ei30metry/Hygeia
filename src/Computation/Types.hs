@@ -11,14 +11,11 @@ import           Data.Foldable     ( toList )
 import           Data.List
 import           Data.Maybe
 import           Data.Ratio
-import           Data.Sequence     ( Seq (..), ViewL (..), ViewR (..) )
-import qualified Data.Sequence     as S
 import           Data.Time         ( Day, DiffTime, defaultTimeLocale,
                                      formatTime, secondsToDiffTime )
-import           Data.Vector       ( Vector )
-import qualified Data.Vector       as V
 
 import           Text.Read         ( readEither )
+
 
 data Mood = Angry Intensity
           | Sad Intensity
@@ -28,8 +25,7 @@ data Mood = Angry Intensity
           deriving (Read, Eq, Ord, Show)
 
 
--- use Seq instead of vector
-newtype Moods = Moods { unMoods :: (S.Seq Mood) } deriving (Eq, Ord, Show)
+newtype Moods = Moods { unMoods :: [Mood] } deriving (Eq, Ord, Show)
 
 -- | Intensity of a mood
 data Intensity = None      -- Only here because of mempty
@@ -82,19 +78,8 @@ combineMoods (Excited x) (Excited y) = Just $ Excited (x <> y)
 combineMoods _ _                     = Nothing
 
 
--- This is a crime.
-condenseMoods :: Seq Mood -> Seq Mood
-condenseMoods = S.fromList . condenseMoods' . toList
--- condenseMoods = fmap go . S.groupBy sameMood . S.sort
---   where
---     x <!> y = fromJust (combineMoods x y)
---     getL (x :<| _) = x
---     go xs
---       | length xs == 1 = getL xs
---       | otherwise = foldr (<!>) (getL xs) xs
-
-condenseMoods' :: [Mood] -> [Mood]
-condenseMoods' = fmap go . groupBy sameMood . sort
+condenseMoods :: [Mood] -> [Mood]
+condenseMoods = fmap go . groupBy sameMood . sort
   where
     x <!> y = fromJust (combineMoods x y)
     go xs
@@ -108,7 +93,7 @@ type Name = String
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int } deriving (Eq, Ord, Show)
 
-newtype Drinks = Drinks (Vector Alcohol) deriving (Show, Eq)
+newtype Drinks = Drinks [Alcohol] deriving (Show, Eq)
 
 data Sleep = SP { wakeUpTime :: DiffTime
                 , sleepTime  :: DiffTime } deriving (Eq, Ord)
@@ -119,31 +104,37 @@ instance Show Sleep where
 
 
 newtype Meditation = Med { unMed :: String } deriving (Eq, Ord)
-newtype Meditations = Meds (Vector Meditation, DiffTime) deriving (Eq, Show)
+
+-- NOTE Remove DiffTime, and compute it during summarization
+newtype Meditations = Meds ([Meditation], DiffTime) deriving (Eq, Show)
 
 
 instance Semigroup Meditations where
   (Meds (a,s1)) <> (Meds (b,s2)) = Meds (a <> b, s1 + s2)
 
+
 instance Monoid Meditations where
-  mempty = Meds (V.empty, 0)
+  mempty = Meds ([], 0)
   mappend = (<>)
 
 
-mkMeditaitons :: Vector Meditation -> Either String Meditations
+mkMeditaitons :: [Meditation] -> Either String Meditations
 mkMeditaitons meds =
-  Meds . (meds,) . V.sum
+  Meds . (meds,) . sum
     <$>
     mapM (return . secondsToDiffTime . (60*) <=< readEither @Integer . unMed) meds
 
 
 newtype Productivity = Pro { unPro :: Rational } deriving (Eq, Ord)
 
+
 instance Show Productivity where
   show (Pro a) = mconcat [show (numerator a) ,"/",show (denominator a)]
 
+
 instance Semigroup Productivity where
   (Pro a) <> (Pro b) = Pro $ a + b
+
 
 instance Monoid Productivity where
   mappend = (<>)
@@ -161,15 +152,62 @@ data Cigarette = Cigarette { cigaretteName :: String
                            deriving (Eq, Ord, Show)
 
 
-data Entry = Entry { entryDay          :: Day
-                   , entryMoods        :: Moods
-                   , entrySleep        :: Sleep
-                   , entryProductivity :: Productivity
-                   , entryMeditations  :: Meditations
-                   , entryDrinks       :: Drinks
-                   , entryCigarette    :: Cigarette
-                   , entryRating       :: Rating }
-            deriving (Eq, Show)
+data Stage = Parser | Summaraizer deriving (Show, Eq)  
+
+type family SummaryType a | a -> a where
+  SummaryType Moods        = (Moods,Moods)
+  SummaryType Sleep        = ([Sleep],Sleep)
+  SummaryType Drinks       = (Drinks,Drinks)
+  SummaryType Rating       = ([Rating],Rating)
+  SummaryType Productivity = ([Productivity],Productivity)
+  SummaryType Cigarette    = ([Cigarette],[Cigarette])
+  SummaryType Meditations  = ([Meditations],Meditation)
 
 
-type Entries = S.Seq Entry
+type family XXDay a where
+  XXDay Parser      = Day
+  XXDay Summaraizer = SummaryType Day
+
+type family XXMoods a where
+  XXMoods Parser      = Moods
+  XXMoods Summaraizer = SummaryType Moods
+
+
+type family XXProductivity a where
+  XXProductivity Parser      = Productivity
+  XXProductivity Summaraizer = SummaryType Productivity
+
+
+type family XXMeditations a where
+  XXMeditations Parser      = Meditations
+  XXMeditations Summaraizer = SummaryType Meditations
+
+
+type family XXSleep a where
+  XXSleep Parser      = Sleep
+  XXSleep Summaraizer = SummaryType Sleep
+
+
+type family XXDrinks a where
+  XXDrinks Parser      = Drinks
+  XXDrinks Summaraizer = SummaryType Drinks
+
+
+type family XXCigarette a where
+  XXCigarette Parser      = Drinks
+  XXCigarette Summaraizer = SummaryType Drinks
+
+
+type family XXRating a where
+  XXRating Parser = Rating
+  XXRating Summaraizer = SummaryType Rating
+  
+
+data Entry a = Entry { entryDay          :: XXDay a
+                     , entryMoods        :: XXMoods a 
+                     , entrySleep        :: XXSleep a 
+                     , entryProductivity :: XXProductivity a 
+                     , entryMeditations  :: XXMeditations a 
+                     , entryDrinks       :: XXDrinks a 
+                     , entryCigarette    :: XXCigarette a
+                     , entryRating       :: XXRating a }

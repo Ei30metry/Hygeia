@@ -3,6 +3,7 @@
 module Computation.Monad where
 
 import           Computation.Types
+import           Computation.Utils
 
 import qualified Config                     as C
 
@@ -18,13 +19,11 @@ import           Data.Coerce
 import           Data.Foldable
 import           Data.Kind
 import           Data.Time                  ( Day )
-import           Data.Vector                ( Vector, fromList, toList )
-import qualified Data.Vector                as V
 
 import           System.Info
 
-data CompError
 
+data CompError
 
 type Days = Int
 
@@ -57,62 +56,44 @@ combineEntries = undefined
 
 initialEntry = undefined
 
--- makeSenseOfEntries :: Vector Entry -> Entry
--- makeSenseOfEntries = foldr combineEntries initialEntry
 
 withComp = withReaderT
 
 mapComp = mapReaderT
 
 
--- not good enough, make it more strict. it shouldn't work for any type that is the result of a type constructor to a type. Not possible!
--- The only way to ensure the above invariant is to write an inductive instance declaration. Which only works for the things we have written.
-type family UnListLike a where
-  UnListLike (Vector a) = a
-  UnListLike ([a])      = a
-  UnListLike a          = a
-
--- Remember that we don't have a way to combine incompatible moods. Ex: Happy High, Sad Low
--- therefore, we need to keep them both, hence Vector Mood, (Moods)
--- same thing for ()
--- For things like Moods, Meditaiotns, Cigarettes and Drinks, use a special type 'BlahSummary', record more information
--- in order to pretty-print them down the road
-type family SummaryContainer a | a -> a where
-  SummaryContainer a = a
 
 
 class Summarizable a where
-  summary :: a -> SummaryContainer (UnListLike a)
+  summary :: a -> SummaryType (UnList a)
 
-instance {-# OVERLAPPABLE #-} ((SummaryContainer (UnListLike  a)) ~ a) => Summarizable a where
+instance {-# OVERLAPPABLE #-} ((SummaryType (UnList a)) ~ a) => Summarizable a where
   summary = id
 
-instance Summarizable (Vector a) => Summarizable [a] where
-  summary = summary . fromList
-
-instance Summarizable (Vector Rating) where
+instance Summarizable [Rating] where
   summary xss = toEnum . (`div` length xss) . sum $ fmap fromEnum xss
 
-instance Summarizable (Vector Productivity) where
-  summary = fold
+instance Summarizable [Productivity] where
+  summary = label fold
 
-instance Summarizable (Vector Moods) where
+instance Summarizable [Moods] where
   summary = undefined
 
-instance Summarizable (Vector Sleep) where
-  summary = averageSleepTime
+instance Summarizable [Sleep] where
+  summary = label averageSleepTime
     where
-      averageSleepTime :: Vector Sleep -> Sleep
+      averageSleepTime :: [Sleep] -> Sleep
       averageSleepTime = undefined
 
-instance Summarizable (Vector Drinks) where
+instance Summarizable [Drinks] where
   summary = undefined
 
-instance Summarizable (Vector Cigarette) where
+instance Summarizable [Cigarette] where
   summary = undefined
 
-instance Summarizable (Vector Meditations) where
-  summary = fold
+instance Summarizable [Meditations] where
+  summary = label fold
 
-instance Summarizable Entry where
+-- TODO Use the trees that grow approach in Entry
+instance Summarizable (Entry Summaraizer) where
   summary (Entry d m s p me dr c r) = Entry d (summary m) (summary s) (summary p) (summary me) (summary dr) (summary c) (summary r)

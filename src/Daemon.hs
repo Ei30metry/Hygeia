@@ -22,6 +22,7 @@ data ServiceManager = Launchd
                     | Systemd -- will add support for other service managers later
                     | SrvMan deriving (Show, Eq)
 
+
 macServiceManager = Launchd
 linuxServiceManager = Systemd
 windowsServiceManager = SrvMan

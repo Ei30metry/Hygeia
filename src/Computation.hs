@@ -8,4 +8,3 @@ import           Computation.Utils
 
 import           Config
 
-import           Data.Vector       ( Vector )
