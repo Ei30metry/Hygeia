@@ -12,7 +12,7 @@ data Header = HProductivity Productivity
             | HMeditation Meditations
             | HSleep Sleep
             | HRating Rating
-            | HCigarette Cigarette
+            | HCigarettes Cigarettes
             | HDrinks Drinks
             | HMoods Moods
             deriving (Show, Eq)
@@ -47,10 +47,10 @@ instance HasHeader Sleep where
                   $ find (\case HSleep _ -> True ; _ -> False) headers
                   >>= \(HSleep y) -> return y
 
-instance HasHeader Cigarette where
+instance HasHeader Cigarettes where
   findE headers = liftEither . maybeToEither "Couldn't find Cigarette header"
-                  $ find (\case HCigarette _ -> True ; _ -> False) headers
-                  >>= \(HCigarette y) -> return y
+                  $ find (\case HCigarettes _ -> True ; _ -> False) headers
+                  >>= \(HCigarettes y) -> return y
 
 instance HasHeader Drinks where
   findE headers = liftEither . maybeToEither "Couldn't find Drink header"

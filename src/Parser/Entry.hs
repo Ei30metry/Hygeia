@@ -1,12 +1,12 @@
 module Parser.Entry( parseEntry, parseDay, parseProductivity, parseMeditations) where
 
 import           Computation           ( Alcohol (Alcohol),
-                                         Cigarette (Cigarette), Drinks (..),
+                                         Cigarette (Cigarette),Cigarettes(..), Drinks (..),
                                          Entry (..), Intensity (..),
                                          Meditation (..), Meditations (..),
                                          Mood (..), Moods (..), Name,
                                          Productivity (..), Rating (..),
-                                         Sleep (..), mkMeditaitons)
+                                         Sleep (..), mkMeditaiton)
 import qualified Computation.Types as CT
 
 import           Control.Applicative   ( liftA2, liftA3 )
@@ -155,7 +155,7 @@ cigarette :: Parser String
 cigarette = header "Cigarette"
 
 -- parses the cigarette header and the data in it
-parseCigarette :: Parser Header
+parseCigarette :: Parser Cigarette
 parseCigarette = do
   cigarette
   many newline
@@ -170,8 +170,16 @@ parseCigarette = do
   many newline
   (string "Tar :" <* spaces) <|> (string "tar :" <* spaces)
   tar <- readExcept =<< many1 stringFloat
+  return (Cigarette cigName number nicotine tar)
+
+
+parseCigarettes :: Parser Header
+parseCigarettes = do
+  cigarette
   many newline
-  return . HCigarette $ Cigarette cigName number nicotine tar
+  cigarettes <- many1 parseCigarette
+  many newline
+  return . HCigarettes . Cigarettes $ cigarettes
 
 -- | Parses the meditation header
 meditation :: Parser String
@@ -182,10 +190,9 @@ parseMeditations :: Parser Header
 parseMeditations = do
   meditation
   many newline
-  meds <- map (coerce @_ @Meditation) <$> many (many1 digit <* many newline)
-  meditations <- liftEither $ mkMeditaitons meds
+  meds <- liftEither . traverse mkMeditaiton =<< many (many1 digit <* many newline)
   many newline
-  return (HMeditation meditations)
+  return . HMeditation . Meds $ meds
 
 -- | Parses the productivity header
 productivity :: Parser String
@@ -235,9 +242,9 @@ parseEntry = do
               <*> findE @Productivity headers
               <*> findE @Meditations headers
               <*> findE @Drinks headers
-              <*> findE @Cigarette headers
+              <*> findE @Cigarettes headers
               <*> findE @Rating headers
  where
    parsers = map try [ parseMoods, parseSleep
-                     , parseDrinks, parseMeditations, parseCigarette
+                     , parseDrinks, parseMeditations, parseCigarettes
                      , parseProductivity, parseRating]

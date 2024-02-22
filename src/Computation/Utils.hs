@@ -10,9 +10,9 @@ import           Control.Lens
 import           Data.ByteString.Char8 ( ByteString )
 import qualified Data.ByteString.Char8 as B
 import           Data.Maybe
-import           Data.Time             ( Day, DiffTime )
+import           Data.Time             ( Day, DiffTime, diffTimeToPicoseconds )
 
 
 label f x = (x, f x)
 
--- TODO Rename this to something else.
+diffTimeToSeconds = (* 10^12) . diffTimeToPicoseconds

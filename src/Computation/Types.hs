@@ -78,8 +78,8 @@ combineMoods (Excited x) (Excited y) = Just $ Excited (x <> y)
 combineMoods _ _                     = Nothing
 
 
-condenseMoods :: [Mood] -> [Mood]
-condenseMoods = fmap go . groupBy sameMood . sort
+condenseMoods :: Moods -> Moods
+condenseMoods = coerce . fmap go . groupBy sameMood . sort . coerce
   where
     x <!> y = fromJust (combineMoods x y)
     go xs
@@ -93,7 +93,22 @@ type Name = String
 data Alcohol = Alcohol { drink :: String
                        , shots :: Int } deriving (Eq, Ord, Show)
 
+
 newtype Drinks = Drinks [Alcohol] deriving (Show, Eq)
+
+
+sameDrink :: Alcohol -> Alcohol -> Bool
+sameDrink (Alcohol d _) (Alcohol d' _) = d == d'
+
+
+unsafeAddShots :: Alcohol -> Alcohol -> Alcohol
+unsafeAddShots (Alcohol d s) (Alcohol _ s') = Alcohol d (s + s')
+
+
+addShots :: Alcohol -> Alcohol -> Maybe Alcohol
+addShots a1 a2
+  | sameDrink a1 a2 = Just $ unsafeAddShots a1 a2
+  | otherwise = Nothing
 
 
 data Sleep = SP { wakeUpTime :: DiffTime
@@ -105,26 +120,25 @@ instance Show Sleep where
                           ,"Sleep: ",formatTime defaultTimeLocale "%H:%M" s]
 
 
-newtype Meditation = Med { unMed :: String } deriving (Eq, Ord)
-
--- NOTE Remove DiffTime, and compute it during summarization
-newtype Meditations = Meds ([Meditation], DiffTime) deriving (Eq, Show)
+newtype Meditation = Med { unMed :: (String, DiffTime) } deriving (Eq, Ord)
 
 
-instance Semigroup Meditations where
-  (Meds (a,s1)) <> (Meds (b,s2)) = Meds (a <> b, s1 + s2)
+mkMeditaiton :: String -> Either String Meditation
+mkMeditaiton minutes = Med . (minutes,)
+                    <$> (return . secondsToDiffTime . (60*)
+                          =<< readEither @Integer minutes)
 
 
-instance Monoid Meditations where
-  mempty = Meds ([], 0)
+newtype Meditations = Meds [Meditation] deriving (Eq, Show, Semigroup, Monoid)
+
+
+instance Semigroup Meditation where
+  Med (a,b) <> Med (c,d) = Med (a <> "," <> c, b + d)
+
+
+instance Monoid Meditation where
+  mempty = Med ("", secondsToDiffTime 0)
   mappend = (<>)
-
-
-mkMeditaitons :: [Meditation] -> Either String Meditations
-mkMeditaitons meds =
-  Meds . (meds,) . sum
-    <$>
-    mapM (return . secondsToDiffTime . (60*) <=< readEither @Integer . unMed) meds
 
 
 newtype Productivity = Pro { unPro :: Rational } deriving (Eq, Ord)
@@ -140,7 +154,7 @@ instance Semigroup Productivity where
 
 instance Monoid Productivity where
   mappend = (<>)
-  mempty = Pro 0
+  mempty  = Pro 0
 
 
 instance Show Meditation where
@@ -148,14 +162,30 @@ instance Show Meditation where
 
 
 data Cigarette = Cigarette { cigaretteName :: String
-                           , number        :: Double
+                           , numberSmoked  :: Double
                            , nicotine      :: Double
                            , tar           :: Double }
                            deriving (Eq, Ord, Show)
 
+newtype Cigarettes = Cigarettes [Cigarette] deriving (Show, Eq, Ord)
 
-data Stage = Parser | Summaraizer deriving (Show, Eq)  
+sameCigarette :: Cigarette -> Cigarette -> Bool
+sameCigarette (Cigarette c _ _ _) (Cigarette c' _ _ _) = c == c'
 
+
+unsafeAddSmokes :: Cigarette -> Cigarette -> Cigarette
+unsafeAddSmokes (Cigarette c ns n t) (Cigarette _ ns' _ _) = Cigarette c (ns + ns') n t
+
+
+addSmokes :: Cigarette -> Cigarette -> Maybe Cigarette
+addSmokes c1 c2
+  | sameCigarette c1 c2 = Just $ unsafeAddSmokes c1 c2
+  | otherwise = Nothing
+
+
+data Stage = Parser | Summaraizer deriving (Show, Eq)
+
+-- TODO Change the name to something else
 type family UnList a where
   UnList [Day]          = [Day]
   UnList (Entry Parser) = Entry Parser
@@ -170,7 +200,7 @@ type family SummaryType a | a -> a where
   SummaryType Drinks         = ([Drinks],Drinks)
   SummaryType Rating         = ([Rating],Rating)
   SummaryType Productivity   = ([Productivity],Productivity)
-  SummaryType Cigarette      = ([Cigarette],[Cigarette])
+  SummaryType Cigarettes     = ([Cigarettes],Cigarettes)
   SummaryType Meditations    = ([Meditations],Meditations)
   SummaryType (Entry Parser) = Entry Summaraizer
 
@@ -205,21 +235,21 @@ type family XXDrinks a where
   XXDrinks Summaraizer = SummaryType Drinks
 
 
-type family XXCigarette a where
-  XXCigarette Parser      = Cigarette
-  XXCigarette Summaraizer = SummaryType Cigarette
+type family XXCigarettes a where
+  XXCigarettes Parser      = Cigarettes
+  XXCigarettes Summaraizer = SummaryType Cigarettes
 
 
 type family XXRating a where
   XXRating Parser      = Rating
   XXRating Summaraizer = SummaryType Rating
-  
+
 
 data Entry a = Entry { entryDay          :: XXDay a
-                     , entryMoods        :: XXMoods a 
-                     , entrySleep        :: XXSleep a 
-                     , entryProductivity :: XXProductivity a 
-                     , entryMeditations  :: XXMeditations a 
-                     , entryDrinks       :: XXDrinks a 
-                     , entryCigarette    :: XXCigarette a
+                     , entryMoods        :: XXMoods a
+                     , entrySleep        :: XXSleep a
+                     , entryProductivity :: XXProductivity a
+                     , entryMeditations  :: XXMeditations a
+                     , entryDrinks       :: XXDrinks a
+                     , entryCigarettes   :: XXCigarettes a
                      , entryRating       :: XXRating a }
