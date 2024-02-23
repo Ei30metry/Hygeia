@@ -1,13 +1,13 @@
 module Parser.Entry( parseEntry, parseDay, parseProductivity, parseMeditations) where
 
 import           Computation           ( Alcohol (Alcohol),
-                                         Cigarette (Cigarette),Cigarettes(..), Drinks (..),
-                                         Entry (..), Intensity (..),
-                                         Meditation (..), Meditations (..),
-                                         Mood (..), Moods (..), Name,
-                                         Productivity (..), Rating (..),
-                                         Sleep (..), mkMeditaiton)
-import qualified Computation.Types as CT
+                                         Cigarette (Cigarette), Cigarettes (..),
+                                         Drinks (..), Entry (..),
+                                         Intensity (..), Meditation (..),
+                                         Meditations (..), Mood (..),
+                                         Moods (..), Name, Productivity (..),
+                                         Rating (..), Sleep (..), Stage (..),
+                                         mkMeditaiton )
 
 import           Control.Applicative   ( liftA2, liftA3 )
 import           Control.Lens          ( bimap )
@@ -233,7 +233,7 @@ parseRating :: Parser Header
 parseRating = (rating >> many newline >> parseRating') <&> HRating
 
 -- | parses the Entry written by the user (order of the entry doesn't matter)
-parseEntry :: Parser (Entry CT.Parser)
+parseEntry :: Parser (Entry Parsed)
 parseEntry = do
     day <- parseDay
     headers <- many1 (choice parsers)

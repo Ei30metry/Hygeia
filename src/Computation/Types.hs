@@ -59,6 +59,16 @@ sameMood (Happy _) (Happy _)     = True
 sameMood (Excited _) (Excited _) = True
 sameMood _ _                     = False
 
+
+unsafeAddMood :: Mood -> Mood -> Mood
+unsafeAddMood = undefined
+
+
+addMood :: Mood -> Mood -> Maybe Mood
+addMood x y
+  | sameMood x y = Just $ unsafeAddMood x y
+  | otherwise = Nothing
+
 -- Rating data type for rating the day
 data Rating = Awful
             | Bad
@@ -68,7 +78,7 @@ data Rating = Awful
             deriving (Show, Eq, Ord, Enum, Read, Bounded)
 
 
--- safe function to add MoodReports
+-- safe function to combine two moods
 combineMoods :: Mood -> Mood -> Maybe Mood
 combineMoods (Angry x) (Angry y)     = Just $ Angry (x <> y)
 combineMoods (Sad x) (Sad y)         = Just $ Sad (x <> y)
@@ -167,7 +177,9 @@ data Cigarette = Cigarette { cigaretteName :: String
                            , tar           :: Double }
                            deriving (Eq, Ord, Show)
 
+
 newtype Cigarettes = Cigarettes [Cigarette] deriving (Show, Eq, Ord)
+
 
 sameCigarette :: Cigarette -> Cigarette -> Bool
 sameCigarette (Cigarette c _ _ _) (Cigarette c' _ _ _) = c == c'
@@ -183,73 +195,81 @@ addSmokes c1 c2
   | otherwise = Nothing
 
 
-data Stage = Parser | Summaraizer deriving (Show, Eq)
+data Stage = Parsed | Summaraized deriving (Show, Eq)
 
 -- TODO Change the name to something else
 type family UnList a where
   UnList [Day]          = [Day]
-  UnList (Entry Parser) = Entry Parser
+  UnList (Entry Parsed) = Entry Parsed
   UnList [a]            = a
   UnList a              = a
 
 
-type family SummaryType a | a -> a where
-  SummaryType [Day]          = [Day]
-  SummaryType Moods          = ([Moods],Moods)
-  SummaryType Sleep          = ([Sleep],Sleep)
-  SummaryType Drinks         = ([Drinks],Drinks)
-  SummaryType Rating         = ([Rating],Rating)
-  SummaryType Productivity   = ([Productivity],Productivity)
-  SummaryType Cigarettes     = ([Cigarettes],Cigarettes)
-  SummaryType Meditations    = ([Meditations],Meditations)
-  SummaryType (Entry Parser) = Entry Summaraizer
+type family SummaryType a where
+  SummaryType Moods               = Moods
+  SummaryType Day                 = Day
+  SummaryType Rating              = Rating
+  SummaryType Sleep               = Sleep
+  SummaryType Drinks              = Drinks
+  SummaryType Productivity        = Productivity
+  SummaryType Cigarettes          = Cigarettes
+  SummaryType Meditations         = Meditations
+  SummaryType [Day]               = [Day]
+  SummaryType [Moods]             = ([Moods],Moods)
+  SummaryType [Sleep]             = ([Sleep],Sleep)
+  SummaryType [Drinks]            = ([Drinks],Drinks)
+  SummaryType [Rating]            = ([Rating],Rating)
+  SummaryType [Productivity]      = ([Productivity],Productivity)
+  SummaryType [Cigarettes]        = ([Cigarettes],Cigarettes)
+  SummaryType [Meditations]       = ([Meditations],Meditations)
+  SummaryType (Entry Parsed)      = Entry Parsed
 
 
 type family XXDay a where
-  XXDay Parser      = Day
-  XXDay Summaraizer = SummaryType Day
+  XXDay Parsed      = Day
+  XXDay Summaraized = SummaryType Day
 
 
 type family XXMoods a where
-  XXMoods Parser      = Moods
-  XXMoods Summaraizer = SummaryType Moods
+  XXMoods Parsed      = Moods
+  XXMoods Summaraized = SummaryType Moods
 
 
 type family XXProductivity a where
-  XXProductivity Parser      = Productivity
-  XXProductivity Summaraizer = SummaryType Productivity
+  XXProductivity Parsed      = Productivity
+  XXProductivity Summaraized = SummaryType Productivity
 
 
 type family XXMeditations a where
-  XXMeditations Parser      = Meditations
-  XXMeditations Summaraizer = SummaryType Meditations
+  XXMeditations Parsed      = Meditations
+  XXMeditations Summaraized = SummaryType Meditations
 
 
 type family XXSleep a where
-  XXSleep Parser      = Sleep
-  XXSleep Summaraizer = SummaryType Sleep
+  XXSleep Parsed      = Sleep
+  XXSleep Summaraized = SummaryType Sleep
 
 
 type family XXDrinks a where
-  XXDrinks Parser      = Drinks
-  XXDrinks Summaraizer = SummaryType Drinks
+  XXDrinks Parsed      = Drinks
+  XXDrinks Summaraized = SummaryType Drinks
 
 
 type family XXCigarettes a where
-  XXCigarettes Parser      = Cigarettes
-  XXCigarettes Summaraizer = SummaryType Cigarettes
+  XXCigarettes Parsed      = Cigarettes
+  XXCigarettes Summaraized = SummaryType Cigarettes
 
 
 type family XXRating a where
-  XXRating Parser      = Rating
-  XXRating Summaraizer = SummaryType Rating
+  XXRating Parsed      = Rating
+  XXRating Summaraized = SummaryType Rating
 
 
-data Entry a = Entry { entryDay          :: XXDay a
-                     , entryMoods        :: XXMoods a
-                     , entrySleep        :: XXSleep a
-                     , entryProductivity :: XXProductivity a
-                     , entryMeditations  :: XXMeditations a
-                     , entryDrinks       :: XXDrinks a
-                     , entryCigarettes   :: XXCigarettes a
-                     , entryRating       :: XXRating a }
+data Entry a = Entry { entryDay          :: !(XXDay a)
+                     , entryMoods        :: !(XXMoods a)
+                     , entrySleep        :: !(XXSleep a)
+                     , entryProductivity :: !(XXProductivity a)
+                     , entryMeditations  :: !(XXMeditations a)
+                     , entryDrinks       :: !(XXDrinks a)
+                     , entryCigarettes   :: !(XXCigarettes a)
+                     , entryRating       :: !(XXRating a) }

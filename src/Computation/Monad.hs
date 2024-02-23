@@ -19,7 +19,7 @@ import           Data.ByteString.Lazy.Char8 ( ByteString )
 import           Data.Coerce
 import           Data.Foldable
 import           Data.Kind
-import           Data.List                  ( groupBy )
+import           Data.List                  ( groupBy, sort )
 import           Data.Time                  ( Day, DiffTime, secondsToDiffTime )
 
 import           System.Info
@@ -52,11 +52,11 @@ runComp :: Comp a -> C.Config -> Either CompError a
 runComp comp = runExcept . runReaderT comp
 
 
-saveEntry :: Entry Summaraizer -> IO ()
+saveEntry :: Entry Summaraized -> IO ()
 saveEntry = undefined
 
 
-combineEntries :: Entry Summaraizer -> Entry Summaraizer -> Maybe (Entry Summaraizer)
+combineEntries :: Entry Summaraized -> Entry Summaraized ->  Maybe (Entry Summaraized)
 combineEntries = undefined
 
 
@@ -67,10 +67,41 @@ mapComp = mapReaderT
 
 
 class Summarizable a where
-  summary :: a -> SummaryType (UnList a)
+  summary :: a -> SummaryType a
 
-instance {-# OVERLAPPABLE #-} ((SummaryType (UnList a)) ~ a) => Summarizable a where
+
+instance Summarizable Day where
   summary = id
+
+
+instance Summarizable Moods where
+  summary = condenseMoods
+
+
+instance Summarizable Rating where
+  summary = id
+
+
+instance Summarizable Productivity where
+  summary = id
+
+
+instance Summarizable Sleep where
+  summary = id
+
+
+instance Summarizable Cigarettes where
+  summary = coerce  . flattenCigarettes . coerce
+    where
+      flattenCigarettes
+        = map (foldr unsafeAddSmokes (Cigarette "" 0 0 0)) . groupBy sameCigarette . sort
+    
+
+instance Summarizable Drinks where
+  summary = coerce . flattenDrinks . coerce
+    where
+      flattenDrinks
+        = map (foldr unsafeAddShots (Alcohol "" 0)) . groupBy sameDrink . sort
 
 
 instance Summarizable [Day] where
@@ -108,13 +139,17 @@ instance Summarizable [Cigarettes] where
       flattenCigarettes = map (foldr unsafeAddSmokes (Cigarette "" 0 0 0)) . groupBy sameCigarette
 
 
+instance Summarizable Meditations where
+  summary = id
+
+
 instance Summarizable [Meditations] where
   summary = label fold
 
--- TODO Use the trees that grow approach in Entry
-instance Summarizable (Entry Parser) where
-  summary (Entry d m s p me dr c r) = Entry undefined undefined undefined undefined undefined undefined undefined undefined -- Entry (summary d) (summary m) (summary s) (summary p) (summary me) (summary dr) (summary c) (summary r)
+
+instance Summarizable (Entry Parsed) where
+  summary (Entry d m s p me dr c r) = Entry (summary d) (summary m) (summary s) (summary p) (summary me) (summary dr) (summary c) (summary r)
 
 
-instance Summarizable [Entry Summaraizer] where
+instance Summarizable [Entry Summaraized] where
   summary = undefined
