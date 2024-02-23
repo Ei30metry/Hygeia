@@ -1,11 +1,11 @@
 module Parser.Entry( parseEntry, parseDay, parseProductivity, parseMeditations) where
 
 import           Computation           ( Drink (Drink),
-                                         Cigarette (Cigarette), Cigarettes (..),
-                                         Drinks (..), Entry (..),
+                                         Cigarette (Cigarette), 
+                                         Entry (..),
                                          Intensity (..), Meditation (..),
-                                         Meditations (..), Mood (..),
-                                         Moods (..), Name, Productivity (..),
+                                         Meditation (..), Mood (..),
+                                         Mood (..), Name, Productivity (..),
                                          Rating (..), Sleep (..), Stage (..),
                                          mkMeditaiton )
 
@@ -179,7 +179,7 @@ parseCigarettes = do
   many newline
   cigarettes <- many1 parseCigarette
   many newline
-  return . HCigarettes . Cigarettes $ cigarettes
+  return . HCigarettes $ cigarettes
 
 -- | Parses the meditation header
 meditation :: Parser String
@@ -192,14 +192,11 @@ parseMeditations = do
   many newline
   meds <- liftEither . traverse mkMeditaiton =<< many (many1 digit <* many newline)
   many newline
-  return . HMeditation . Meds $ meds
+  return . HMeditation $ meds
 
 -- | Parses the productivity header
 productivity :: Parser String
 productivity = header "Productivity"
-
-productivity2 :: Parser String
-productivity2 = header "Productivity"
 
 -- parses the productivity header and the information in it
 parseProductivity :: Parser Header
@@ -237,12 +234,12 @@ parseEntry :: Parser (Entry Parsed)
 parseEntry = do
     day <- parseDay
     headers <- many1 (choice parsers)
-    Entry day <$> findE @Moods headers
+    Entry day <$> findE @[Mood] headers
               <*> findE @Sleep headers
               <*> findE @Productivity headers
-              <*> findE @Meditations headers
-              <*> findE @Drinks headers
-              <*> findE @Cigarettes headers
+              <*> findE @[Meditation] headers
+              <*> findE @[Drink] headers
+              <*> findE @[Cigarette] headers
               <*> findE @Rating headers
  where
    parsers = map try [ parseMoods, parseSleep

@@ -71,10 +71,10 @@ class Summarizable a where
 
 
 instance Summarizable Day where
-  summary = id
+  summary = (: [])
 
 
-instance Summarizable Moods where
+instance Summarizable [Mood] where
   summary = condenseMoods
 
 
@@ -90,12 +90,12 @@ instance Summarizable Sleep where
   summary = id
 
 
-instance Summarizable Cigarettes where
-  summary = coerce  . condenseCigarettes . coerce
+instance Summarizable [Cigarette] where
+  summary = condenseCigarettes
 
 
-instance Summarizable Drinks where
-  summary = coerce . condenseDrinks . coerce
+instance Summarizable [Drink] where
+  summary = condenseDrinks
 
 
 instance Summarizable [Day] where
@@ -110,8 +110,8 @@ instance Summarizable [Productivity] where
   summary = label fold
 
 
-instance Summarizable [Moods] where
-  summary = label (condenseMoods . Moods . concatMap unMoods)
+instance Summarizable [[Mood]] where
+  summary = label (concatMap condenseMoods)
 
 
 instance Summarizable [Sleep] where
@@ -121,19 +121,19 @@ instance Summarizable [Sleep] where
         = secondsToDiffTime .  (`div` (toInteger $ length times)) . sum $ map diffTimeToSeconds times
 
 
-instance Summarizable [Drinks] where
-  summary = label (coerce @[Drink] . concatMap (coerce . condenseDrinks . coerce))
+instance Summarizable [[Drink]] where
+  summary = label (concatMap condenseDrinks)
 
 
-instance Summarizable [Cigarettes] where
-  summary = label (coerce @[Cigarette] . concatMap (coerce . condenseCigarettes . coerce))
+instance Summarizable [[Cigarette]] where
+  summary = label (concatMap condenseCigarettes)
 
 
-instance Summarizable Meditations where
+instance Summarizable [Meditation] where
   summary = id
 
 
-instance Summarizable [Meditations] where
+instance Summarizable [[Meditation]] where
   summary = label fold
 
 
@@ -145,4 +145,4 @@ instance Summarizable (Entry Parsed) where
 
 
 instance Summarizable [Entry Summaraized] where
-  summary = undefined
+  summary = fold

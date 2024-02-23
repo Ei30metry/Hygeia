@@ -1,9 +1,5 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
---
--- see: https://github.com/sol/hpack
-
 name:           Hygeia
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/Hygeia#readme>
@@ -91,8 +87,8 @@ executable Hygeia-exe
     , bytestring
     , lens
     , mtl
-    , opaleye
-    , optparse-applicative 
+    , optparse-applicative
+    , sqlite-simple
     , parsec
     , process
     , time
@@ -114,6 +110,7 @@ test-suite Hygeia-test
     , base >=4.7 && <5
     , bytestring
     , mtl
+    , sqlite-simple
     , optparse-applicative 
     , parsec
     , process
