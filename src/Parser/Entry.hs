@@ -1,6 +1,6 @@
 module Parser.Entry( parseEntry, parseDay, parseProductivity, parseMeditations) where
 
-import           Computation           ( Alcohol (Alcohol),
+import           Computation           ( Drink (Drink),
                                          Cigarette (Cigarette), Cigarettes (..),
                                          Drinks (..), Entry (..),
                                          Intensity (..), Meditation (..),
@@ -134,19 +134,19 @@ parseSleep = do
 drink :: Parser String
 drink = header "Drink"
 
--- parses the alcohol header and the data in it
-parseAlcohol :: Parser Alcohol
-parseAlcohol = do
+-- parses the drink header and the data in it
+parseDrink :: Parser Drink
+parseDrink = do
   drink <- (many1 alphaNum <* spaces) <* string ":"
   shots <- readExcept =<< (spaces *> many1 digit)
-  return $ Alcohol drink shots
+  return $ Drink drink shots
 
 -- | parses the drink header and its data
 parseDrinks :: Parser Header
 parseDrinks = do
   drink
   many newline
-  drinks <- many1 parseAlcohol
+  drinks <- many1 parseDrink
   many newline
   return . HDrinks . coerce $ drinks
 

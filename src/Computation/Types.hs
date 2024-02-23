@@ -97,27 +97,35 @@ condenseMoods = coerce . fmap go . groupBy sameMood . sort . coerce
       | otherwise = foldr (<!>) (head xs) xs
 
 
+condenseDrinks :: Drinks -> Drinks
+condenseDrinks = coerce . map (foldr unsafeCombineDrink (Drink "" 0)) . groupBy sameDrink . coerce
+
+
+condenseCigarettes :: Cigarettes -> Cigarettes
+condenseCigarettes = coerce . map (foldr unsafeCombineCigarette (Cigarette "" 0 0 0)) . groupBy sameCigarette . coerce
+
+
 type Name = String
 
 
-data Alcohol = Alcohol { drink :: String
-                       , shots :: Int } deriving (Eq, Ord, Show)
+data Drink = Drink { drinkName :: String
+                   , shots :: Int } deriving (Eq, Ord, Show)
 
 
-newtype Drinks = Drinks [Alcohol] deriving (Show, Eq)
+newtype Drinks = Drinks [Drink] deriving (Show, Eq)
 
 
-sameDrink :: Alcohol -> Alcohol -> Bool
-sameDrink (Alcohol d _) (Alcohol d' _) = d == d'
+sameDrink :: Drink -> Drink -> Bool
+sameDrink (Drink d _) (Drink d' _) = d == d'
 
 
-unsafeAddShots :: Alcohol -> Alcohol -> Alcohol
-unsafeAddShots (Alcohol d s) (Alcohol _ s') = Alcohol d (s + s')
+unsafeCombineDrink :: Drink -> Drink -> Drink
+unsafeCombineDrink (Drink d s) (Drink _ s') = Drink d (s + s')
 
 
-addShots :: Alcohol -> Alcohol -> Maybe Alcohol
-addShots a1 a2
-  | sameDrink a1 a2 = Just $ unsafeAddShots a1 a2
+combineDrink :: Drink -> Drink -> Maybe Drink
+combineDrink a1 a2
+  | sameDrink a1 a2 = Just $ unsafeCombineDrink a1 a2
   | otherwise = Nothing
 
 
@@ -185,13 +193,13 @@ sameCigarette :: Cigarette -> Cigarette -> Bool
 sameCigarette (Cigarette c _ _ _) (Cigarette c' _ _ _) = c == c'
 
 
-unsafeAddSmokes :: Cigarette -> Cigarette -> Cigarette
-unsafeAddSmokes (Cigarette c ns n t) (Cigarette _ ns' _ _) = Cigarette c (ns + ns') n t
+unsafeCombineCigarette :: Cigarette -> Cigarette -> Cigarette
+unsafeCombineCigarette (Cigarette c ns n t) (Cigarette _ ns' _ _) = Cigarette c (ns + ns') n t
 
 
-addSmokes :: Cigarette -> Cigarette -> Maybe Cigarette
-addSmokes c1 c2
-  | sameCigarette c1 c2 = Just $ unsafeAddSmokes c1 c2
+combineCigarette :: Cigarette -> Cigarette -> Maybe Cigarette
+combineCigarette c1 c2
+  | sameCigarette c1 c2 = Just $ unsafeCombineCigarette c1 c2
   | otherwise = Nothing
 
 

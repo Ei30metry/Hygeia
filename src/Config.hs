@@ -92,7 +92,7 @@ data ConfigField = UserInfoField
 
 
 data OHeaderField = OMeditation
-                  | OAlcohol
+                  | ODrink
                   | OCigarette
                   deriving (Show, Eq)
 

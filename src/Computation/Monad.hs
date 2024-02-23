@@ -91,17 +91,11 @@ instance Summarizable Sleep where
 
 
 instance Summarizable Cigarettes where
-  summary = coerce  . flattenCigarettes . coerce
-    where
-      flattenCigarettes
-        = map (foldr unsafeAddSmokes (Cigarette "" 0 0 0)) . groupBy sameCigarette . sort
-    
+  summary = coerce  . condenseCigarettes . coerce
+
 
 instance Summarizable Drinks where
-  summary = coerce . flattenDrinks . coerce
-    where
-      flattenDrinks
-        = map (foldr unsafeAddShots (Alcohol "" 0)) . groupBy sameDrink . sort
+  summary = coerce . condenseDrinks . coerce
 
 
 instance Summarizable [Day] where
@@ -128,15 +122,11 @@ instance Summarizable [Sleep] where
 
 
 instance Summarizable [Drinks] where
-  summary = label (coerce . concatMap (flattenDrinks . coerce))
-    where
-      flattenDrinks = map (foldr unsafeAddShots (Alcohol "" 0)) . groupBy sameDrink
+  summary = label (coerce @[Drink] . concatMap (coerce . condenseDrinks . coerce))
 
 
 instance Summarizable [Cigarettes] where
-  summary = label (coerce . concatMap (flattenCigarettes . coerce))
-    where
-      flattenCigarettes = map (foldr unsafeAddSmokes (Cigarette "" 0 0 0)) . groupBy sameCigarette
+  summary = label (coerce @[Cigarette] . concatMap (coerce . condenseCigarettes . coerce))
 
 
 instance Summarizable Meditations where
@@ -148,7 +138,10 @@ instance Summarizable [Meditations] where
 
 
 instance Summarizable (Entry Parsed) where
-  summary (Entry d m s p me dr c r) = Entry (summary d) (summary m) (summary s) (summary p) (summary me) (summary dr) (summary c) (summary r)
+  summary (Entry d m s p me dr c r) =
+    Entry (summary d) (summary m) (summary s)
+          (summary p) (summary me) (summary dr)
+          (summary c) (summary r)
 
 
 instance Summarizable [Entry Summaraized] where

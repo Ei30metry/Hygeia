@@ -152,7 +152,7 @@ parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
       where
         optHeader xs = OptionalHeaderField <$> case xs of
             "meditation" -> Right OMeditation
-            "alcohol"    -> Right OAlcohol
+            "alcohol"    -> Right ODrink
             "cigarette"  -> Right OCigarette
             unknown      -> Left ("Uknown Optional Header, " ++ unknown)
 
