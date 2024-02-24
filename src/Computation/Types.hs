@@ -1,22 +1,25 @@
-{-# LANGUAGE TupleSections #-}
--- |
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections   #-}
+
+-- | Types used to compute summaries
+
 module Computation.Types where
 
 import           Computation.Utils
 
-import           Control.Monad     ( foldM, join, (<=<), (=<<) )
+import           Control.Monad      ( foldM, join, (<=<), (=<<) )
 
 import           Data.Bifunctor
-import           Data.Coerce
 import           Data.Foldable
-import           Data.Foldable     ( toList )
 import           Data.List
-import           Data.Maybe
 import           Data.Ratio
-import           Data.Time         ( Day, DiffTime, defaultTimeLocale,
-                                     formatTime, secondsToDiffTime )
+import           Data.Time          ( Day, DiffTime, defaultTimeLocale,
+                                      formatTime, secondsToDiffTime )
 
-import           Text.Read         ( readEither )
+import           Prettyprinter
+import           Prettyprinter.Util
+
+import           Text.Read          ( readEither )
 
 
 data Mood = Angry Intensity
@@ -25,6 +28,15 @@ data Mood = Angry Intensity
           | Happy Intensity
           | Excited Intensity
           deriving (Read, Eq, Ord, Show)
+
+
+instance Pretty Mood
+
+
+instance {-# OVERLAPS #-} Pretty [Mood]
+
+
+instance {-# OVERLAPS #-} Pretty [[Mood]]
 
 
 instance Neutral Mood where
@@ -56,6 +68,12 @@ instance Summarizable [Mood] where
 instance Summarizable [[Mood]] where
   summary = label (concatMap condense)
 
+
+instance Pretty Day
+
+
+instance {-# OVERLAPS #-} Pretty [Day]
+
 -- | Intensity of a mood
 data Intensity = None      -- Only here because of neutral
                | Low
@@ -65,10 +83,7 @@ data Intensity = None      -- Only here because of neutral
                deriving (Show, Read, Eq, Ord, Enum, Bounded)
 
 
-computeIntensity :: Intensity -> Intensity -> Intensity
-computeIntensity x y | fromEnum x == fromEnum y = x
-                     | fromEnum x > fromEnum y = x
-                     | otherwise = y
+instance Pretty Intensity
 
 
 instance Neutral Intensity where
@@ -76,7 +91,10 @@ instance Neutral Intensity where
 
 
 instance Semigroup Intensity where
-  x <> y = computeIntensity x y
+  x <> y
+    | fromEnum x == fromEnum y = x
+    | fromEnum x > fromEnum y = x
+    | otherwise = y
 
 
 instance Monoid Intensity where
@@ -92,8 +110,23 @@ data Rating = Awful
             deriving (Show, Eq, Ord, Enum, Read, Bounded)
 
 
+instance Pretty Rating
+
+
 instance Neutral Rating where
   neutral = Normal
+
+
+instance Semigroup Rating where
+  x <> y
+    | fromEnum x == fromEnum y = x
+    | fromEnum x > fromEnum y = x
+    | otherwise = y
+
+
+instance Monoid Rating where
+  mempty = neutral
+  mappend = (<>)
 
 
 instance Summarizable Rating where
@@ -101,7 +134,7 @@ instance Summarizable Rating where
 
 
 instance Summarizable [Rating] where
-  summary xss = (xss, toEnum . (`div` length xss) . sum $ fmap fromEnum xss)
+  summary = label mconcat
 
 
 type Name = String
@@ -110,6 +143,16 @@ type Name = String
 data Drink = Drink { drinkName :: String
                    , shots     :: Int }
            deriving (Eq, Ord, Show)
+
+
+-- TODO
+instance Pretty Drink
+
+
+instance {-# OVERLAPS #-} Pretty [Drink]
+
+
+instance {-# OVERLAPS #-} Pretty [[Drink]]
 
 
 instance Neutral Drink where
@@ -162,6 +205,9 @@ instance Show Sleep where
                           ,"Sleep: ",formatTime defaultTimeLocale "%H:%M" s]
 
 
+instance Pretty Sleep
+
+
 instance Summarizable Sleep where
   summary = id
 
@@ -198,14 +244,19 @@ instance Show Meditation where
   show (Med a) = show a
 
 
+-- TODO needs proper indentation
+instance Pretty Meditation
+
 mkMeditaiton :: String -> Either String Meditation
 mkMeditaiton minutes = Med . (minutes,)
                     <$> (return . secondsToDiffTime . (60*)
-                          =<< readEither @Integer minutes)
+                    =<< readEither @Integer minutes)
 
 
 newtype Productivity = Pro { unPro :: Rational } deriving (Eq, Ord)
 
+-- TODO This will use the show instance, which is okay, but needs to be prepended with "Productivity"
+instance Pretty Productivity
 
 instance Neutral Productivity where
   neutral = Pro 0
@@ -237,6 +288,14 @@ data Cigarette = Cigarette { cigaretteName :: String
                            , nicotine      :: Double
                            , tar           :: Double }
                            deriving (Eq, Ord, Show)
+
+instance Pretty Cigarette
+
+
+instance {-# OVERLAPS #-} Pretty [Cigarette]
+
+
+instance {-# OVERLAPS #-} Pretty [[Cigarette]]
 
 
 instance Neutral Cigarette where
@@ -307,8 +366,13 @@ instance Summarizable [Entry Summaraized] where
   summary = fold
 
 
-instance Show (Entry Summaraized) where
-  show = undefined
+instance Pretty (Entry Summaraized) where
+  pretty (Entry d m s p me dr c r)
+    = indent 10 (pretty d)
+    <> vsep [pretty s, pretty p
+            ,pretty r, pretty m
+            ,pretty me, pretty c
+            ,pretty dr]
 
 
 type instance SummaryType Day                 = Day

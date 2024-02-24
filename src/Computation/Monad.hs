@@ -23,6 +23,7 @@ data CompError
 type Days = Int
 
 data Action = Summary [C.EntryField] C.Interval
+            | Lookup [C.EntryField] C.Interval
             | Config C.ConfCommand
             | Generete C.Interval
             | Daemon C.DaemonCommand

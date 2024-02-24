@@ -95,6 +95,18 @@ In Summary, it's All
 we would need a convinient way to convey this information
 
 -}
+parseEntryField :: Parser [EntryField]
+parseEntryField = some (argument (eitherReader helper) (metavar "ENTRYFIELD"))
+  where
+    helper "mood"         = Right MoodField
+    helper "meditation"   = Right MeditationField
+    helper "cigarette"    = Right CigaretteField
+    helper "drink"        = Right DrinkField
+    helper "sleep"        = Right SleepField
+    helper "productivity" = Right ProductivityField
+    helper x              = Left $ show x ++ " is not an entry field."
+
+
 parseGenerate, parseDaemon, parseSummary, parseConfig :: Parser Action
 parseGenerate = Generete <$> parseInterval
 
@@ -109,15 +121,9 @@ parseDaemon = Daemon <$> argument (eitherReader helper) (metavar "METAVAR")
 
 -- TODO Should print available entry fields to the user
 parseSummary = Summary <$> parseEntryField <*> parseInterval
-  where
-    parseEntryField = some (argument (eitherReader helper) (metavar "ENTRYFIELD"))
-    helper "mood"         = Right MoodField
-    helper "meditation"   = Right MeditationField
-    helper "cigarette"    = Right CigaretteField
-    helper "drink"        = Right DrinkField
-    helper "sleep"        = Right SleepField
-    helper "productivity" = Right ProductivityField
-    helper x              = Left $ show x ++ " is not an entry field."
+
+
+parseLookup = Lookup <$> parseEntryField <*> parseInterval
 
 -- NOTE we shold do a check to see if the value passed is actually acceptable
 parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
@@ -179,6 +185,7 @@ parseInterval = dayOption <|> weekOption <|> monthOption <|> yearOption
 parseCommand = subparser $ genCommand <> summCommand <> confCommand <> daemonCommand
   where genCommand    = command "generate" (info parseGenerate (progDesc "Generate an entry template"))
         summCommand   = command "summary" (info parseSummary (progDesc "Show summary of the entries"))
+        lookupCommand = command "show" (info parseLookup (progDesc "Show exact entries"))
         confCommand   = command "config" (info parseConfig (progDesc "Configuration"))
         daemonCommand = command "daemon" (info parseDaemon (progDesc "Daemon"))
 
