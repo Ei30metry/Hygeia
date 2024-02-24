@@ -48,6 +48,7 @@ class (Ord a, Neutral a) => Combinable a where
   combine :: a -> a -> Maybe a
   combine x y | x == y = Just $ partialCombine x y
               | otherwise = Nothing
+
   {-# MINIMAL partialCombine, combPrecon #-}
 
 
@@ -56,3 +57,8 @@ type family SummaryType a
 
 class Summarizable a where
   summary :: a -> SummaryType a
+
+  combineSummaries :: Combinable a => ([a],a) -> ([a],a) -> ([a],a)
+  combineSummaries (x, y) (x', y') = (condense (x ++ x'), y <!> y') -- TODO This looks very very bad. Might have to do some sort of sorting before doing this.
+
+  {-# MINIMAL summary #-}

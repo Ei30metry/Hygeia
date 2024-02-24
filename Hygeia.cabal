@@ -41,6 +41,7 @@ library
   build-depends:
       base >=4.7 && <5
     , bytestring
+    , prettyprinter
     , directory
     , lens
     , time
@@ -88,6 +89,7 @@ executable Hygeia-exe
     , lens
     , mtl
     , optparse-applicative
+    , prettyprinter
     , sqlite-simple
     , parsec
     , process
@@ -110,6 +112,7 @@ test-suite Hygeia-test
     , base >=4.7 && <5
     , bytestring
     , mtl
+    , prettyprinter
     , sqlite-simple
     , optparse-applicative 
     , parsec
