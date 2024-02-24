@@ -51,27 +51,9 @@ instance Monoid Intensity where
   mempty = None
 
 
-sameMood :: Mood -> Mood -> Bool
-sameMood (Angry _) (Angry _)     = True
-sameMood (Sad _) (Sad _)         = True
-sameMood Neutral Neutral         = True
-sameMood (Happy _) (Happy _)     = True
-sameMood (Excited _) (Excited _) = True
-sameMood _ _                     = False
 
 
-unsafeCombineMoods :: Mood -> Mood -> Mood
-unsafeCombineMoods (Angry x) (Angry y)     = Angry (x <> y)
-unsafeCombineMoods (Sad x) (Sad y)         = Sad (x <> y)
-unsafeCombineMoods Neutral Neutral         = Neutral
-unsafeCombineMoods (Happy x) (Happy y)     = Happy (x <> y)
-unsafeCombineMoods (Excited x) (Excited y) = Excited (x <> y)
-unsafeCombineMoods Neutral x               = x
-unsafeCombineMoods x Neutral               = x
-unsafeCombineMoods _ _                     = undefined
-
-
--- Rating data type for rating the day
+-- | Rating the day
 data Rating = Awful
             | Bad
             | Normal
@@ -87,19 +69,6 @@ data Drink = Drink { drinkName :: String
                    , shots     :: Int }
            deriving (Eq, Ord, Show)
 
-
-sameDrink :: Drink -> Drink -> Bool
-sameDrink (Drink d _) (Drink d' _) = d == d'
-
-
-unsafeCombineDrinks :: Drink -> Drink -> Drink
-unsafeCombineDrinks (Drink d s) (Drink _ s') = Drink d (s + s')
-
-
-combineDrink :: Drink -> Drink -> Maybe Drink
-combineDrink a1 a2
-  | sameDrink a1 a2 = Just $ unsafeCombineDrinks a1 a2
-  | otherwise = Nothing
 
 
 data Sleep = SP { wakeUpTime :: DiffTime
@@ -156,32 +125,17 @@ data Cigarette = Cigarette { cigaretteName :: String
                            deriving (Eq, Ord, Show)
 
 
-
-sameCigarette :: Cigarette -> Cigarette -> Bool
-sameCigarette (Cigarette c _ _ _) (Cigarette c' _ _ _) = c == c'
-
-
-unsafeCombineCigarettes :: Cigarette -> Cigarette -> Cigarette
-unsafeCombineCigarettes (Cigarette c ns n t) (Cigarette _ ns' _ _) = Cigarette c (ns + ns') n t
-
-
-combineCigarette :: Cigarette -> Cigarette -> Maybe Cigarette
-combineCigarette c1 c2
-  | sameCigarette c1 c2 = Just $ unsafeCombineCigarettes c1 c2
-  | otherwise = Nothing
-
-
 data Stage = Parsed | Summaraized deriving (Show, Eq)
 
 
-data Entry a = Entry { entryDay          :: !(XXDay a)
-                     , entryMoods        :: !(XXMoods a)
-                     , entrySleep        :: !(XXSleep a)
-                     , entryProductivity :: !(XXProductivity a)
-                     , entryMeditations  :: !(XXMeditations a)
-                     , entryDrinks       :: !(XXDrinks a)
-                     , entryCigarettes   :: !(XXCigarettes a)
-                     , entryRating       :: !(XXRating a) }
+data Entry a = Entry { entryDay          :: !(EntryType Day a)
+                     , entryMoods        :: !(EntryType [Mood] a)
+                     , entrySleep        :: !(EntryType Sleep a)
+                     , entryProductivity :: !(EntryType Productivity a)
+                     , entryMeditations  :: !(EntryType [Meditation] a)
+                     , entryDrinks       :: !(EntryType [Drink] a)
+                     , entryCigarettes   :: !(EntryType [Cigarette] a)
+                     , entryRating       :: !(EntryType Rating a) }
 
 
 type instance SummaryType Day                 = Day
@@ -206,44 +160,9 @@ type instance SummaryType (Entry Parsed)      = Entry Summaraized
 type instance SummaryType [Entry Summaraized] = Entry Summaraized
 
 
-type family XXDay a where
-  XXDay Parsed      = Day
-  XXDay Summaraized = SummaryType [Day]
-
-
-type family XXMoods a where
-  XXMoods Parsed      = [Mood]
-  XXMoods Summaraized = SummaryType [[Mood]]
-
-
-type family XXProductivity a where
-  XXProductivity Parsed      = Productivity
-  XXProductivity Summaraized = SummaryType [Productivity]
-
-
-type family XXMeditations a where
-  XXMeditations Parsed      = [Meditation]
-  XXMeditations Summaraized = SummaryType [[Meditation]]
-
-
-type family XXSleep a where
-  XXSleep Parsed      = Sleep
-  XXSleep Summaraized = SummaryType [Sleep]
-
-
-type family XXDrinks a where
-  XXDrinks Parsed      = [Drink]
-  XXDrinks Summaraized = SummaryType [[Drink]]
-
-
-type family XXCigarettes a where
-  XXCigarettes Parsed      = [Cigarette]
-  XXCigarettes Summaraized = SummaryType [[Cigarette]]
-
-
-type family XXRating a where
-  XXRating Parsed      = Rating
-  XXRating Summaraized = SummaryType [Rating]
+type family EntryType t a where
+  EntryType t Parsed = t
+  EntryType t Summaraized = SummaryType [t]
 
 
 instance Neutral Sleep where
@@ -291,18 +210,31 @@ instance Neutral (Entry Summaraized) where
 
 
 instance Combinable Cigarette where
-  partialCombine = unsafeCombineCigarettes
-  combPrecon = sameCigarette
+  partialCombine (Cigarette c ns n t) (Cigarette _ ns' _ _) = Cigarette c (ns + ns') n t
+  combPrecon (Cigarette c _ _ _) (Cigarette c' _ _ _) = c == c'
 
 
 instance Combinable Drink where
-  partialCombine = unsafeCombineDrinks
-  combPrecon = sameDrink
+  partialCombine (Drink d s) (Drink _ s') = Drink d (s + s')
+  combPrecon (Drink d _) (Drink d' _)    = d == d'
 
 
 instance Combinable Mood where
-  partialCombine = unsafeCombineMoods
-  combPrecon = sameMood
+  combPrecon (Angry _) (Angry _)     = True
+  combPrecon (Sad _) (Sad _)         = True
+  combPrecon Neutral Neutral         = True
+  combPrecon (Happy _) (Happy _)     = True
+  combPrecon (Excited _) (Excited _) = True
+  combPrecon _ _                     = False
+
+  partialCombine (Angry x) (Angry y)     = Angry (x <> y)
+  partialCombine (Sad x) (Sad y)         = Sad (x <> y)
+  partialCombine Neutral Neutral         = Neutral
+  partialCombine (Happy x) (Happy y)     = Happy (x <> y)
+  partialCombine (Excited x) (Excited y) = Excited (x <> y)
+  partialCombine Neutral x               = x
+  partialCombine x Neutral               = x
+  partialCombine _ _                     = undefined
 
 
 instance Monoid (Entry Summaraized) where
@@ -380,11 +312,13 @@ instance Summarizable [[Cigarette]] where
 instance Summarizable [[Meditation]] where
   summary = label fold
 
+
 instance Summarizable (Entry Parsed) where
   summary (Entry d m s p me dr c r) =
      Entry (summary [d]) (summary [m]) (summary [s])
            (summary [p]) (summary [me]) (summary [dr])
            (summary [c]) (summary [r])
+
 
 instance Summarizable [Entry Summaraized] where
   summary = fold

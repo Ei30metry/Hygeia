@@ -50,12 +50,9 @@ class (Ord a, Neutral a) => Combinable a where
               | otherwise = Nothing
   {-# MINIMAL partialCombine, combPrecon #-}
 
+
 type family SummaryType a
 
 
 class Summarizable a where
   summary :: a -> SummaryType a
-
-type Label :: (k -> Type) -> k -> Type
-type family Label f x where
-  Label f x = (f x, x)
