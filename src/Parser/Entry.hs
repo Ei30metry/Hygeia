@@ -1,13 +1,10 @@
 module Parser.Entry( parseEntry, parseDay, parseProductivity, parseMeditations) where
 
-import           Computation           ( Drink (Drink),
-                                         Cigarette (Cigarette), 
-                                         Entry (..),
-                                         Intensity (..), Meditation (..),
-                                         Meditation (..), Mood (..),
-                                         Mood (..), Name, Productivity (..),
-                                         Rating (..), Sleep (..), Stage (..),
-                                         mkMeditaiton )
+import           Computation           ( Cigarette (Cigarette), Drink (Drink),
+                                         Entry (..), Intensity (..),
+                                         Meditation (..), Mood (..), Name,
+                                         Productivity (..), Rating (..),
+                                         Sleep (..), Stage (..), mkMeditation )
 
 import           Control.Applicative   ( liftA2, liftA3 )
 import           Control.Lens          ( bimap )
@@ -99,18 +96,19 @@ parseMoods :: Parser Header
 parseMoods = do
   mood
   many newline
-  HMoods . coerce <$> many1 parseMood <* many newline
+  HMoods <$> many1 parseMood <* many newline
 
 
 -- | Parses Intensities
 parseIntensity :: Parser Intensity
 parseIntensity = intensities >>= \case
-  "Low"     -> return Low
-  "Medium"  -> return Medium
-  "High"    -> return High
-  "Extreme" -> return Extreme
-  x         -> throwError ("Unknown Intensity " <> "'" <> show x <> "'")
-  where intensities = choice $ map string ["Low", "Medium", "High", "Extreme"]
+    "Low"     -> return Low
+    "Medium"  -> return Medium
+    "High"    -> return High
+    "Extreme" -> return Extreme
+    x         -> throwError ("Unknown Intensity " <> "'" <> show x <> "'")
+  where
+    intensities = choice $ map string ["Low", "Medium", "High", "Extreme"]
 
 -- | parses the sleep header
 sleep :: Parser String
@@ -148,7 +146,7 @@ parseDrinks = do
   many newline
   drinks <- many1 parseDrink
   many newline
-  return . HDrinks . coerce $ drinks
+  return (HDrinks drinks)
 
 -- parses the cigarette header
 cigarette :: Parser String
@@ -190,7 +188,7 @@ parseMeditations :: Parser Header
 parseMeditations = do
   meditation
   many newline
-  meds <- liftEither . traverse mkMeditaiton =<< many (many1 digit <* many newline)
+  meds <- liftEither . traverse mkMeditation =<< many (many1 digit <* many newline)
   many newline
   return . HMeditation $ meds
 
@@ -213,7 +211,7 @@ parseProductivity = do
 rating :: Parser String
 rating = header "Rating"
 
--- | parses the different rating a user might give
+
 parseRating' :: Parser Rating
 parseRating' = rates >>= \case
     "Great"  -> return Great

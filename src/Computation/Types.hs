@@ -10,6 +10,7 @@ import           Computation.Utils
 import           Control.Monad      ( foldM, join, (<=<), (=<<) )
 
 import           Data.Bifunctor
+import           Data.Either
 import           Data.Foldable
 import           Data.List
 import           Data.Ratio
@@ -29,8 +30,22 @@ data Mood = Angry Intensity
           | Excited Intensity
           deriving (Read, Eq, Ord, Show)
 
+-- NOTE This is here, because we don't want thing like ""
+moodMeaning :: Mood -> Mood
+moodMeaning (Angry None)   = Neutral
+moodMeaning (Sad None)     = Neutral
+moodMeaning (Happy None)   = Neutral
+moodMeaning (Excited None) = Neutral
+moodMeaning Neutral        = Neutral
+moodMeaning x              = x
 
-instance Pretty Mood
+
+instance Pretty Mood where
+  pretty (Angry a)   = "Angry ::" <+> pretty a
+  pretty (Sad a)     = "Sad ::" <+> pretty a
+  pretty (Neutral)   = "Neutral"
+  pretty (Happy a)   = "Happy ::" <+> pretty a
+  pretty (Excited a) = "Excited ::" <+> pretty a
 
 
 instance {-# OVERLAPS #-} Pretty [Mood]
@@ -62,7 +77,7 @@ instance Combinable Mood where
 
 
 instance Summarizable [Mood] where
-  summary = condense
+  summary = condense . map moodMeaning
 
 
 instance Summarizable [[Mood]] where
@@ -110,7 +125,8 @@ data Rating = Awful
             deriving (Show, Eq, Ord, Enum, Read, Bounded)
 
 
-instance Pretty Rating
+instance Pretty Rating where
+  pretty x = "Rating: " <+> viaShow x
 
 
 instance Neutral Rating where
@@ -145,11 +161,26 @@ data Drink = Drink { drinkName :: String
            deriving (Eq, Ord, Show)
 
 
--- TODO
-instance Pretty Drink
+instance Pretty Drink where
+  pretty (Drink d s)
+    = vsep ["Drink: "
+           ,indent 7 ("Name  =" <+> viaShow d)
+           ,indent 7 ("Shots =" <+> viaShow s)]
+      <> line
 
 
-instance {-# OVERLAPS #-} Pretty [Drink]
+
+testDrinkList = [Drink "Tequila" 10, Drink "Aragh" 7, Drink "Whiskey" 14]
+
+instance {-# OVERLAPS #-} Pretty [Drink] where
+  pretty list
+    = let
+         namesAndShots = map ((\(x,y) -> indent 6 (vsep [("Name  =" <+> viaShow x)
+                                                       ,("Shots =" <+> viaShow y)])
+                                     <> line)
+                             . \(Drink d s) -> (d,s)) list
+      in
+        "Drink:" <> line <> vsep namesAndShots
 
 
 instance {-# OVERLAPS #-} Pretty [[Drink]]
@@ -201,11 +232,14 @@ instance Neutral Sleep where
 
 
 instance Show Sleep where
-  show (SP w s) = mconcat ["wake up: ",formatTime defaultTimeLocale "%H:%M" w,"\n"
-                          ,"Sleep: ",formatTime defaultTimeLocale "%H:%M" s]
+  show (SP w s) = mconcat ["Wake up =",formatTime defaultTimeLocale "%H:%M" w,"\n"
+                          ,"Sleep   =",formatTime defaultTimeLocale "%H:%M" s]
 
 
-instance Pretty Sleep
+instance Pretty Sleep where
+  pretty (SP w s)
+    = vsep ("Sleep:" : [indent 6 (pretty w), indent 6 (pretty s)])
+    <> line
 
 
 instance Summarizable Sleep where
@@ -216,7 +250,14 @@ instance Summarizable [Sleep] where
   summary = label mconcat
 
 
+instance Pretty DiffTime where
+  pretty = viaShow . formatTime defaultTimeLocale "%H:%M"
+
+
 newtype Meditation = Med { unMed :: (String, DiffTime) } deriving (Eq, Ord)
+
+
+testMeditaitons = map (fromRight neutral . mkMeditation) ["10", "15", "20", "10", "5"]
 
 
 instance Semigroup Meditation where
@@ -244,19 +285,34 @@ instance Show Meditation where
   show (Med a) = show a
 
 
--- TODO needs proper indentation
-instance Pretty Meditation
+instance Pretty Meditation where
+  pretty = undefined
 
-mkMeditaiton :: String -> Either String Meditation
-mkMeditaiton minutes = Med . (minutes,)
+
+instance {-# OVERLAPS #-} Pretty [Meditation] where
+  pretty list
+    = let
+         total = sum $ map (snd . unMed) list
+         meditations = map ((\x -> vsep [indent 15 (viaShow x)]) . fst . unMed) list
+      in
+        "Meditation:" <> line
+        <> indent 2 ("Total time =" <+> pretty total) <> line
+        <> indent 2 ("Sessions:") <> line
+        <> vsep meditations <> line
+      
+
+mkMeditation :: String -> Either String Meditation
+mkMeditation minutes = Med . (minutes,)
                     <$> (return . secondsToDiffTime . (60*)
                     =<< readEither @Integer minutes)
 
 
 newtype Productivity = Pro { unPro :: Rational } deriving (Eq, Ord)
 
--- TODO This will use the show instance, which is okay, but needs to be prepended with "Productivity"
-instance Pretty Productivity
+
+instance Pretty Productivity where
+  pretty x = "Productivity:" <+> viaShow x
+
 
 instance Neutral Productivity where
   neutral = Pro 0
@@ -289,10 +345,25 @@ data Cigarette = Cigarette { cigaretteName :: String
                            , tar           :: Double }
                            deriving (Eq, Ord, Show)
 
-instance Pretty Cigarette
+
+instance Pretty Cigarette where
+  pretty (Cigarette c ns n t)
+    = vsep ["Cigarette:",vsep (map (indent 10) ["Name     =" <+> viaShow c
+                                               ,"Smoked   =" <+> viaShow ns
+                                               ,"Nicotine =" <+> viaShow n
+                                               ,"Tar      =" <+> viaShow t])] <> line
 
 
-instance {-# OVERLAPS #-} Pretty [Cigarette]
+instance {-# OVERLAPS #-} Pretty [Cigarette] where
+  pretty list
+    = let
+         parts = map ((\(c,ns,n,t) -> indent 10 (vsep ["Name     =" <+> viaShow c
+                                                     ,"Smoked   =" <+> viaShow ns
+                                                     ,"Nicotine =" <+> viaShow n
+                                                     ,"Tar      =" <+> viaShow t]) <> line)
+                     . \(Cigarette c ns n t) -> (c,ns,n,t)) list
+      in
+        "Cigarette:" <> line <> vsep parts
 
 
 instance {-# OVERLAPS #-} Pretty [[Cigarette]]
@@ -373,6 +444,7 @@ instance Pretty (Entry Summaraized) where
             ,pretty r, pretty m
             ,pretty me, pretty c
             ,pretty dr]
+    <> line
 
 
 type instance SummaryType Day                 = Day

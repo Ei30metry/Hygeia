@@ -31,7 +31,6 @@ library
       , Parser.Entry
       , Parser.Monad
       , Parser.Types
-      , Report.PrettyPrint
       , Template
 
   other-modules:

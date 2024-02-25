@@ -4,7 +4,7 @@ module Parser.Monad (Parser, try, alphaNum, char, choice
                     ,digit, many, many1, newline, sepBy
                     ,spaces, string, (<|>), throwError
                     ,runParser, manyTill, anyChar, skipMany
-                    ,satisfy, void, lookAhead, optional, noneOf,eof, readExcept, space) where
+                    ,satisfy, void, lookAhead, optional, noneOf,eof, readExcept, space, letter) where
 
 import           Control.Monad                 ( join, void, (<=<) )
 import           Control.Monad.Except          ( Except (..), MonadError (..),
@@ -19,7 +19,7 @@ import           Text.Parsec                   ( ParseError, ParsecT, anyChar,
 import           Text.ParserCombinators.Parsec ( alphaNum, char, choice, digit,
                                                  many, many1, newline, satisfy,
                                                  sepBy, space, spaces, string,
-                                                 (<|>) )
+                                                 (<|>), letter )
 import           Text.Read                     ( readEither )
 
 type Parser a = ParsecT ByteString () (Except String) a

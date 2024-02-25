@@ -50,7 +50,7 @@ Subcommands:
       month n:
       year n:
 
-- summary: moods cigarette and all the other headers, the user should be able to specify the things he wants specificatlly
+- summary: moods cigarette and all the other headers, the user should be able to specify the things he wants specifically
    - nothing
    - default: all the entries
    - date YY-MM-DD
