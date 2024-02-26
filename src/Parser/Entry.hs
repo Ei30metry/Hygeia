@@ -1,4 +1,7 @@
-module Parser.Entry( parseEntry, parseDay, parseProductivity, parseMeditations) where
+module Parser.Entry( parseEntry, parseDay
+                   , parseProductivity, parseMeditations
+                   , parseRating, parseCigarettes, parseDrinks
+                   , parseMoods, parseSleep, time) where
 
 import           Computation           ( Cigarette (Cigarette), Drink (Drink),
                                          Entry (..), Intensity (..),
@@ -8,13 +11,12 @@ import           Computation           ( Cigarette (Cigarette), Drink (Drink),
 
 import           Control.Applicative   ( liftA2, liftA3 )
 import           Control.Lens          ( bimap )
-import           Control.Monad         ( (<=<), (=<<) )
+import           Control.Monad         ( (<=<), (=<<), guard )
 import           Control.Monad.Except  ( Except, MonadError, liftEither )
 
 import           Data.ByteString.Char8 ( ByteString, unpack )
 import           Data.Coerce
 import           Data.Foldable         ( find )
-import           Data.Functor          ( (<&>) )
 import           Data.List             ( sortOn )
 import           Data.Ratio
 import           Data.Time             ( Day, DiffTime, secondsToDiffTime )
@@ -32,8 +34,10 @@ stringFloat = digit <|> char '.'
 time :: Parser Integer
 time = do
   hour <- readExcept =<< many1 digit
+  guard (hour <= 24)
   many1 (char ':')
   minute <- readExcept =<< many1 digit
+  guard (minute <= 59)
   return $ (hour * 3600) + (minute * 60)
 
 -- | computes the time of Sleep and Wake up
@@ -83,12 +87,15 @@ parseMood' = moods >>= \case
 parseMood :: Parser Mood
 parseMood = do
   userMood <- parseMood'
-  spaces
-  char ':'
-  spaces
-  moodIntensity <- parseIntensity
-  many newline
-  return $ userMood moodIntensity
+  case userMood None of
+    Neutral -> return Neutral
+    x       -> do
+              spaces
+              char ':'
+              spaces
+              moodIntensity <- readExcept =<< many letter
+              many newline
+              return $ userMood moodIntensity
 
 
 -- | Parses Mood header and its data
@@ -98,17 +105,6 @@ parseMoods = do
   many newline
   HMoods <$> many1 parseMood <* many newline
 
-
--- | Parses Intensities
-parseIntensity :: Parser Intensity
-parseIntensity = intensities >>= \case
-    "Low"     -> return Low
-    "Medium"  -> return Medium
-    "High"    -> return High
-    "Extreme" -> return Extreme
-    x         -> throwError ("Unknown Intensity " <> "'" <> show x <> "'")
-  where
-    intensities = choice $ map string ["Low", "Medium", "High", "Extreme"]
 
 -- | parses the sleep header
 sleep :: Parser String
@@ -175,7 +171,7 @@ parseCigarettes :: Parser Header
 parseCigarettes = do
   cigarette
   many newline
-  cigarettes <- many1 parseCigarette
+  cigarettes <- many parseCigarette
   many newline
   return . HCigarettes $ cigarettes
 
@@ -190,7 +186,7 @@ parseMeditations = do
   many newline
   meds <- liftEither . traverse mkMeditation =<< many (many1 digit <* many newline)
   many newline
-  return . HMeditation $ meds
+  return . HMeditations $ meds
 
 -- | Parses the productivity header
 productivity :: Parser String
@@ -211,21 +207,9 @@ parseProductivity = do
 rating :: Parser String
 rating = header "Rating"
 
-
-parseRating' :: Parser Rating
-parseRating' = rates >>= \case
-    "Great"  -> return Great
-    "Good"   -> return Good
-    "Normal" -> return Normal
-    "Bad"    -> return Bad
-    "Awful"  -> return Awful
-    x        -> throwError ("Unknown Rating " <> "'" <> show x <> "'")
-  where
-    rates = choice $ map string ["Great", "Good", "Normal", "Bad", "Awful"]
-
 -- | parses the whole Rating header (section)
 parseRating :: Parser Header
-parseRating = (rating >> many newline >> parseRating') <&> HRating
+parseRating = HRating <$> (rating >> many newline >> many letter >>= readExcept)
 
 -- | parses the Entry written by the user (order of the entry doesn't matter)
 parseEntry :: Parser (Entry Parsed)

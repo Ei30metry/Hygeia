@@ -9,7 +9,7 @@ import           Control.Monad.Except
 import           Data.Foldable        ( find )
 
 data Header = HProductivity Productivity
-            | HMeditation [Meditation]
+            | HMeditations [Meditation]
             | HSleep Sleep
             | HRating Rating
             | HCigarettes [Cigarette]
@@ -59,5 +59,5 @@ instance HasHeader [Drink] where
 
 instance HasHeader [Meditation] where
   findE headers = liftEither . maybeToEither "Couldn't find Meditaiton header"
-                  $ find (\case HMeditation _ -> True ; _ -> False) headers
-                  >>= \(HMeditation y) -> return y
+                  $ find (\case HMeditations _ -> True ; _ -> False) headers
+                  >>= \(HMeditations y) -> return y

@@ -2,11 +2,11 @@ Date : 2022-04-04
 
 [Mood]
 
-Neutral : Low
+Neutral
 Angry : High
-Neutral : High
+Neutral
 Sad : Low
-Neutral : Medium
+Happy : Extreme
 
 [Sleep]
 
