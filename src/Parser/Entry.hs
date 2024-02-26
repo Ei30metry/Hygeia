@@ -11,7 +11,7 @@ import           Computation           ( Cigarette (Cigarette), Drink (Drink),
 
 import           Control.Applicative   ( liftA2, liftA3 )
 import           Control.Lens          ( bimap )
-import           Control.Monad         ( (<=<), (=<<), guard )
+import           Control.Monad         ( (<=<), (=<<), guard, when )
 import           Control.Monad.Except  ( Except, MonadError, liftEither )
 
 import           Data.ByteString.Char8 ( ByteString, unpack )
@@ -46,17 +46,19 @@ header h = string $ mconcat ["[", h, "]"]
 
 -- parses the date section
 date :: Parser String
-date = string "Date :" <|> string "Date:"
+date = string "Date :" 
 
 
 dateSep :: Parser Char
 dateSep = char '-'
+       <|> char '/'
+       <|> char '\\'
 
 
 parseDate :: Parser Day
 parseDate = many (digit <|> dateSep) >>= readExcept
 
-
+-- | Parses the day header, at the top of the file
 parseDay :: Parser Day
 parseDay = do
   date
@@ -66,12 +68,9 @@ parseDay = do
   return day
 
 
-mood :: Parser String
-mood = header "Mood"
-
--- | Parses all the mood data constructors as stirngs
-parseMood' :: Parser (Intensity -> Mood)
-parseMood' = moods >>= \case
+-- | Parses all the mood data constructors, and returns a function
+parseMoodName :: Parser (Intensity -> Mood)
+parseMoodName = moods >>= \case
       "Neutral" -> return (const Neutral)
       "Angry"   -> return Angry
       "Sad"     -> return Sad
@@ -86,116 +85,98 @@ parseMood' = moods >>= \case
 -- | Parses a single mood
 parseMood :: Parser Mood
 parseMood = do
-  userMood <- parseMood'
+  userMood <- parseMoodName
   case userMood None of
-    Neutral -> return Neutral
+    Neutral -> many1 newline >> return Neutral
     x       -> do
               spaces
               char ':'
               spaces
               moodIntensity <- readExcept =<< many letter
-              many newline
+              many1 newline
               return $ userMood moodIntensity
 
 
 -- | Parses Mood header and its data
 parseMoods :: Parser Header
 parseMoods = do
-  mood
-  many newline
-  HMoods <$> many1 parseMood <* many newline
+  header "Mood"
+  many1 newline
+  moods <- many1 parseMood
+  -- many1 newline
+  return (HMoods moods)
 
-
--- | parses the sleep header
-sleep :: Parser String
-sleep = header "Sleep"
-
-
--- | parses the sleep header and its data
+-- | Parses the sleep header and its data
 parseSleep :: Parser Header
 parseSleep = do
-  sleep
-  many newline
+  header "Sleep"
+  many1 newline
   (string "Wake up :" <* spaces) <|> (string "wake up :" <* spaces)
   wakeUpTime <- time
-  many newline
+  many1 newline
   (string "Sleep :" <* spaces) <|> (string "sleep :" <* spaces)
   sleepTime <- time
-  many newline
+  many1 newline
   return . HSleep $ SP (secondsToDiffTime wakeUpTime) (secondsToDiffTime sleepTime)
 
--- drink header
-drink :: Parser String
-drink = header "Drink"
-
--- parses the drink header and the data in it
+-- | Parses the drink header and the data in it
 parseDrink :: Parser Drink
 parseDrink = do
   drink <- (many1 alphaNum <* spaces) <* string ":"
   shots <- readExcept =<< (spaces *> many1 digit)
+  many1 newline
   return $ Drink drink shots
 
--- | parses the drink header and its data
+-- | Parses the drink header and its data
 parseDrinks :: Parser Header
 parseDrinks = do
-  drink
-  many newline
+  header "Drink"
+  many1 newline
   drinks <- many1 parseDrink
-  many newline
   return (HDrinks drinks)
 
--- parses the cigarette header
-cigarette :: Parser String
-cigarette = header "Cigarette"
-
--- parses the cigarette header and the data in it
+-- | Parses the cigarette header and the data in it
 parseCigarette :: Parser Cigarette
 parseCigarette = do
-  cigarette
-  many newline
-  (string "Name :" <* spaces) <|> (string "name :" <* spaces)
-  cigName <- many1 (alphaNum <|> char ' ')
-  many newline
-  (string "Number :" <* spaces) <|> (string "number :" <* spaces)
-  number <- readExcept =<< many1 digit
-  many newline
-  (string "Nicotine :" <* spaces) <|> (string "nicotine :" <* spaces)
-  nicotine <- readExcept =<< many1 stringFloat
-  many newline
-  (string "Tar :" <* spaces) <|> (string "tar :" <* spaces)
-  tar <- readExcept =<< many1 stringFloat
-  return (Cigarette cigName number nicotine tar)
+    cigName <- parseCigName <* many1 newline
+    number <- parseCigNumber <* many1 newline
+    nicotine <- parseCigNicotine <* many1 newline
+    tar <- parseCigTar <* many1 newline
+    return (Cigarette cigName number nicotine tar)
+  where
+    parseCigName = choice [string "Name :", string "name :"] >> spaces
+                 >> many1 (alphaNum <|> char ' ')
+
+    parseCigNumber = choice [string "Number :", string "number :"] >> spaces
+                   >> many1 digit >>= readExcept
+                   
+    parseCigNicotine = choice [string "Nicotine :", string "nicotine :"] >> spaces
+                     >> many1 stringFloat >>= readExcept
+                     
+    parseCigTar = choice [string "Tar :", string "tar :"] >> spaces
+                >> many1 stringFloat >>= readExcept
 
 
 parseCigarettes :: Parser Header
 parseCigarettes = do
-  cigarette
-  many newline
+  header "Cigarette"
+  many1 newline
   cigarettes <- many parseCigarette
-  many newline
-  return . HCigarettes $ cigarettes
+  return (HCigarettes cigarettes)
 
--- | Parses the meditation header
-meditation :: Parser String
-meditation = header "Meditation"
-
--- parses the meditatin header and the data in it
+-- Parses the meditatin header and the data in it
 parseMeditations :: Parser Header
 parseMeditations = do
-  meditation
+  header "Meditation"
   many newline
-  meds <- liftEither . traverse mkMeditation =<< many (many1 digit <* many newline)
+  meds <- liftEither . traverse mkMeditation =<< many1 (many1 digit <* many1 newline)
   many newline
   return . HMeditations $ meds
 
--- | Parses the productivity header
-productivity :: Parser String
-productivity = header "Productivity"
-
--- parses the productivity header and the information in it
+-- | Parses the productivity header and the information in it
 parseProductivity :: Parser Header
 parseProductivity = do
-  productivity
+  header "Productivity"
   many newline
   done <- many1 digit <* char '/'
   shouldHaveDone <- many1 digit
@@ -203,15 +184,11 @@ parseProductivity = do
   many newline
   return $ HProductivity (Pro productivity)
 
--- | parses the rating header
-rating :: Parser String
-rating = header "Rating"
-
--- | parses the whole Rating header (section)
+-- | Parses the whole Rating header (section)
 parseRating :: Parser Header
-parseRating = HRating <$> (rating >> many newline >> many letter >>= readExcept)
+parseRating = HRating <$> (header "Rating" >> many newline >> many letter >>= readExcept)
 
--- | parses the Entry written by the user (order of the entry doesn't matter)
+-- | Parses the Entry written by the user (order of the entry doesn't matter)
 parseEntry :: Parser (Entry Parsed)
 parseEntry = do
     day <- parseDay

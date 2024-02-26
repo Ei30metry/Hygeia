@@ -121,5 +121,6 @@ test-suite Hygeia-test
                 , parsec
                 , sqlite-simple
                 , tasty
+                , HsYAML
                 , tasty-hunit
   default-language: GHC2021

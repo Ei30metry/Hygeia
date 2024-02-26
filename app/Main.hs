@@ -11,7 +11,7 @@ import           Config
 import qualified Data.ByteString.Char8  as B
 import qualified Data.ByteString.Lazy   as BL
 import           Data.Text              ( Text )
-import           Data.YAML
+
 
 import           Parser.Entry           ( parseDay, parseEntry,
                                           parseMeditations, parseProductivity )
@@ -26,20 +26,16 @@ import           Text.Parsec.ByteString
 {-
 Version 1: Only print summary.
 Version 2: Print summary, if verbose flag is on, print exact entries too.
+Version 3: TUI! that would be very clean!
 -}
 
-main = mainEntry
+main = parseEntryTest
 
-mainEntry :: IO ()
-mainEntry = do
-  sample <- B.readFile "/Users/artin/Programming/projects/Hygeia/test/sample.txt"
+
+parseEntryTest :: IO ()
+parseEntryTest = do
+  sample <- B.readFile "/Users/artin/Programming/projects/Hygeia/test/sample/sample.txt"
   case runParser parseEntry sample of
-    Right x -> putDocW 120 . pretty . summary $ x
+    Right x -> putDocW 12 . pretty $ summary x
     Left y  -> putStrLn y
 
-
-mainConfig :: IO ()
-mainConfig = do
-  sampleConfig <- BL.readFile "/Users/artin/Programming/projects/Hygeia/test/sampleconfig"
-  let val = decode1 sampleConfig :: Either (Pos,String) Config
-  print val
