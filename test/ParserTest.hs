@@ -15,15 +15,34 @@ import           Parser.Entry
 import           Parser.Monad
 import           Parser.Types
 
+import           Test.Hspec
+import           Test.Tasty.Hspec
 import           Test.Tasty.HUnit
 
 
-productivityHeaderTest :: Assertion
-productivityHeaderTest
-  = assertEqual "Productivity header"
-                (Right . HProductivity $ Pro (6 % 11))
-                (runParser parseProductivity sampleProductivityHeader)
-  where sampleProductivityHeader = "[Productivity]\n\n6/11\n"
+spec_productivityHeaderTest :: Spec
+spec_productivityHeaderTest = describe "parseProductivity" $ do
+  it "Parses the productivity header" $
+     (runParseProductivity sample1)
+     `shouldBe`
+     (Right . HProductivity $ Pro (6 % 11))
+
+  it "Throws an error if the denominator is 0" $
+      (runParseProductivity sample2)
+      `shouldBe`
+      Left undefined
+
+  it "Throws an error if the numerator is bigger than the denominator" $
+      (runParseProductivity sample3)
+      `shouldBe`
+      Left undefined
+
+  where
+    runParseProductivity = runParser parseProductivity
+    sample1 = "[Productivity]\n\n6/11\n"
+    sample2 = "[Productivity]\n5/0\n"
+    sample3 = "[Productivity]\n10/9\n"
+
 
 
 -- TODO assertion test for not-acceptable values, like negative days, bigger than 12 months and ..
@@ -98,10 +117,9 @@ ratingHeaderTest = assertEqual "Rating header"
                                 (runParser parseRating "[Rating]\nBad")
 
 -- NOTE Turn this into an assertion
-parseEntryTest :: Assertion
+parseEntryTest :: IO ()
 parseEntryTest = do
-  sample <- B.readFile "/Users/artin/Programming/projects/Hygeia/test/sample.txt"
+  sample <- B.readFile "/Users/artin/Programming/projects/Hygeia/test/sample/sample.txt"
   case runParser parseEntry sample of
-    Right x -> return () 
+    Right x -> return ()
     Left y  -> putStrLn y
-

@@ -26,6 +26,7 @@ library
       , Daemon
       , Computation.Utils
       , Computation.Types
+      , Computation.Error
       , Computation.Monad
       , Config
       , Parser.Entry
@@ -35,6 +36,7 @@ library
 
   other-modules:
       Paths_Hygeia
+
   hs-source-dirs:
       src
   build-depends:
@@ -123,4 +125,6 @@ test-suite Hygeia-test
                 , tasty
                 , HsYAML
                 , tasty-hunit
+                , hspec
+                , tasty-hspec
   default-language: GHC2021

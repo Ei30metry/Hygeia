@@ -11,7 +11,7 @@ import           Computation           ( Cigarette (Cigarette), Drink (Drink),
 
 import           Control.Applicative   ( liftA2, liftA3 )
 import           Control.Lens          ( bimap )
-import           Control.Monad         ( (<=<), (=<<), guard, when )
+import           Control.Monad         ( guard, when, (<=<), (=<<) )
 import           Control.Monad.Except  ( Except, MonadError, liftEither )
 
 import           Data.ByteString.Char8 ( ByteString, unpack )
@@ -46,7 +46,7 @@ header h = string $ mconcat ["[", h, "]"]
 
 -- parses the date section
 date :: Parser String
-date = string "Date :" 
+date = string "Date :"
 
 
 dateSep :: Parser Char
@@ -76,7 +76,7 @@ parseMoodName = moods >>= \case
       "Sad"     -> return Sad
       "Excited" -> return Excited
       "Happy"   -> return Happy
-      x         -> throwError ("Unknown Mood " <> "'" <> show x <> "'")
+      x         -> throwError (UnknownMood x)
   where
     moods = choice $ map string ["Neutral", "Angry", "Sad"
                                 ,"Excited", "Happy"]
@@ -109,15 +109,15 @@ parseMoods = do
 -- | Parses the sleep header and its data
 parseSleep :: Parser Header
 parseSleep = do
-  header "Sleep"
-  many1 newline
-  (string "Wake up :" <* spaces) <|> (string "wake up :" <* spaces)
-  wakeUpTime <- time
-  many1 newline
-  (string "Sleep :" <* spaces) <|> (string "sleep :" <* spaces)
-  sleepTime <- time
-  many1 newline
-  return . HSleep $ SP (secondsToDiffTime wakeUpTime) (secondsToDiffTime sleepTime)
+    header "Sleep"
+    many1 newline
+    wakeUpTime <- parseWakeUp <* many1 newline
+    sleepTime <- parseSleep <* many1 newline
+    return . HSleep $ SP (secondsToDiffTime wakeUpTime)
+                         (secondsToDiffTime sleepTime)
+  where
+   parseWakeUp = choice [string "Wake up :", string "wake up :"] >> spaces >> time
+   parseSleep = choice [string "Sleep :", string "sleep :"] >> spaces >> time
 
 -- | Parses the drink header and the data in it
 parseDrink :: Parser Drink
@@ -149,10 +149,10 @@ parseCigarette = do
 
     parseCigNumber = choice [string "Number :", string "number :"] >> spaces
                    >> many1 digit >>= readExcept
-                   
+
     parseCigNicotine = choice [string "Nicotine :", string "nicotine :"] >> spaces
                      >> many1 stringFloat >>= readExcept
-                     
+
     parseCigTar = choice [string "Tar :", string "tar :"] >> spaces
                 >> many1 stringFloat >>= readExcept
 
@@ -178,11 +178,14 @@ parseProductivity :: Parser Header
 parseProductivity = do
   header "Productivity"
   many newline
-  done <- many1 digit <* char '/'
-  shouldHaveDone <- many1 digit
-  productivity <- liftA2 (%) (readExcept done) (readExcept shouldHaveDone)
-  many newline
-  return $ HProductivity (Pro productivity)
+  numerator <- many1 digit <* char '/'
+  denumerator <- many1 digit
+  done <- readExcept numerator
+  shouldHaveDone <- readExcept denumerator
+  let productivity = Pro $ done % shouldHaveDone
+  if (done <= shouldHaveDone)
+    then many newline >> (return . HProductivity $ productivity)
+    else throwError (TooProductive $ show productivity)
 
 -- | Parses the whole Rating header (section)
 parseRating :: Parser Header

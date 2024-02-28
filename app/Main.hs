@@ -34,8 +34,8 @@ main = parseEntryTest
 
 parseEntryTest :: IO ()
 parseEntryTest = do
-  sample <- B.readFile "/Users/artin/Programming/projects/Hygeia/test/sample/sample.txt"
-  case runParser parseEntry sample of
-    Right x -> putDocW 12 . pretty $ summary x
+  sample <- B.readFile "/Users/artin/Programming/projects/Hygeia/test/sample/pro.txt"
+  case runParser parseProductivity sample of
+    Right x -> print x
     Left y  -> putStrLn y
 

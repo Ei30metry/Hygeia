@@ -5,6 +5,7 @@
 
 module Computation.Types where
 
+import           Computation.Error
 import           Computation.Utils
 
 import           Control.Monad      ( foldM, join, (<=<), (=<<) )
@@ -257,9 +258,6 @@ instance Pretty DiffTime where
 newtype Meditation = Med { unMed :: (String, DiffTime) } deriving (Eq, Ord)
 
 
-testMeditaitons = map (fromRight neutral . mkMeditation) ["10", "15", "20", "10", "5"]
-
-
 instance Semigroup Meditation where
   Med (a,b) <> Med (c,d) = Med (a <> "," <> c, b + d)
 
@@ -299,12 +297,17 @@ instance {-# OVERLAPS #-} Pretty [Meditation] where
         <> indent 2 ("Total time =" <+> pretty total) <> line
         <> indent 2 ("Sessions:") <> line
         <> vsep meditations <> line
-      
 
-mkMeditation :: String -> Either String Meditation
-mkMeditation minutes = Med . (minutes,)
+
+mkMeditation :: String -> Either EntryError Meditation
+mkMeditation minutes
+  = let
+       handle (Left y) = Left $ MeditationError ("Can't parse meditation: " ++ y)
+       handle (Right x) = Right x
+    in
+       Med . (minutes,)
                     <$> (return . secondsToDiffTime . (60*)
-                    =<< readEither @Integer minutes)
+                    =<< (handle . readEither @Integer) minutes)
 
 
 newtype Productivity = Pro { unPro :: Rational } deriving (Eq, Ord)

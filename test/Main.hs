@@ -14,7 +14,7 @@ import           Test.Tasty.HUnit
 main = defaultMain . testCase "Parser.Entry tests:" $ do
   parseTimeTest
   dayHeaderTest
-  productivityHeaderTest
+  -- productivityHeaderTest
   sleepHeaderTest
   drinkHeaderTest
   meditationHeaderTest
