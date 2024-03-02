@@ -79,7 +79,7 @@ spec_moodHeader = describe "Mood header" $ do
         `shouldBe`
         result3
   where
-    sample1 = "[Mood]\n\nNeutral\nAngry : High\nNeutral\n\nSad : Low\nNeutral\nHappy : Extreme\nNeutral\n\n\n\n\n\n"              -- NOTE Add Neutral : Extreme and update the parser to give the right error message
+    sample1 = "[Mood]\n\nNeutral\nAngry : High\nNeutral\n\nSad : Low\nNeutral\nHappy : Extreme\nNeutral\n\n\n\n\n\n"  -- FIXME Add Neutral : Extreme and update the parser to give the right error message
     sample2 = "[Mood]\nHappy : Blah"
     sample3 = "[Mood]\nBlah : Extreme"
     result1 = Right . HMoods $ [Neutral, Angry High

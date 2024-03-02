@@ -89,7 +89,7 @@ parseMoodName = moods >>= \case
       x         -> throwError (UnknownMood x)
   where
     moods = choice $ map string ["Neutral", "Angry", "Sad"
-                                ,"Excited", "Happy"]
+                                ,"Excited", "Happy"] ++ [many1 alphaNum] -- FIXME ugly hack.
 
 
 -- | Parses a single mood
@@ -188,13 +188,14 @@ parseProductivity = do
     header "Productivity"
     many newline
     numerator <- many1 digit <* char '/'
-    denumerator <- many1 digit
+    denomerator <- many1 digit
     done <- readExcept numerator
-    shouldHaveDone <- readExcept denumerator
-    handleProductivity done shouldHaveDone
+    shouldHaveDone <- readExcept denomerator
+    if shouldHaveDone == 0
+      then throwError DivisionByZero
+      else handleProductivity done shouldHaveDone
   where
     handleProductivity d sd | d >= sd = throwError (TooProductive . show $ productivity)
-                            | sd == 0 = throwError DivisionByZero
                             | otherwise = many newline >> (return . HProductivity $ productivity)
         where
           productivity = Pro (d % sd)
