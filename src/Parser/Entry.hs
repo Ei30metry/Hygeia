@@ -1,18 +1,19 @@
 module Parser.Entry( parseEntry, parseDay
                    , parseProductivity, parseMeditations
                    , parseRating, parseCigarettes, parseDrinks
-                   , parseMoods, parseSleep, time) where
+                   , parseMoods, parseSleep, time ) where
 
 import           Computation           ( Cigarette (Cigarette), Drink (Drink),
                                          Entry (..), Intensity (..),
                                          Meditation (..), Mood (..), Name,
                                          Productivity (..), Rating (..),
                                          Sleep (..), Stage (..), mkMeditation )
+import           Computation.Error
 
 import           Control.Applicative   ( liftA2, liftA3 )
 import           Control.Lens          ( bimap )
-import           Control.Monad         ( guard, when, (<=<), (=<<) )
-import           Control.Monad.Except  ( Except, MonadError, liftEither )
+import           Control.Monad         ( guard, when, (<=<), (=<<), (>=>) )
+import           Control.Monad.Except  ( Except, MonadError(..), liftEither, withError )
 
 import           Data.ByteString.Char8 ( ByteString, unpack )
 import           Data.Coerce
@@ -33,12 +34,16 @@ stringFloat = digit <|> char '.'
 -- | parses time in format of HH:MM
 time :: Parser Integer
 time = do
-  hour <- readExcept =<< many1 digit
-  guard (hour <= 24)
-  many1 (char ':')
-  minute <- readExcept =<< many1 digit
-  guard (minute <= 59)
-  return $ (hour * 3600) + (minute * 60)
+    hour <- readExcept =<< many1 digit
+    many1 (char ':')
+    minute <- readExcept =<< many1 digit
+    handleTime hour minute
+  where
+    handleTime h m | h >= 24 || m >= 59 = throwError . InvalidTime $ show h ++ ":" ++ show m
+                   | otherwise = return time'
+      where
+        time' = h * 3600 + m * 60
+
 
 -- | computes the time of Sleep and Wake up
 header :: String -> Parser String
@@ -56,7 +61,8 @@ dateSep = char '-'
 
 
 parseDate :: Parser Day
-parseDate = many (digit <|> dateSep) >>= readExcept
+parseDate = withError (\(CouldntRead x) -> InvalidDate x)
+                      (many (digit <|> dateSep) >>= readExcept)
 
 -- | Parses the day header, at the top of the file
 parseDay :: Parser Day
@@ -67,6 +73,10 @@ parseDay = do
   many newline
   return day
 
+
+parseIntensity :: Parser Intensity
+parseIntensity = withError (\(CouldntRead x) -> UnknownIntensity x)
+                           (readExcept =<< many letter)
 
 -- | Parses all the mood data constructors, and returns a function
 parseMoodName :: Parser (Intensity -> Mood)
@@ -92,7 +102,7 @@ parseMood = do
               spaces
               char ':'
               spaces
-              moodIntensity <- readExcept =<< many letter
+              moodIntensity <- parseIntensity
               many1 newline
               return $ userMood moodIntensity
 
@@ -103,7 +113,6 @@ parseMoods = do
   header "Mood"
   many1 newline
   moods <- many1 parseMood
-  -- many1 newline
   return (HMoods moods)
 
 -- | Parses the sleep header and its data
@@ -135,7 +144,7 @@ parseDrinks = do
   drinks <- many1 parseDrink
   return (HDrinks drinks)
 
--- | Parses the cigarette header and the data in it
+
 parseCigarette :: Parser Cigarette
 parseCigarette = do
     cigName <- parseCigName <* many1 newline
@@ -156,7 +165,7 @@ parseCigarette = do
     parseCigTar = choice [string "Tar :", string "tar :"] >> spaces
                 >> many1 stringFloat >>= readExcept
 
-
+-- | Parses the cigarette header and the data in it
 parseCigarettes :: Parser Header
 parseCigarettes = do
   header "Cigarette"
@@ -176,16 +185,19 @@ parseMeditations = do
 -- | Parses the productivity header and the information in it
 parseProductivity :: Parser Header
 parseProductivity = do
-  header "Productivity"
-  many newline
-  numerator <- many1 digit <* char '/'
-  denumerator <- many1 digit
-  done <- readExcept numerator
-  shouldHaveDone <- readExcept denumerator
-  let productivity = Pro $ done % shouldHaveDone
-  if (done <= shouldHaveDone)
-    then many newline >> (return . HProductivity $ productivity)
-    else throwError (TooProductive $ show productivity)
+    header "Productivity"
+    many newline
+    numerator <- many1 digit <* char '/'
+    denumerator <- many1 digit
+    done <- readExcept numerator
+    shouldHaveDone <- readExcept denumerator
+    handleProductivity done shouldHaveDone
+  where
+    handleProductivity d sd | d >= sd = throwError (TooProductive . show $ productivity)
+                            | sd == 0 = throwError DivisionByZero
+                            | otherwise = many newline >> (return . HProductivity $ productivity)
+        where
+          productivity = Pro (d % sd)
 
 -- | Parses the whole Rating header (section)
 parseRating :: Parser Header

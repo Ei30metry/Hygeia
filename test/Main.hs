@@ -9,15 +9,8 @@ import           ComputationTest
 import           ParserTest
 
 import           Test.Tasty
-import           Test.Tasty.HUnit
+import           Test.Tasty.Hspec
 
-main = defaultMain . testCase "Parser.Entry tests:" $ do
-  parseTimeTest
-  dayHeaderTest
-  -- productivityHeaderTest
-  sleepHeaderTest
-  drinkHeaderTest
-  meditationHeaderTest
-  moodHeaderTest
-  ratingHeaderTest
-  cigaretteHeaderTest
+main = do
+  spec <- testSpec "Parser.Entry tests:" spec_Parser_Entry
+  defaultMain (testGroup "tests" [spec])

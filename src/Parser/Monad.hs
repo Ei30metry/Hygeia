@@ -41,4 +41,4 @@ runParser parser = join . convert . runExcept . runParserT parser () ""
 
 {-# INLINE readExcept #-}
 readExcept :: Read a => String -> Parser a
-readExcept = lift . withExcept CouldntRead . liftEither . readEither
+readExcept x = lift . withExcept (const $ CouldntRead x) . liftEither $ readEither x
