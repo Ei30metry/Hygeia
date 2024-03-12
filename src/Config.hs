@@ -116,8 +116,12 @@ data Interval = Date Day
               | Day Int
               | Year Int
               | Week Int
-              | All
+              | DefInterval DefaultInterval
               deriving (Show, Eq)
+
+
+data DefaultInterval = All | Today deriving (Eq, Show)
+
 
 data DaemonCommand = Start | Restart | Shutdown | Stop
   deriving (Eq, Show)

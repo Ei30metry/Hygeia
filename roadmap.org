@@ -1,5 +1,15 @@
 #+TITLE: Hygeia
 #+AUTHOR: Artin Ghasivand
 
-* TODO Feature
-+ [ ] New optional-header: Workout
+* TODO Tasks to complete
+** TODO CLI parser [0/1]
+*** TODO Default values
+** TODO Tests [/]
+** TODO Optimization [/]
+** TODO Functionality
+*** TODO Commands [0/4]
+**** TODO generate
+**** TODO summary
+**** TODO config
+**** TODO daemon
+*** TODO Internals [/]

@@ -41,6 +41,8 @@ Subcommands:
    - restart
    - shutdown
 
+- lookup
+   - EntryField
 
 - generate:
    - default: Template for today
@@ -108,7 +110,7 @@ parseEntryField = some (argument (eitherReader helper) (metavar "ENTRYFIELD"))
 
 
 parseGenerate, parseDaemon, parseSummary, parseConfig :: Parser Action
-parseGenerate = Generete <$> parseInterval
+parseGenerate = Generate <$> parseInterval (DefInterval Today)
 
 -- TODO Should print available operations to the user
 -- TODO Use error handling facilities provided by Options.Applicative instead of throwError
@@ -119,11 +121,11 @@ parseDaemon = Daemon <$> argument (eitherReader helper) (metavar "METAVAR")
         helper "shutdown" = pure Shutdown
         helper x          = throwError $ show x ++ " is not a daemon operation."
 
--- TODO Should print available entry fields to the user
-parseSummary = Summary <$> parseEntryField <*> parseInterval
+-- NOTE Should print available entry fields to the user
+parseSummary = Summary <$> parseEntryField <*> parseInterval (DefInterval All)
 
 
-parseLookup = Lookup <$> parseEntryField <*> parseInterval
+parseLookup = Lookup <$> parseEntryField <*> parseInterval (DefInterval All)
 
 -- NOTE we shold do a check to see if the value passed is actually acceptable
 parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
@@ -179,7 +181,7 @@ monthOption = Month <$> option auto (long "month" <> short 'm' <> metavar "n")
 yearOption  = Year <$> option auto (long "year" <> short 'y' <> metavar "n")
 
 
-parseInterval = dayOption <|> weekOption <|> monthOption <|> yearOption
+parseInterval dval = dayOption <|> weekOption <|> monthOption <|> yearOption <|> pure dval
 
 
 parseCommand = subparser $ genCommand <> summCommand <> confCommand <> daemonCommand
@@ -192,5 +194,5 @@ parseCommand = subparser $ genCommand <> summCommand <> confCommand <> daemonCom
 
 cli :: IO Action
 cli = execParser (info (parseCommand <**> helper)
-                          (fullDesc <> progDesc "blah"
+                          (fullDesc <> progDesc "A simple mood and habit tracker"
                                     <> header "Hygeia"))

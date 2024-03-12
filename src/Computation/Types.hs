@@ -170,9 +170,6 @@ instance Pretty Drink where
       <> line
 
 
-
-testDrinkList = [Drink "Tequila" 10, Drink "Aragh" 7, Drink "Whiskey" 14]
-
 instance {-# OVERLAPS #-} Pretty [Drink] where
   pretty list
     = let

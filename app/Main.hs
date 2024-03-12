@@ -4,6 +4,7 @@ module Main where
 
 import           CLI
 
+import           Computation.Monad
 import           Computation.Utils
 
 import           Config
@@ -12,6 +13,7 @@ import qualified Data.ByteString.Char8  as B
 import qualified Data.ByteString.Lazy   as BL
 import           Data.Text              ( Text )
 
+import           System.Directory
 
 import           Parser.Entry           ( parseDay, parseEntry,
                                           parseMeditations, parseProductivity )
@@ -29,7 +31,11 @@ Version 2: Print summary, if verbose flag is on, print exact entries too.
 Version 3: TUI! that would be very clean!
 -}
 
-main = parseEntryTest
+main = do
+  action <- cli
+  createDirectoryIfMissing True (_entryDirectory defaultConfig)
+  putStrLn "built Hygeia!"
+
 
 
 parseEntryTest :: IO ()
@@ -38,4 +44,3 @@ parseEntryTest = do
   case runParser parseProductivity sample of
     Right x -> print x
     Left y  -> putStrLn y
-
