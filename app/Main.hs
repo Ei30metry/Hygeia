@@ -33,7 +33,8 @@ Version 3: TUI! that would be very clean!
 
 main = do
   action <- cli
-  createDirectoryIfMissing True (_entryDirectory defaultConfig)
+  env <- buildInitialEnv action
+  createDirectoryIfMissing True (_entryDirectory (envConf env))
   putStrLn "built Hygeia!"
 
 

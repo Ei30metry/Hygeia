@@ -4,7 +4,7 @@ import           Config
 
 import           Control.Applicative        ( Alternative )
 import           Control.Lens.Operators     ( (^.) )
-import           Control.Monad              ( guard )
+import           Control.Monad
 import           Control.Monad.IO.Class     ( MonadIO, liftIO )
 import           Control.Monad.Trans.Reader ( ReaderT (..), ask )
 
@@ -15,6 +15,7 @@ import qualified Data.Text                  as T
 import qualified Data.Text.IO               as TIO
 import           Data.Time                  ( Day, UTCTime, getCurrentTime,
                                               utctDay )
+import           Data.Traversable
 
 import           System.Directory           ( getHomeDirectory )
 import           System.IO                  ( writeFile )
@@ -72,3 +73,9 @@ writeTemplate date = do
       entryPath = conf ^. entryDirectory
       path = mconcat [entryPath, show date, ".entry"]
   liftIO $ B.writeFile path (createTemplate entryPath userName date optHeaders)
+
+
+writeTemplates :: (MonadIO m, Alternative m) => Interval -> Day -> ReaderT Config m ()
+writeTemplates ac firstDay = do
+  today <- utctDay <$> liftIO getCurrentTime
+  mapM_ writeTemplate (buildDays ac firstDay today)

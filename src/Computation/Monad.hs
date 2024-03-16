@@ -35,40 +35,21 @@ data Action = Summary [C.EntryField] C.Interval
             deriving (Show, Eq)
 
 
-defaultConfig :: C.Config
-defaultConfig = C.Config userInfo' daemonConf' templateConf' optHeader' "/Users/artin/Documents/Hygeia/"
-  where
-    osInfo'       = C.OsInfo os (serviceManager os)
-    daemonConf'   = C.DaemonConf True osInfo'
-    optHeader'    = C.OptH True True True
-    templateConf' = C.TempConf True
-    userInfo'     = C.Info "Unknown"
+
 
 
 type Comp e r = ReaderT e (Except CompError) r
 
 
-data Env = Env { envConf :: C.Config
-               , action  :: Action } deriving (Show, Eq)
+data Env = Env { envConf       :: C.Config
+               , action        :: Action
+               , firstEntryDay :: Maybe Day }
+         deriving (Show, Eq)
 
--- TODO This has to be runComp
--- runAction :: MonadIO m => Comp Env () -> m ()
--- runAction a c = writeTemplates a c
--- runAction _ c = undefined
-
-
-writeTemplates :: C.Interval -> C.Config -> IO ()
-writeTemplates ac c =
-  case ac of
-    C.DefInterval C.Today -> do
-      day <- utctDay <$> getCurrentTime
-      runReaderT (writeTemplate day) c
-      putStrLn $ "Wrote entry file for " ++ show day
-    _ -> putStrLn "Blah"
-
--- TODO This needs to be fixed
--- runComp :: Comp a -> C.Config -> Either CompError a
--- runComp comp = runExcept . runReaderT comp
+-- NOTE this should query the sqalite database
+buildInitialEnv :: Action -> IO Env
+buildInitialEnv ac = getFirstDay >>= pure . Env C.defaultConfig ac
+  where getFirstDay = pure undefined
 
 
 saveEntry :: Entry Summaraized -> IO ()

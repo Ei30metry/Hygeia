@@ -173,12 +173,12 @@ dateOption  = Date <$> option dateParser (long "date" <> short 'D' <> metavar "Y
                                            Right x -> join $ Right (readEither x)
                                            Left e  -> Left (show e)
 
--- NOTE default value All
+
 dayOption, weekOption, monthOption, yearOption :: Parser Interval
-dayOption   = Day <$> option auto (long "day" <> short 'd' <> metavar "n")
-weekOption  = Week <$> option auto (long "week" <> short 's' <> metavar "n")
-monthOption = Month <$> option auto (long "month" <> short 'm' <> metavar "n")
-yearOption  = Year <$> option auto (long "year" <> short 'y' <> metavar "n")
+dayOption   = Days   <$> option auto (long "day" <> short 'd' <> metavar "n")
+weekOption  = Weeks  <$> option auto (long "week" <> short 's' <> metavar "n")
+monthOption = Months <$> option auto (long "month" <> short 'm' <> metavar "n")
+yearOption  = Years  <$> option auto (long "year" <> short 'y' <> metavar "n")
 
 
 parseInterval dval = dayOption <|> weekOption <|> monthOption <|> yearOption <|> pure dval
