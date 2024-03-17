@@ -47,10 +47,15 @@ spec_findDayTarget = describe "Find the correct day target" $ do
        `shouldBe`
        (Just $ read "2024-02-11")
   
-    it "Can decrease 2024-03-17 by 20 years" $
+    it "Returns Notning on a date earlier than the first entry date" $
       findTargetDay interval6 firstDay today
       `shouldBe`
-      (Just $ read "2004-03-17")
+      Nothing
+
+    it "Can decrease the date by 3 weeks" $
+      findTargetDay interval7 firstDay today
+      `shouldBe`
+      (Just $ read "2024-02-25")
     -- NOTE This should be in spec_interval
     -- it "Transforms (Months -1) to (Months 1))"
 
@@ -63,13 +68,19 @@ spec_findDayTarget = describe "Find the correct day target" $ do
     interval4 = DefInterval All
     interval5 = Days 35
     interval6 = Years 20
-
+    interval7 = Weeks 3
 
 
 spec_Interval :: Spec
 spec_Interval = undefined
   where
-    interval6 = Months (-1) -- NOTE move this to spec_Interval
+    interval1 = Months (-1)
+    interval2 = Years 2
+    interval3 = Date (read "2024-02-11")
+    interval4 = DefInterval Today
+    interval5 = DefInterval All
+    interval6 = Weeks 7
+    interval7 = Days 53
 
     
 spec_Config :: Spec

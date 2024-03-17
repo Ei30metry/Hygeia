@@ -142,7 +142,6 @@ buildDays interval firstDay today
 isValidDate :: Day -> Bool
 isValidDate = undefined
 
--- NOTE See if you have to handle the leap years manually.
 {-
 TODO
 We should make sure that the final result is less thanor equal to first entry date
@@ -152,18 +151,20 @@ if we invoke this function because of the generate function, we should be able t
 -}
 findTargetDay :: Interval -> Day -> Day -> Maybe Day
 findTargetDay interval firstDay day
-  = case interval of
-      DefInterval Today -> Just day
-      DefInterval All   -> Just firstDay
-      Date x            -> if isValidDate x then Just x else Nothing
-      Days x            -> Just $ addDays (-x) day
-      Weeks x           -> Just $ addDays (-x * 4) day
-      Months x          -> Just $ MonthDay (addMonths (-x) (dayPeriod @Month day))
-                                          (toGregorian day ^. _3)
-      Years x           -> Just $ fromGregorian (year - x)
-                                               monthOfYear dayOfMonth
+  = handleDate =<< (case interval of
+                      DefInterval Today -> Just day
+                      DefInterval All   -> Just firstDay
+                      Date x            -> if isValidDate x then Just x else Nothing
+                      Days x            -> Just $ addDays (-x) day
+                      Weeks x           -> Just $ addDays (-x * 7) day
+                      Months x          -> Just $ MonthDay (addMonths (-x) (dayPeriod @Month day))
+                                                          (toGregorian day ^. _3)       
+                      Years x           -> Just $ fromGregorian (year - x)
+                                               monthOfYear dayOfMonth)
         where
           (year,monthOfYear,dayOfMonth) = toGregorian day
+          handleDate d | d >= firstDay = Just d
+                       | otherwise    = Nothing
 
 
 monthDays :: Bool -> Map MonthOfYear Int
