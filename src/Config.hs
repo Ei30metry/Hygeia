@@ -133,36 +133,31 @@ data Interval = Date Day
               deriving (Show, Eq)
 
 -- | Takes the interval and the first day that the user wrote an entry current day as its arguments
-buildDays :: Interval -> Day -> Day -> Maybe [Day]
-buildDays interval firstDay today
-  = findTargetDay interval firstDay today
-  >>= \tday -> pure [tday .. today]
+buildDays :: Bool -> Interval -> Day -> Day -> Maybe [Day]
+buildDays allowFuture interval firstDay today
+  = findTargetDay allowFuture interval firstDay today
+  >>= \day -> pure (builder day today)
+  where
+    builder day today
+      | allowFuture = [today .. day]
+      | otherwise   = [day .. today]
 
 
-isValidDate :: Day -> Bool
-isValidDate = undefined
-
-{-
-TODO
-We should make sure that the final result is less thanor equal to first entry date
-
-NOTE
-if we invoke this function because of the generate function, we should be able to parse future dates. which means we'll have to take one more argument. 
--}
-findTargetDay :: Interval -> Day -> Day -> Maybe Day
-findTargetDay interval firstDay day
+findTargetDay :: Bool -> Interval -> Day -> Day -> Maybe Day
+findTargetDay futureDate interval firstDay day
   = handleDate =<< (case interval of
                       DefInterval Today -> Just day
                       DefInterval All   -> Just firstDay
-                      Date x            -> if isValidDate x then Just x else Nothing
-                      Days x            -> Just $ addDays (-x) day
-                      Weeks x           -> Just $ addDays (-x * 7) day
-                      Months x          -> Just $ MonthDay (addMonths (-x) (dayPeriod @Month day))
+                      Date x            -> undefined -- if x >= firstDay then Just x else Nothing
+                      Days x            -> Just $ addDays (sign x) day
+                      Weeks x           -> Just $ addDays (sign x * 7) day
+                      Months x          -> Just $ MonthDay (addMonths (sign x) (dayPeriod @Month day))
                                                           (toGregorian day ^. _3)       
-                      Years x           -> Just $ fromGregorian (year - x)
+                      Years x           -> Just $ fromGregorian (year + (sign x))
                                                monthOfYear dayOfMonth)
         where
           (year,monthOfYear,dayOfMonth) = toGregorian day
+          sign x = if futureDate then x else -x
           handleDate d | d >= firstDay = Just d
                        | otherwise    = Nothing
 

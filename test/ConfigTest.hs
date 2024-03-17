@@ -23,39 +23,45 @@ import           Test.Tasty.Hspec
 spec_findDayTarget :: Spec
 spec_findDayTarget = describe "Find the correct day target" $ do
     it "Can decrease 2024-03-17 by one month" $
-       findTargetDay interval1 firstDay today
+       findTargetDay False interval1 firstDay today
        `shouldBe`
        (Just $ read "2024-02-17")
 
     it "Can decrease 2024-03-17 by one year" $
-       findTargetDay interval2 firstDay today
+       findTargetDay False interval2 firstDay today
        `shouldBe`
        (Just $ read "2023-03-17")
 
     it "Can return today (2024-03-17)" $
-       findTargetDay interval3 firstDay today
+       findTargetDay False interval3 firstDay today
        `shouldBe`
        (Just $ today)
 
     it "Can return the date of the first entry ever" $
-       findTargetDay interval4 firstDay today
+       findTargetDay False interval4 firstDay today
        `shouldBe`
        (Just $ firstDay)
 
     it "Can decrease 2024-03-17 by 35 days" $
-       findTargetDay interval5 firstDay today
+       findTargetDay False interval5 firstDay today
        `shouldBe`
        (Just $ read "2024-02-11")
   
     it "Returns Notning on a date earlier than the first entry date" $
-      findTargetDay interval6 firstDay today
+      findTargetDay False interval6 firstDay today
       `shouldBe`
       Nothing
 
     it "Can decrease the date by 3 weeks" $
-      findTargetDay interval7 firstDay today
+      findTargetDay False interval7 firstDay today
       `shouldBe`
       (Just $ read "2024-02-25")
+
+    it "Can increase the date if allowFuture is True" $
+      findTargetDay True interval7 firstDay today
+      `shouldBe`
+      (Just $ read "2024-04-07")
+      
     -- NOTE This should be in spec_interval
     -- it "Transforms (Months -1) to (Months 1))"
 
@@ -81,6 +87,7 @@ spec_Interval = undefined
     interval5 = DefInterval All
     interval6 = Weeks 7
     interval7 = Days 53
+    interval8 = undefined
 
     
 spec_Config :: Spec

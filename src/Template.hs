@@ -76,9 +76,9 @@ writeTemplate date = do
   liftIO $ B.writeFile path (createTemplate entryPath userName date optHeaders)
 
 
-writeTemplates :: (MonadIO m, Alternative m) => Interval -> Day -> ReaderT Config m ()
-writeTemplates interval firstDay = do
+writeTemplates :: (MonadIO m, Alternative m) => Bool -> Interval -> Day -> ReaderT Config m ()
+writeTemplates allowFuture interval firstDay = do
   today <- utctDay <$> liftIO getCurrentTime
-  case buildDays interval firstDay today of
+  case buildDays allowFuture interval firstDay today of
     Just days -> mapM_ writeTemplate days
     Nothing -> liftIO $ putStrLn "Something wen't wrong"
