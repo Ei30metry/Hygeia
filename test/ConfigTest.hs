@@ -21,7 +21,7 @@ import           Test.Tasty.Hspec
 --   print val
 
 spec_findDayTarget :: Spec
-spec_findDayTarget = describe "Find the correct day target" $ do
+spec_findDayTarget = describe "Finds the correct day target" $ do
     it "Can decrease 2024-03-17 by one month" $
        findTargetDay False interval1 firstDay today
        `shouldBe`
@@ -62,8 +62,6 @@ spec_findDayTarget = describe "Find the correct day target" $ do
       `shouldBe`
       (Just $ read "2024-04-07")
       
-    -- NOTE This should be in spec_interval
-    -- it "Transforms (Months -1) to (Months 1))"
 
   where
     today = read "2024-03-17"
@@ -76,7 +74,7 @@ spec_findDayTarget = describe "Find the correct day target" $ do
     interval6 = Years 20
     interval7 = Weeks 3
 
-
+-- NOTE it "Transforms (Months -1) to (Months 1))"
 spec_Interval :: Spec
 spec_Interval = undefined
   where

@@ -83,17 +83,17 @@ Subcommands:
 parseEntryField :: Parser [EntryField]
 parseEntryField = some (argument (eitherReader helper) (metavar "ENTRYFIELD"))
   where
-    helper "mood"         = Right MoodField
-    helper "meditation"   = Right MeditationField
-    helper "cigarette"    = Right CigaretteField
-    helper "drink"        = Right DrinkField
-    helper "sleep"        = Right SleepField
-    helper "productivity" = Right ProductivityField
+    helper "Mood"         = Right MoodField
+    helper "Meditation"   = Right MeditationField
+    helper "Cigarette"    = Right CigaretteField
+    helper "Drink"        = Right DrinkField
+    helper "Sleep"        = Right SleepField
+    helper "Productivity" = Right ProductivityField
     helper x              = Left $ show x ++ " is not an entry field."
 
 
 parseGenerate, parseDaemon, parseSummary, parseConfig :: Parser Action
-parseGenerate = Generate <$> parseInterval (DefInterval Today)
+parseGenerate = Generate <$> parseInterval Today
 
 -- TODO Should print available operations to the user
 -- TODO Use error handling facilities provided by Options.Applicative instead of throwError
@@ -105,10 +105,10 @@ parseDaemon = Daemon <$> argument (eitherReader helper) (metavar "METAVAR")
         helper x          = throwError $ show x ++ " is not a daemon operation."
 
 -- NOTE Should print available entry fields to the user
-parseSummary = Summary <$> parseEntryField <*> parseInterval (DefInterval All)
+parseSummary = Summary <$> parseEntryField <*> parseInterval All
 
 
-parseLookup = Lookup <$> parseEntryField <*> parseInterval (DefInterval All)
+parseLookup = Lookup <$> parseEntryField <*> parseInterval All
 
 -- NOTE we shold do a check to see if the value passed is actually acceptable
 parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
@@ -148,8 +148,15 @@ parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
             unknown      -> Left ("Uknown Optional Header, " ++ unknown)
 
 
-dateOption :: Parser Interval
-dateOption  = Date <$> option dateParser (long "date" <> short 'D' <> metavar "YYYY-MM-DD")
+
+
+
+dateOption,dayOption, weekOption, monthOption, yearOption :: Parser Interval
+dayOption   = Days   <$> option (abs <$> auto) (long "day" <> short 'd' <> metavar "n")
+weekOption  = Weeks  <$> option (abs <$> auto) (long "week" <> short 's' <> metavar "n")
+monthOption = Months <$> option (abs <$> auto) (long "month" <> short 'm' <> metavar "n")
+yearOption  = Years  <$> option (abs <$> auto) (long "year" <> short 'y' <> metavar "n")
+dateOption  = Date   <$> option dateParser     (long "date" <> short 'D' <> metavar "YYYY-MM-DD")
   where
     parseDate = P.many (P.digit <|> P.char '-')
     dateParser = eitherReader $ \s -> case P.runParser parseDate () "" s of
@@ -157,20 +164,15 @@ dateOption  = Date <$> option dateParser (long "date" <> short 'D' <> metavar "Y
                                            Left e  -> Left (show e)
 
 
-dayOption, weekOption, monthOption, yearOption :: Parser Interval
-dayOption   = Days   <$> option auto (long "day" <> short 'd' <> metavar "n")
-weekOption  = Weeks  <$> option auto (long "week" <> short 's' <> metavar "n")
-monthOption = Months <$> option auto (long "month" <> short 'm' <> metavar "n")
-yearOption  = Years  <$> option auto (long "year" <> short 'y' <> metavar "n")
+parseInterval :: DefaultInterval -> Parser Interval
+parseInterval dval = dayOption <|> dateOption <|> weekOption <|> monthOption <|> yearOption <|> pure (DefInterval dval)
 
 
-parseInterval dval = dayOption <|> weekOption <|> monthOption <|> yearOption <|> pure dval
-
-
-parseCommand = subparser $ genCommand <> summCommand <> confCommand <> daemonCommand
+parseCommand :: Parser Action
+parseCommand = subparser $ genCommand <> summCommand <> confCommand <> daemonCommand <> lookupCommand
   where genCommand    = command "generate" (info parseGenerate (progDesc "Generate an entry template"))
         summCommand   = command "summary" (info parseSummary (progDesc "Show summary of the entries"))
-        lookupCommand = command "show" (info parseLookup (progDesc "Show exact entries"))
+        lookupCommand = command "lookup" (info parseLookup (progDesc "Lookup exact entries"))
         confCommand   = command "config" (info parseConfig (progDesc "Configuration"))
         daemonCommand = command "daemon" (info parseDaemon (progDesc "Daemon"))
 
