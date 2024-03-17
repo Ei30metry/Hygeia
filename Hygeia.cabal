@@ -107,6 +107,7 @@ test-suite Hygeia-test
   other-modules:
        Paths_Hygeia
      , CLITest
+     , ConfigTest
      , ParserTest
      , ComputationTest
   hs-source-dirs:

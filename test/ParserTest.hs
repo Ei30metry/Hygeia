@@ -22,17 +22,17 @@ import           Test.Tasty.Hspec
 spec_productivityHeader :: Spec
 spec_productivityHeader = describe "Productivity header" $ do
   it "Parses the productivity header" $
-     (runParseProductivity sample1)
+     runParseProductivity sample1
      `shouldBe`
      (Right . HProductivity $ Pro (6 % 11))
 
   it "Throws an error if the denominator is 0" $
-      (runParseProductivity sample2)
+      runParseProductivity sample2
       `shouldBe`
       Left (show DivisionByZero)
 
   it "Throws an error if the numerator is bigger than the denominator" $
-      (runParseProductivity sample3)
+      runParseProductivity sample3
       `shouldBe`
       (Left . show . TooProductive . show $ Pro (10 % 9))
   where
@@ -45,17 +45,17 @@ spec_productivityHeader = describe "Productivity header" $ do
 spec_dayHeader :: Spec
 spec_dayHeader = describe "Day header" $ do 
    it "Parses the day header with the date 2022-04-04" $
-     (runParser parseDay sample1)
+     runParser parseDay sample1
      `shouldBe`
      (Right $ read @Day "2022-04-04")
 
    it "Parses the day header with the date 2012-12-12" $
-     (runParser parseDay sample2)
+     runParser parseDay sample2
      `shouldBe`
      (Right $ read @Day "2012-12-12")
 
    it "Throws Invalid date error on 2023-15-48" $
-     (runParser parseDay sample3)
+     runParser parseDay sample3
      `shouldBe`
      Left "Not a valid date: 2023-15-48"
   where
@@ -67,15 +67,15 @@ spec_dayHeader = describe "Day header" $ do
 spec_moodHeader :: Spec
 spec_moodHeader = describe "Mood header" $ do 
     it "Parses correct mood entries" $ 
-        (runParser parseMoods sample1)
+        runParser parseMoods sample1
         `shouldBe`
         result1
     it "Throws Unknown Intensity error on wrong intensity" $
-        (runParser parseMoods sample2)
+        runParser parseMoods sample2
         `shouldBe`
         result2
     it "Throws Unknown Mood error on wrong mood" $
-        (runParser parseMoods sample3)
+        runParser parseMoods sample3
         `shouldBe`
         result3
   where
@@ -92,31 +92,31 @@ spec_moodHeader = describe "Mood header" $ do
 spec_parseTime :: Spec
 spec_parseTime = describe "Time input" $ do
     it "Parses the time 06:30" $
-      (runParser time "06:30")
+      runParser time "06:30"
       `shouldBe`
-      (Right 23400)
+      Right 23400
     it "Parses the time 00:00" $
-      (runParser time "00:00")
+      runParser time "00:00"
       `shouldBe`
-      (Right 0)
+      Right 0
     it "Parses the time 13:45" $
-      (runParser time "13:45")
+      runParser time "13:45"
       `shouldBe`
-      (Right 49500)
+      Right 49500
     it "Won't parse time 25:55" $
-      (runParser time "25:55")
+      runParser time "25:55"
       `shouldBe`
       (Left . show $ InvalidTime "25:55")
     it "Won't parse negative time" $
-       (runParser time "-10:55")
+       runParser time "-10:55"
        `shouldNotBe`
-       (Right (-32700))
+       Right (-32700)
 
 
 spec_sleepHeader :: Spec
 spec_sleepHeader = describe "Sleep header" $ do
     it "Parses the correct Sleep header" $ 
-       (runParser parseSleep sampleSleepHeader)
+       runParser parseSleep sampleSleepHeader
        `shouldBe`
        (Right . HSleep $ SP 23400 0)
 
@@ -127,7 +127,7 @@ spec_sleepHeader = describe "Sleep header" $ do
 spec_drinkHeader :: Spec
 spec_drinkHeader = describe "Drink header" $ do
   it "Parses the correct Drink header" $ 
-      (runParser parseDrinks sampleDrinkHeader)
+      runParser parseDrinks sampleDrinkHeader
       `shouldBe`
       (Right . HDrinks $ [Drink "tequila" 5
                          ,Drink "whiskey" 10])
@@ -139,7 +139,7 @@ spec_drinkHeader = describe "Drink header" $ do
 spec_meditationHeader :: Spec
 spec_meditationHeader = describe "Meditation header" $
   it "Parses the correct Meditation header" $ 
-     (runParser parseMeditations sampleMeditationHeader)
+     runParser parseMeditations sampleMeditationHeader
      `shouldBe`
      (Right . HMeditations $ [Med ("20",1200)
                              ,Med ("25",1500)
@@ -151,7 +151,7 @@ spec_meditationHeader = describe "Meditation header" $
 spec_cigaretteHeader :: Spec
 spec_cigaretteHeader = describe "Cigarette header" $
   it "Parses the correct Cigarette header" $ 
-     (runParser parseCigarettes sampleCigaretteHeader)
+     runParser parseCigarettes sampleCigaretteHeader
      `shouldBe`
      (Right . HCigarettes $ [Cigarette "Cigarettes are bad" 7 0.6 0.7
                             ,Cigarette "Cigarettes are terrible" 5 1 1.2])
@@ -162,17 +162,18 @@ spec_cigaretteHeader = describe "Cigarette header" $
 spec_ratingHeader :: Spec
 spec_ratingHeader = describe "Rating header" $ do
   it "Parses the correct Rating header" $
-     (runParser parseRating "[Rating]\nBad")
+     runParser parseRating "[Rating]\nBad"
      `shouldBe`
      (Right . HRating $ Bad)
 
--- NOTE Turn this into an assertion
+-- NOTE Turn this into a spec
 spec_parseEntry :: IO ()
 spec_parseEntry = do
   sample <- B.readFile "/Users/artin/Programming/projects/Hygeia/test/sample/sample.txt"
   case runParser parseEntry sample of
     Right x -> return ()
     Left y  -> putStrLn y
+
 
 spec_Parser_Entry :: Spec
 spec_Parser_Entry = do

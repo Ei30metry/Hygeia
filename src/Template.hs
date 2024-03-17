@@ -20,6 +20,7 @@ import           Data.Traversable
 import           System.Directory           ( getHomeDirectory )
 import           System.IO                  ( writeFile )
 
+
 data TemplateHeaders = NameT ByteString
                      | DateT Day
                      | MoodT
@@ -76,6 +77,8 @@ writeTemplate date = do
 
 
 writeTemplates :: (MonadIO m, Alternative m) => Interval -> Day -> ReaderT Config m ()
-writeTemplates ac firstDay = do
+writeTemplates interval firstDay = do
   today <- utctDay <$> liftIO getCurrentTime
-  mapM_ writeTemplate (buildDays ac firstDay today)
+  case buildDays interval firstDay today of
+    Just days -> mapM_ writeTemplate days
+    Nothing -> liftIO $ putStrLn "Something wen't wrong"

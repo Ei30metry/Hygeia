@@ -35,7 +35,7 @@ main = do
   action <- cli
   env <- buildInitialEnv action
   createDirectoryIfMissing True (_entryDirectory (envConf env))
-  putStrLn "built Hygeia!"
+  putStrLn "blah"
 
 
 

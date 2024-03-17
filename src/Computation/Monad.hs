@@ -15,6 +15,7 @@ import           Control.Monad.Trans.Writer
 import           Daemon
 
 import           Data.ByteString.Lazy.Char8 ( ByteString )
+import           Data.Functor
 import           Data.Time                  ( Day, UTCTime, getCurrentTime,
                                               utctDay )
 
@@ -35,9 +36,6 @@ data Action = Summary [C.EntryField] C.Interval
             deriving (Show, Eq)
 
 
-
-
-
 type Comp e r = ReaderT e (Except CompError) r
 
 
@@ -48,7 +46,7 @@ data Env = Env { envConf       :: C.Config
 
 -- NOTE this should query the sqalite database
 buildInitialEnv :: Action -> IO Env
-buildInitialEnv ac = getFirstDay >>= pure . Env C.defaultConfig ac
+buildInitialEnv ac = Env C.defaultConfig ac <$> getFirstDay
   where getFirstDay = pure undefined
 
 

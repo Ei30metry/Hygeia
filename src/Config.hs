@@ -3,12 +3,14 @@
 module Config where
 
 import           Control.Lens                     ( makeLenses )
+import           Control.Lens.Combinators
 import           Control.Lens.Operators
 import           Control.Monad
 
 import           Daemon
 
 import           Data.ByteString.Char8            ( ByteString )
+import           Data.Coerce
 import           Data.Map                         ( Map )
 import qualified Data.Map                         as M
 import           Data.Text                        ( Text, unpack )
@@ -17,7 +19,6 @@ import           Data.Time.Calendar
 import           Data.Time.Calendar.Month
 import           Data.Time.Calendar.MonthDay
 import           Data.Time.Calendar.WeekDate
--- import           Data.Time.Calendar.Week
 import           Data.YAML
 
 import           GHC.Generics
@@ -28,28 +29,30 @@ import           System.Posix.ByteString.FilePath
 
 newtype UserInfo = Info { _name  :: String } deriving (Eq, Show, Generic)
 
+
 data DaemonConf = DaemonConf { _runDaemon :: Bool
                              , _osInfo    :: OsInfo } deriving (Show, Eq, Generic)
 
 type OS = String
 
+
 data OsInfo = OsInfo { _osName             :: OS
                      , _serviceManagerInfo :: ServiceManager } deriving (Show, Eq, Generic)
-
 
 
 data OptHeader = OptH { _meditation :: Bool
                       , _alcohol    :: Bool
                       , _cigarette  :: Bool } deriving (Eq, Show, Generic)
 
+
 newtype TemplateConf = TempConf { _genTemplate :: Bool } deriving (Eq, Show, Generic)
+
 
 data Config = Config { _userInfo        :: UserInfo
                      , _daemonConf      :: DaemonConf
                      , _templateConf    :: TemplateConf
                      , _optionalHeaders :: OptHeader
                      , _entryDirectory  :: FilePath } deriving (Show, Eq, Generic)
-
 
 -- For now nothing is actually nested, but I have a feeling that things will escalate quickly.
 makeLenses ''UserInfo
@@ -105,7 +108,6 @@ data OHeaderField = OMeditation
                   deriving (Show, Eq)
 
 
-
 data EntryField = MoodField
                 | MeditationField
                 | CigaretteField
@@ -119,38 +121,49 @@ data EntryField = MoodField
 type Days = Int
 
 
+data DefaultInterval = All | Today deriving (Eq, Show)
+
+
 data Interval = Date Day
-              | Months Int
-              | Days Int
-              | Years Int
-              | Weeks Int
+              | Months Integer
+              | Days Integer
+              | Years Integer
+              | Weeks Integer
               | DefInterval DefaultInterval
               deriving (Show, Eq)
 
 -- | Takes the interval and the first day that the user wrote an entry current day as its arguments
 buildDays :: Interval -> Day -> Day -> Maybe [Day]
 buildDays interval firstDay today
-  | Just firstDay > (findTargetDay interval firstDay today)
-    = findTargetDay interval firstDay today >>= \tday -> Just [tday .. today]
-  | otherwise = Nothing
+  = findTargetDay interval firstDay today
+  >>= \tday -> pure [tday .. today]
 
 
-validDate :: Day -> Bool
-validDate = undefined
+isValidDate :: Day -> Bool
+isValidDate = undefined
 
+-- NOTE See if you have to handle the leap years manually.
+{-
+TODO
+We should make sure that the final result is less thanor equal to first entry date
 
--- NOTE we need to take the first day in this function, because the user might request the "All" interval
+NOTE
+if we invoke this function because of the generate function, we should be able to parse future dates. which means we'll have to take one more argument. 
+-}
 findTargetDay :: Interval -> Day -> Day -> Maybe Day
 findTargetDay interval firstDay day
   = case interval of
-      Date x            -> Just x
-      Months x          -> Just $ undefined
-      Days x            -> Just $ addDays (- fromIntegral x) day
-      Years x           -> Just $ undefined
-      Weeks x           -> Just $ undefined
       DefInterval Today -> Just day
       DefInterval All   -> Just firstDay
-
+      Date x            -> if isValidDate x then Just x else Nothing
+      Days x            -> Just $ addDays (-x) day
+      Weeks x           -> Just $ addDays (-x * 4) day
+      Months x          -> Just $ MonthDay (addMonths (-x) (dayPeriod @Month day))
+                                          (toGregorian day ^. _3)
+      Years x           -> Just $ fromGregorian (year - x)
+                                               monthOfYear dayOfMonth
+        where
+          (year,monthOfYear,dayOfMonth) = toGregorian day
 
 
 monthDays :: Bool -> Map MonthOfYear Int
@@ -161,9 +174,6 @@ monthDays leapYear
   where
     february True  = (February, 29)
     february False = (February, 28)
-
-
-data DefaultInterval = All | Today deriving (Eq, Show)
 
 
 data DaemonCommand = Start | Restart | Shutdown | Stop

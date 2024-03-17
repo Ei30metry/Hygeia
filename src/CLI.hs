@@ -80,23 +80,6 @@ Subcommands:
      - template
 
 -}
-
-
--- verbosity flag that prints the exact entries.
--- probably have to change the location of this
-
-
--- defaultConfig :: Config
--- instead of subcommands for parseGenerate and parseSummary, use options
-
-{-
-default value for Interval differs for every action.
-
-In Generate, it's Day "today"
-In Summary, it's All
-we would need a convinient way to convey this information
-
--}
 parseEntryField :: Parser [EntryField]
 parseEntryField = some (argument (eitherReader helper) (metavar "ENTRYFIELD"))
   where
@@ -166,7 +149,7 @@ parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
 
 
 dateOption :: Parser Interval
-dateOption  = Date <$> option dateParser (long "date" <> short 'D' <> metavar "YY-MM-DD")
+dateOption  = Date <$> option dateParser (long "date" <> short 'D' <> metavar "YYYY-MM-DD")
   where
     parseDate = P.many (P.digit <|> P.char '-')
     dateParser = eitherReader $ \s -> case P.runParser parseDate () "" s of
