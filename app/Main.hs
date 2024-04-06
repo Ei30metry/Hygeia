@@ -28,7 +28,7 @@ import           Text.Parsec.ByteString
 {-
 Version 1: Only print summary.
 Version 2: Print summary, if verbose flag is on, print exact entries too.
-Version 3: TUI! that would be very clean!
+Version 3: TUI
 -}
 
 main = do
@@ -36,7 +36,6 @@ main = do
   env <- buildInitialEnv action
   createDirectoryIfMissing True (_entryDirectory (envConf env))
   print action
-
 
 
 parseEntryTest :: IO ()

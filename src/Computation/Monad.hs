@@ -30,26 +30,29 @@ data CompError
 type Days = Int
 
 
-data Action = Summary [C.EntryField] C.Interval
-            | Lookup [C.EntryField] C.Interval
-            | Config C.ConfCommand
-            | Generate C.Interval
-            | Daemon C.DaemonCommand
-            deriving (Show, Eq)
-
+data Action
+  = Summary [C.EntryField] C.Interval
+  | Lookup [C.EntryField] C.Interval
+  | Config C.ConfCommand
+  | Generate C.Interval
+  deriving (Show, Eq)
 
 type Comp e r = ReaderT e (Except CompError) r
 
+data Env =
+  Env
+    { envConf :: C.Config
+    , action :: Action
+    , firstEntryDay :: Maybe Day
+    }
+  deriving (Show, Eq)
 
-data Env = Env { envConf       :: C.Config
-               , action        :: Action
-               , firstEntryDay :: Maybe Day }
-         deriving (Show, Eq)
 
 -- NOTE This should query the sqlite database
 buildInitialEnv :: Action -> IO Env
 buildInitialEnv ac = Env C.defaultConfig ac <$> getFirstDay
-  where getFirstDay = pure undefined
+  where
+    getFirstDay = pure undefined
 
 
 saveEntry :: Entry Summaraized -> IO ()
@@ -70,7 +73,7 @@ runAction :: Env -> IO ()
 runAction (Env conf action firstDay) = do
   today <- utctDay <$> getCurrentTime
   case action of
-      Generate interval -> undefined -- TODO
+    Generate interval -> undefined -- TODO
 
 
 runComputation :: Comp Env ()

@@ -36,11 +36,6 @@ hygeia config
 
 Subcommands:
 
-- daemon:
-   - start
-   - restart
-   - shutdown
-
 - lookup
    - EntryField
 
@@ -89,20 +84,11 @@ parseEntryField = some (argument (eitherReader helper) (metavar "ENTRYFIELD"))
     helper "Drink"        = Right DrinkField
     helper "Sleep"        = Right SleepField
     helper "Productivity" = Right ProductivityField
-    helper x              = Left $ show x ++ " is not an entry field."
+    helper x              = Left $ show x ++ " is not an entry field." -- NOTE should print all the available values
 
 
-parseGenerate, parseDaemon, parseSummary, parseConfig :: Parser Action
+parseGenerate, parseLookup, parseSummary, parseConfig :: Parser Action
 parseGenerate = Generate <$> parseInterval Today
-
--- TODO Should print available operations to the user
--- TODO Use error handling facilities provided by Options.Applicative instead of throwError
-parseDaemon = Daemon <$> argument (eitherReader helper) (metavar "METAVAR")
-  where helper "start"    = pure Start
-        helper "stop"     = pure Shutdown
-        helper "restart"  = pure Restart
-        helper "shutdown" = pure Shutdown
-        helper x          = throwError $ show x ++ " is not a daemon operation."
 
 -- NOTE Should print available entry fields to the user
 parseSummary = Summary <$> parseEntryField <*> parseInterval All
@@ -113,9 +99,13 @@ parseLookup = Lookup <$> parseEntryField <*> parseInterval All
 -- NOTE we shold do a check to see if the value passed is actually acceptable
 parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
   where
-    editCommand = command "edit" (info (pure Edit) (progDesc "open config file in $EDITOR"))
+    editCommand =
+      command "edit" (info (pure Edit) (progDesc "open config file in $EDITOR"))
+
     catCommand = command "cat" (info catC (progDesc "cat config field"))
-    setCommand = command "set" (info setC (progDesc "change the value of a config file entry"))
+
+    setCommand =
+      command "set" (info setC (progDesc "change the value of a config file entry"))
 
     catC = Cat <$> configField
     configField = argument (eitherReader helper') (metavar "configfield")
@@ -126,30 +116,32 @@ parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
       "on"    -> True
       "false" -> False
       "off"   -> False
-
     vReader x
-      | x `elem` ["true", "false", "on"
-                 ,"off", "true", "false"] = pure . BVal . readBoolish $ map toLower x
-
+      | x `elem` ["true", "false", "on", "off", "true", "false"] =
+        pure . BVal . readBoolish $ map toLower x
       | otherwise = pure (SVal x)
 
-    helper' "template"        = Right TemplateField
+    helper' "template" = Right TemplateField
     helper' "entry-directory" = Right EntryDirectoryField
-    helper' "daemon"          = Right DaemonField
-    helper' "info"            = Right UserInfoField
-    helper' x = optHeader =<< case splitOn ":" x of
-                   ["optional-headers", x] -> Right x
-                   _                       -> Left "Unknown config field"
+    helper' "daemon" = Right DaemonField
+    helper' "info" = Right UserInfoField
+    helper' x =
+      optHeader =<<
+      case splitOn ":" x of
+        ["optional-headers", x] -> Right x
+        _ -> Left "Unknown config field"
       where
-        optHeader xs = OptionalHeaderField <$> case xs of
+        optHeader xs =
+          OptionalHeaderField <$>
+          case xs of
             "meditation" -> Right OMeditation
-            "alcohol"    -> Right ODrink
-            "cigarette"  -> Right OCigarette
-            unknown      -> Left ("Uknown Optional Header, " ++ unknown)
+            "alcohol" -> Right ODrink
+            "cigarette" -> Right OCigarette
+            unknown -> Left ("Uknown Optional Header, " ++ unknown)
 
 
-dateOption,dayOption, weekOption, monthOption, yearOption :: Parser Interval
-dayOption   = Days   <$> option (abs <$> auto) (long "day" <> short 'd' <> metavar "n")
+dateOption, dayOption, weekOption, monthOption, yearOption :: Parser Interval
+dayOption   = Days   <$> option (abs <$> auto) (long "day" <> short 'd' <> metavar "n")a
 weekOption  = Weeks  <$> option (abs <$> auto) (long "week" <> short 's' <> metavar "n")
 monthOption = Months <$> option (abs <$> auto) (long "month" <> short 'm' <> metavar "n")
 yearOption  = Years  <$> option (abs <$> auto) (long "year" <> short 'y' <> metavar "n")
@@ -171,7 +163,7 @@ parseCommand :: Parser Action
 parseCommand = subparser $ genCommand <> summCommand <> confCommand <> daemonCommand <> lookupCommand
   where genCommand    = command "generate" (info parseGenerate (progDesc "Generate an entry template"))
         summCommand   = command "summary" (info parseSummary (progDesc "Show summary of the entries"))
-        lookupCommand = command "lookup" (info parseLookup (progDesc "Lookup exact entries"))
+        lookupCommand = command "lookup" (info parseLookup (progDesc "Lookup entries"))
         confCommand   = command "config" (info parseConfig (progDesc "Configuration"))
         daemonCommand = command "daemon" (info parseDaemon (progDesc "Daemon"))
 

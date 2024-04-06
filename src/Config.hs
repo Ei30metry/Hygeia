@@ -27,32 +27,54 @@ import           System.Info
 import           System.Posix.ByteString.FilePath
 
 
-newtype UserInfo = Info { _name  :: String } deriving (Eq, Show, Generic)
+newtype UserInfo = Info { _name :: String }
+  deriving (Eq, Show, Generic)
 
 
-data DaemonConf = DaemonConf { _runDaemon :: Bool
-                             , _osInfo    :: OsInfo } deriving (Show, Eq, Generic)
+data DaemonConf =
+  DaemonConf
+    { _runDaemon :: Bool
+    , _osInfo :: OsInfo
+    }
+  deriving (Show, Eq, Generic)
+
 
 type OS = String
 
 
-data OsInfo = OsInfo { _osName             :: OS
-                     , _serviceManagerInfo :: ServiceManager } deriving (Show, Eq, Generic)
+data OsInfo =
+  OsInfo
+    { _osName :: OS
+    , _serviceManagerInfo :: ServiceManager
+    }
+  deriving (Show, Eq, Generic)
 
 
-data OptHeader = OptH { _meditation :: Bool
-                      , _alcohol    :: Bool
-                      , _cigarette  :: Bool } deriving (Eq, Show, Generic)
+data OptHeader =
+  OptH
+    { _meditation :: Bool
+    , _alcohol :: Bool
+    , _cigarette :: Bool
+    }
+  deriving (Eq, Show, Generic)
 
 
-newtype TemplateConf = TempConf { _genTemplate :: Bool } deriving (Eq, Show, Generic)
+newtype TemplateConf =
+  TempConf
+    { _genTemplate :: Bool
+    }
+  deriving (Eq, Show, Generic)
 
 
-data Config = Config { _userInfo        :: UserInfo
-                     , _daemonConf      :: DaemonConf
-                     , _templateConf    :: TemplateConf
-                     , _optionalHeaders :: OptHeader
-                     , _entryDirectory  :: FilePath } deriving (Show, Eq, Generic)
+data Config =
+  Config
+    { _userInfo :: UserInfo
+    , _daemonConf :: DaemonConf
+    , _templateConf :: TemplateConf
+    , _optionalHeaders :: OptHeader
+    , _entryDirectory :: FilePath
+    }
+  deriving (Show, Eq, Generic)
 
 -- For now nothing is actually nested, but I have a feeling that things will escalate quickly.
 makeLenses ''UserInfo
@@ -83,29 +105,31 @@ instance FromYAML OptHeader where
     return (OptH med alco cig)
 
 
-data ConfCommand = Set ConfigField FieldValue
-                 | Edit
-                 | Cat ConfigField -- for now
-                 deriving (Show, Eq)
+data ConfCommand
+  = Set ConfigField FieldValue
+  | Edit
+  | Cat ConfigField -- for now
+  deriving (Show, Eq)
 
+data FieldValue
+  = BVal Bool
+  | SVal String
+  deriving (Show, Eq)
 
-data FieldValue = BVal Bool
-                | SVal String
-                deriving (Show, Eq)
+data ConfigField
+  = UserInfoField
+  | EntryDirectoryField
+  | DaemonField
+  | TemplateField
+  | OptionalHeaderField OHeaderField
+  deriving (Show, Eq)
 
+data OHeaderField
+  = OMeditation
+  | ODrink
+  | OCigarette
+  deriving (Show, Eq)
 
-data ConfigField = UserInfoField
-                 | EntryDirectoryField
-                 | DaemonField
-                 | TemplateField
-                 | OptionalHeaderField OHeaderField
-                 deriving (Show, Eq)
-
-
-data OHeaderField = OMeditation
-                  | ODrink
-                  | OCigarette
-                  deriving (Show, Eq)
 
 
 data EntryField = MoodField
@@ -121,66 +145,92 @@ data EntryField = MoodField
 type Days = Int
 
 
-data DefaultInterval = All | Today deriving (Eq, Show)
-
-
-data Interval = Date Day
-              | Months Integer
-              | Days Integer
-              | Years Integer
-              | Weeks Integer
-              | DefInterval DefaultInterval
-              deriving (Show, Eq)
-
--- | Takes the interval and the first day that the user wrote an entry current day as its arguments
-buildDays :: Bool -> Interval -> Day -> Day -> Maybe [Day]
-buildDays allowFuture interval firstDay today
-  = findTargetDay allowFuture interval firstDay today
-  >>= \day -> pure (builder day today)
-  where
-    builder day today
-      | allowFuture = [today .. day]
-      | otherwise   = [day .. today]
-
-
-findTargetDay :: Bool -> Interval -> Day -> Day -> Maybe Day
-findTargetDay futureDate interval firstDay day
-  = handleDate =<< (case interval of
-                      DefInterval Today -> Just day
-                      DefInterval All   -> Just firstDay
-                      Date x            -> undefined -- if x >= firstDay then Just x else Nothing
-                      Days x            -> Just $ addDays (sign x) day
-                      Weeks x           -> Just $ addDays (sign x * 7) day
-                      Months x          -> Just $ MonthDay (addMonths (sign x) (dayPeriod @Month day))
-                                                          (toGregorian day ^. _3)       
-                      Years x           -> Just $ fromGregorian (year + (sign x))
-                                               monthOfYear dayOfMonth)
-        where
-          (year,monthOfYear,dayOfMonth) = toGregorian day
-          sign x = if futureDate then x else -x
-          handleDate d | d >= firstDay = Just d
-                       | otherwise    = Nothing
-
-
-monthDays :: Bool -> Map MonthOfYear Int
-monthDays leapYear
-  = M.fromList [(January,31), february leapYear, (March,31), (April,30)
-               ,(May,31), (June,30), (July,31), (August,31), (September,30)
-               ,(October,31), (November,30), (December,31)]
-  where
-    february True  = (February, 29)
-    february False = (February, 28)
-
-
-data DaemonCommand = Start | Restart | Shutdown | Stop
+data DefaultInterval
+  = All
+  | Today
   deriving (Eq, Show)
 
 
-defaultConfig :: Config
-defaultConfig = Config userInfo' daemonConf' templateConf' optHeader' "/Users/artin/Documents/Hygeia/"
+
+data Interval
+  = Date Day
+  | Months Integer
+  | Days Integer
+  | Years Integer
+  | Weeks Integer
+  | DefInterval DefaultInterval
+  deriving (Show, Eq)
+
+
+-- | Takes the interval and the first day that the user wrote an entry current day as its arguments
+buildDays :: Bool -> Interval -> Day -> Day -> Maybe [Day]
+buildDays allowFuture interval firstDay today =
+  findTargetDay allowFuture interval firstDay today >>= \day ->
+    pure (builder day today)
   where
-    osInfo'       = OsInfo os (serviceManager os)
-    daemonConf'   = DaemonConf True osInfo'
-    optHeader'    = OptH True True True
+    builder day today
+      | allowFuture = [today .. day]
+      | otherwise = [day .. today]
+
+
+
+findTargetDay :: Bool -> Interval -> Day -> Day -> Maybe Day
+findTargetDay futureDate interval firstDay day =
+  handleDate =<<
+  (case interval of
+     DefInterval Today -> Just day
+     DefInterval All -> Just firstDay
+     Date x -> undefined -- if x >= firstDay then Just x else Nothing
+     Days x -> Just $ addDays (sign x) day
+     Weeks x -> Just $ addDays (sign x * 7) day
+     Months x ->
+       undefined -- Just $ MonthDay (addMonths (sign x) (dayPeriod @Month day))
+         (toGregorian day ^. _3)
+     Years x -> Just $ fromGregorian (year + (sign x)) monthOfYear dayOfMonth)
+  where
+    (year, monthOfYear, dayOfMonth) = toGregorian day
+    sign x =
+      if futureDate
+        then x
+        else -x
+    handleDate d
+      | d >= firstDay = Just d
+      | otherwise = Nothing
+
+
+
+monthDays :: Bool -> Map MonthOfYear Int
+monthDays leapYear =
+  M.fromList
+    [ (January, 31)
+    , february leapYear
+    , (March, 31)
+    , (April, 30)
+    , (May, 31)
+    , (June, 30)
+    , (July, 31)
+    , (August, 31)
+    , (September, 30)
+    , (October, 31)
+    , (November, 30)
+    , (December, 31)
+    ]
+  where
+    february True = (February, 29)
+    february False = (February, 28)
+
+
+defaultConfig :: Config
+defaultConfig =
+  Config
+    userInfo'
+    daemonConf'
+    templateConf'
+    optHeader'
+    "/Users/artin/Documents/Hygeia/"
+  where
+    osInfo' = OsInfo os (serviceManager os)
+    daemonConf' = DaemonConf True osInfo'
+    optHeader' = OptH True True True
     templateConf' = TempConf True
-    userInfo'     = Info "Unknown"
+    userInfo' = Info "Unknown"
