@@ -37,22 +37,25 @@ data Action
   | Generate C.Interval
   deriving (Show, Eq)
 
+
 type Comp e r = ReaderT e (Except CompError) r
+
 
 data Env =
   Env
-    { envConf :: C.Config
-    , action :: Action
+    { envConf       :: C.Config
+    , action        :: Action
     , firstEntryDay :: Maybe Day
     }
   deriving (Show, Eq)
-
 
 -- NOTE This should query the sqlite database
 buildInitialEnv :: Action -> IO Env
 buildInitialEnv ac = Env C.defaultConfig ac <$> getFirstDay
   where
     getFirstDay = pure undefined
+    getBlody    = undefined
+    fick        = undefined
 
 
 saveEntry :: Entry Summaraized -> IO ()
@@ -73,7 +76,10 @@ runAction :: Env -> IO ()
 runAction (Env conf action firstDay) = do
   today <- utctDay <$> getCurrentTime
   case action of
-    Generate interval -> undefined -- TODO
+    Generate interval -> runReaderT (writeTemplates interval (read "2023-06-02")) conf
+    Summary entryFields interval -> putStrLn ("Summary of " <> show interval)
+    Lookup entryFields interval -> putStrLn ("Lookup " <> show interval)
+    Config command -> putStrLn ("Command: " <> show command)
 
 
 runComputation :: Comp Env ()

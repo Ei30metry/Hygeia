@@ -17,7 +17,7 @@ import           Data.Time                  ( Day, UTCTime, getCurrentTime,
                                               utctDay )
 import           Data.Traversable
 
-import           System.Directory           ( getHomeDirectory )
+import           System.Directory           ( getHomeDirectory, doesFileExist )
 import           System.IO                  ( writeFile )
 
 
@@ -62,10 +62,9 @@ createTemplate entryPath name date optHeaders = mconcat $ map (B.pack . show) he
            ++ optHeadersToInclude
            ++ [ProductivityT, RatingT]
 
--- NOTE The entryPath directory should exist.
 -- | Generates a template entry file given a config
-writeTemplate :: (Alternative m , MonadIO m) => Day -> ReaderT Config m ()
-writeTemplate date = do
+dayTemplate :: (Alternative m , MonadIO m) => Day -> ReaderT Config m ByteString
+dayTemplate date = do
   conf <- ask
   let write = conf ^. templateConf . genTemplate
   guard write
@@ -73,12 +72,22 @@ writeTemplate date = do
       optHeaders = conf ^. optionalHeaders
       entryPath = conf ^. entryDirectory
       path = mconcat [entryPath, show date, ".entry"]
-  liftIO $ B.writeFile path (createTemplate entryPath userName date optHeaders)
+  return (createTemplate entryPath userName date optHeaders)
 
 
-writeTemplates :: (MonadIO m, Alternative m) => Bool -> Interval -> Day -> ReaderT Config m ()
-writeTemplates allowFuture interval firstDay = do
+writeTemplates :: (MonadIO m, Alternative m) => Interval -> Day -> ReaderT Config m ()
+writeTemplates interval firstDay = do
   today <- utctDay <$> liftIO getCurrentTime
-  case buildDays allowFuture interval firstDay today of
-    Just days -> mapM_ writeTemplate days
-    Nothing -> liftIO $ putStrLn "Something wen't wrong"
+  conf <- ask
+  case buildDays True interval firstDay today of
+    Just days ->
+      mapM_
+        (\day ->
+           dayTemplate day >>= \dt -> do
+             let entryPath =
+                   mconcat [conf ^. entryDirectory, show day, ".entry"]
+             fileEx <- liftIO $ doesFileExist entryPath
+             unless fileEx (liftIO $ B.writeFile entryPath dt))
+        days
+    Nothing ->
+      liftIO $ putStrLn "Something wen't wrong; buildDays returned Nothing"

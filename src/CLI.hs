@@ -141,16 +141,19 @@ parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
 
 
 dateOption, dayOption, weekOption, monthOption, yearOption :: Parser Interval
-dayOption   = Days   <$> option (abs <$> auto) (long "day" <> short 'd' <> metavar "n")a
-weekOption  = Weeks  <$> option (abs <$> auto) (long "week" <> short 's' <> metavar "n")
-monthOption = Months <$> option (abs <$> auto) (long "month" <> short 'm' <> metavar "n")
-yearOption  = Years  <$> option (abs <$> auto) (long "year" <> short 'y' <> metavar "n")
-dateOption  = Date   <$> option dateParser     (long "date" <> short 'D' <> metavar "YYYY-MM-DD")
+dayOption   = Days   <$> option (abs <$> auto) (long "day" <> short 'd' <> metavar "N")
+weekOption  = Weeks  <$> option (abs <$> auto) (long "week" <> short 'w' <> metavar "N")
+monthOption = Months <$> option (abs <$> auto) (long "month" <> short 'm' <> metavar "N")
+yearOption  = Years  <$> option (abs <$> auto) (long "year" <> short 'y' <> metavar "N")
+dateOption =
+  Date <$> option dateParser (long "date" <> short 'D' <> metavar "YYYY-MM-DD")
   where
     parseDate = P.many (P.digit <|> P.char '-')
-    dateParser = eitherReader $ \s -> case P.runParser parseDate () "" s of
-                                           Right x -> join $ Right (readEither x)
-                                           Left e  -> Left (show e)
+    dateParser =
+      eitherReader $ \s ->
+        case P.runParser parseDate () "" s of
+          Right x -> join $ Right (readEither x)
+          Left _ -> Left "Wrong date format"
 
 
 parseInterval :: DefaultInterval -> Parser Interval
@@ -160,12 +163,11 @@ parseInterval dval = dayOption <|> dateOption
 
 
 parseCommand :: Parser Action
-parseCommand = subparser $ genCommand <> summCommand <> confCommand <> daemonCommand <> lookupCommand
+parseCommand = subparser $ genCommand <> summCommand <> confCommand <> lookupCommand
   where genCommand    = command "generate" (info parseGenerate (progDesc "Generate an entry template"))
         summCommand   = command "summary" (info parseSummary (progDesc "Show summary of the entries"))
         lookupCommand = command "lookup" (info parseLookup (progDesc "Lookup entries"))
         confCommand   = command "config" (info parseConfig (progDesc "Configuration"))
-        daemonCommand = command "daemon" (info parseDaemon (progDesc "Daemon"))
 
 
 cli :: IO Action
