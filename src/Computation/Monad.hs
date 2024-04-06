@@ -26,7 +26,9 @@ import           Template
 
 data CompError
 
+
 type Days = Int
+
 
 data Action = Summary [C.EntryField] C.Interval
             | Lookup [C.EntryField] C.Interval
@@ -44,7 +46,7 @@ data Env = Env { envConf       :: C.Config
                , firstEntryDay :: Maybe Day }
          deriving (Show, Eq)
 
--- NOTE this should query the sqalite database
+-- NOTE This should query the sqlite database
 buildInitialEnv :: Action -> IO Env
 buildInitialEnv ac = Env C.defaultConfig ac <$> getFirstDay
   where getFirstDay = pure undefined
@@ -62,3 +64,14 @@ withComp = withReaderT
 
 
 mapComp = mapReaderT
+
+
+runAction :: Env -> IO ()
+runAction (Env conf action firstDay) = do
+  today <- utctDay <$> getCurrentTime
+  case action of
+      Generate interval -> undefined -- TODO
+
+
+runComputation :: Comp Env ()
+runComputation = undefined

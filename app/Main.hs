@@ -13,14 +13,14 @@ import qualified Data.ByteString.Char8  as B
 import qualified Data.ByteString.Lazy   as BL
 import           Data.Text              ( Text )
 
-import           System.Directory
-
 import           Parser.Entry           ( parseDay, parseEntry,
                                           parseMeditations, parseProductivity )
 import           Parser.Monad           ( runParser )
 
 import           Prettyprinter
 import           Prettyprinter.Util
+
+import           System.Directory
 
 import           Text.Parsec            ( parse, runParserT )
 import           Text.Parsec.ByteString

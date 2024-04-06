@@ -148,9 +148,6 @@ parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
             unknown      -> Left ("Uknown Optional Header, " ++ unknown)
 
 
-
-
-
 dateOption,dayOption, weekOption, monthOption, yearOption :: Parser Interval
 dayOption   = Days   <$> option (abs <$> auto) (long "day" <> short 'd' <> metavar "n")
 weekOption  = Weeks  <$> option (abs <$> auto) (long "week" <> short 's' <> metavar "n")
@@ -165,7 +162,9 @@ dateOption  = Date   <$> option dateParser     (long "date" <> short 'D' <> meta
 
 
 parseInterval :: DefaultInterval -> Parser Interval
-parseInterval dval = dayOption <|> dateOption <|> weekOption <|> monthOption <|> yearOption <|> pure (DefInterval dval)
+parseInterval dval = dayOption <|> dateOption
+                  <|> weekOption <|> monthOption
+                  <|> yearOption <|> pure (DefInterval dval)
 
 
 parseCommand :: Parser Action

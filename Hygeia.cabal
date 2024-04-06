@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
-name:           Hygeia
+name:           hygeia
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/Hygeia#readme>
-homepage:       https://github.com/Ei30metry/Hygeia#readme
-bug-reports:    https://github.com/Ei30metry/Hygeia/issues
+description:    Please see the README on GitHub at <https://github.com/githubuser/hygeia#readme>
+homepage:       https://github.com/Ei30metry/hygeia#readme
+bug-reports:    https://github.com/Ei30metry/hygeia/issues
 author:         Artin Ghasivand
 maintainer:     ghasivand.artin@gmail.com
 copyright:      2022 Artin Ghasivand
@@ -17,7 +17,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/Ei30metry/Hygeia
+  location: https://github.com/Ei30metry/hygeia
 
 library
   exposed-modules:
@@ -35,7 +35,7 @@ library
       , Template
 
   other-modules:
-      Paths_Hygeia
+      Paths_hygeia
 
   hs-source-dirs:
       src
@@ -47,7 +47,7 @@ library
     , lens
     , time
     , vector
-    , sqlite-simple
+    , beam-sqlite
     , containers
     , conduit
     , split
@@ -76,22 +76,22 @@ library
                     , TypeFamilyDependencies
                     
 
-executable Hygeia-exe
+executable hygeia-exe
   main-is: Main.hs
   other-modules:
-      Paths_Hygeia
+      Paths_hygeia
   hs-source-dirs:
       app
   ghc-options: -threaded -O2 -rtsopts -with-rtsopts=-N
   build-depends:
-      Hygeia
+      hygeia
     , base >=4.7 && <5
     , bytestring
     , lens
     , mtl
     , optparse-applicative
     , prettyprinter
-    , sqlite-simple
+    , beam-sqlite
     , parsec
     , process
     , time
@@ -101,11 +101,11 @@ executable Hygeia-exe
     , text
   default-language: Haskell2010
 
-test-suite Hygeia-test
+test-suite hygeia-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
-       Paths_Hygeia
+       Paths_hygeia
      , CLITest
      , ConfigTest
      , ParserTest
@@ -114,16 +114,16 @@ test-suite Hygeia-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-                  Hygeia
+                  hygeia
                 , HUnit
                 , QuickCheck
                 , base >=4.7 && <5
                 , bytestring
+                , beam-sqlite
                 , mtl
                 , time
                 , optparse-applicative
                 , parsec
-                , sqlite-simple
                 , tasty
                 , HsYAML
                 , tasty-hunit

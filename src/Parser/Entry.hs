@@ -13,7 +13,9 @@ import           Computation.Error
 import           Control.Applicative   ( liftA2, liftA3 )
 import           Control.Lens          ( bimap )
 import           Control.Monad         ( guard, when, (<=<), (=<<), (>=>) )
-import           Control.Monad.Except  ( Except, MonadError(..), liftEither, withError )
+import           Control.Monad.Except  ( Except, MonadError (..), liftEither,
+                                         withExcept )
+import           Control.Monad.Trans
 
 import           Data.ByteString.Char8 ( ByteString, unpack )
 import           Data.Coerce
@@ -61,8 +63,8 @@ dateSep = char '-'
 
 
 parseDate :: Parser Day
-parseDate = withError (\(CouldntRead x) -> InvalidDate x)
-                      (many (digit <|> dateSep) >>= readExcept)
+parseDate = withError' (\(CouldntRead x) -> InvalidDate x) (many (digit <|> dateSep) >>= readExcept)
+--  lift . return $ withExcept (\(CouldntRead x) -> InvalidDate x)
 
 -- | Parses the day header, at the top of the file
 parseDay :: Parser Day
@@ -75,8 +77,7 @@ parseDay = do
 
 
 parseIntensity :: Parser Intensity
-parseIntensity = withError (\(CouldntRead x) -> UnknownIntensity x)
-                           (readExcept =<< many letter)
+parseIntensity = withError' (\(CouldntRead x) -> UnknownIntensity x) (readExcept =<< many letter)
 
 -- | Parses all the mood data constructors, and returns a function
 parseMoodName :: Parser (Intensity -> Mood)
