@@ -36,10 +36,10 @@ hygeia config
 
 Subcommands:
 
-- lookup
+- TODO lookup
    - EntryField
 
-- generate:
+- DONE generate:
    - default: Template for today
    - options:
       date YY-MM-DD: Set a manual date for entry
@@ -47,7 +47,7 @@ Subcommands:
       month n:
       year n:
 
-- summary: moods cigarette and all the other headers, the user should be able to specify the things he wants specifically
+- TODO summary: moods cigarette and all the other headers, the user can specifiy the things he wants
    - nothing
    - default: all the entries
    - date YY-MM-DD
@@ -56,7 +56,7 @@ Subcommands:
    - week n
    - year n
 
-- config:
+- TODO config:
   - edit: use the $EDITOR
   - cat:
      - nothing
@@ -84,19 +84,18 @@ parseEntryField = some (argument (eitherReader helper) (metavar "ENTRYFIELD"))
     helper "Drink"        = Right DrinkField
     helper "Sleep"        = Right SleepField
     helper "Productivity" = Right ProductivityField
-    helper x              = Left $ show x ++ " is not an entry field." -- NOTE should print all the available values
+    helper x              = Left $ show x ++ " is not a valid entry field"
 
 
 parseGenerate, parseLookup, parseSummary, parseConfig :: Parser Action
 parseGenerate = Generate <$> parseInterval Today
 
--- NOTE Should print available entry fields to the user
+
 parseSummary = Summary <$> parseEntryField <*> parseInterval All
 
 
 parseLookup = Lookup <$> parseEntryField <*> parseInterval All
 
--- NOTE we shold do a check to see if the value passed is actually acceptable
 parseConfig = M.Config <$> subparser (catCommand <> editCommand <> setCommand)
   where
     editCommand =

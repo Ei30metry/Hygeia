@@ -15,6 +15,7 @@ import           Data.Either
 import           Data.Foldable
 import           Data.List
 import           Data.Ratio
+import           Data.Text          ( pack )
 import           Data.Time          ( Day, DiffTime, defaultTimeLocale,
                                       formatTime, secondsToDiffTime )
 
@@ -24,12 +25,13 @@ import           Prettyprinter.Util
 import           Text.Read          ( readEither )
 
 
-data Mood = Angry Intensity
-          | Sad Intensity
-          | Neutral
-          | Happy Intensity
-          | Excited Intensity
-          deriving (Read, Eq, Ord, Show)
+data Mood
+  = Angry Intensity
+  | Sad Intensity
+  | Neutral
+  | Happy Intensity
+  | Excited Intensity
+  deriving (Read, Eq, Ord, Show)
 
 -- NOTE This is here, because we don't want thing like ""
 moodMeaning :: Mood -> Mood
@@ -49,10 +51,12 @@ instance Pretty Mood where
   pretty (Excited a) = "Excited ::" <+> pretty a
 
 
-instance {-# OVERLAPS #-} Pretty [Mood]
+instance {-# OVERLAPS #-} Pretty [Mood] where
+  pretty = undefined
 
 
-instance {-# OVERLAPS #-} Pretty [[Mood]]
+instance {-# OVERLAPS #-} Pretty [[Mood]] where
+  pretty = undefined
 
 
 instance Neutral Mood where
@@ -85,18 +89,20 @@ instance Summarizable [[Mood]] where
   summary = label (concatMap condense)
 
 
+-- Derives it using the show instance
 instance Pretty Day
 
 
 instance {-# OVERLAPS #-} Pretty [Day]
 
 -- | Intensity of a mood
-data Intensity = None      -- Only here because of neutral
-               | Low
-               | Medium
-               | High
-               | Extreme
-               deriving (Show, Read, Eq, Ord, Enum, Bounded)
+data Intensity
+  = None -- Only here because of neutral
+  | Low
+  | Medium
+  | High
+  | Extreme
+  deriving (Show, Read, Eq, Ord, Enum, Bounded)
 
 
 instance Pretty Intensity
@@ -157,9 +163,12 @@ instance Summarizable [Rating] where
 type Name = String
 
 
-data Drink = Drink { drinkName :: String
-                   , shots     :: Int }
-           deriving (Eq, Ord, Show)
+data Drink =
+  Drink
+    { drinkName :: String
+    , shots     :: Int
+    }
+  deriving (Eq, Ord, Show)
 
 
 instance Pretty Drink where
@@ -209,8 +218,12 @@ instance Summarizable [Day] where
   summary = id
 
 
-data Sleep = SP { wakeUpTime :: DiffTime
-                , sleepTime  :: DiffTime } deriving (Eq, Ord)
+data Sleep =
+  SP
+    { wakeUpTime :: DiffTime
+    , sleepTime  :: DiffTime
+    }
+  deriving (Eq, Ord)
 
 
 instance Semigroup Sleep where
@@ -249,10 +262,11 @@ instance Summarizable [Sleep] where
 
 
 instance Pretty DiffTime where
-  pretty = viaShow . formatTime defaultTimeLocale "%H:%M"
+  pretty = pretty . formatTime defaultTimeLocale "%H:%M"
 
 
-newtype Meditation = Med { unMed :: (String, DiffTime) } deriving (Eq, Ord)
+newtype Meditation = Med { unMed :: (String, DiffTime) }
+  deriving (Eq, Ord)
 
 
 instance Semigroup Meditation where
@@ -281,37 +295,36 @@ instance Show Meditation where
 
 
 instance Pretty Meditation where
-  pretty = undefined
+  pretty (Med (a, _)) = "Meditation: " <> pretty a <+> "minutes" <> line
 
 
 instance {-# OVERLAPS #-} Pretty [Meditation] where
-  pretty list
-    = let
-         total = sum $ map (snd . unMed) list
-         meditations = map ((\x -> vsep [indent 15 (viaShow x)]) . fst . unMed) list
-      in
-        "Meditation:" <> line
-        <> indent 2 ("Total time =" <+> pretty total) <> line
-        <> indent 2 ("Sessions:") <> line
-        <> vsep meditations <> line
+  pretty list =
+    let total = sum $ map (snd . unMed) list
+        meditations =
+          map ((\x -> vsep [indent 11 (pretty x)]) . fst . unMed) list
+     in "Meditation:" <>
+        line <>
+        indent 2 ("Total time =" <+> pretty total) <>
+        line <> indent 2 ("Sessions:") <> line <> vsep meditations <> line
 
 
 mkMeditation :: String -> Either EntryError Meditation
-mkMeditation minutes
-  = let
-       handle (Left y) = Left $ MeditationError ("Can't parse meditation: " ++ y)
-       handle (Right x) = Right x
-    in
-       Med . (minutes,)
-                    <$> (return . secondsToDiffTime . (60*)
-                    =<< (handle . readEither @Integer) minutes)
+mkMeditation minutes =
+  let handle (Left y) = Left $ MeditationError ("Can't parse meditation: " ++ y)
+      handle (Right x) = Right x
+   in Med . (minutes, ) <$>
+      (return . secondsToDiffTime . (60 *) =<< (handle . readEither) minutes)
 
 
-newtype Productivity = Pro { unPro :: Rational } deriving (Eq, Ord)
+newtype Productivity = Pro { unPro :: Rational }
+  deriving (Eq, Ord)
 
+instance Pretty Rational where
+  pretty n = (pretty . numerator) n <> "/" <> (pretty . denominator) n
 
 instance Pretty Productivity where
-  pretty x = "Productivity:" <+> viaShow x
+  pretty x = "Productivity:" <+> (pretty . unPro) x
 
 
 instance Neutral Productivity where
@@ -339,11 +352,14 @@ instance Summarizable [Productivity] where
   summary = label fold
 
 
-data Cigarette = Cigarette { cigaretteName :: String
-                           , numberSmoked  :: Double
-                           , nicotine      :: Double
-                           , tar           :: Double }
-                           deriving (Eq, Ord, Show)
+data Cigarette =
+  Cigarette
+    { cigaretteName :: String
+    , numberSmoked  :: Double
+    , nicotine      :: Double
+    , tar           :: Double
+    }
+  deriving (Eq, Ord, Show)
 
 
 instance Pretty Cigarette where
@@ -422,9 +438,19 @@ instance Monoid (Entry Summaraized) where
 
 
 instance Semigroup (Entry Summaraized) where
-  (Entry d m s p me dr c r) <> (Entry d' m' s' p' me' dr' c' r')
-    = Entry undefined undefined undefined undefined undefined undefined undefined undefined
-
+  (Entry d m s p me dr c r) <> (Entry d' m' s' p' me' dr' c' r') =
+    Entry
+      (d ++ d')
+      (helper m m') 
+      (helper s s')
+      (helper p p')
+      (helper me me')
+      (helper dr dr')
+      (helper c c')
+      (helper r r')
+    where
+      helper (x,y) (z,w) = (x ++ z, summary (y <> w))
+ 
 
 instance Summarizable (Entry Parsed) where
   summary (Entry d m s p me dr c r) =

@@ -32,7 +32,6 @@ data TemplateHeaders = NameT ByteString
                      | RatingT deriving (Eq, Ord)
 
 
-
 generateHeader "Rating" = mconcat ["[","Rating","]","\n"]
 generateHeader header   = mconcat ["[",header,"]","\n\n"]
 
@@ -50,9 +49,10 @@ instance Show TemplateHeaders where
 
 -- | Generates a list of Optional Headers based on the configuration
 optionalHeadersToGenerate :: OptHeader -> [TemplateHeaders]
-optionalHeadersToGenerate (OptH m a c) = [fst x | x <- zip [MeditationT, DrinkT, CigaretteT] [m, a, c], snd x]
+optionalHeadersToGenerate (OptH m a c) =
+  [fst x | x <- zip [MeditationT, DrinkT, CigaretteT] [m, a, c], snd x]
 
--- | Writes the template entry file to a file with the date as its name
+-- | Creates a template entry for the given day
 createTemplate :: FilePath -> ByteString -> Day -> OptHeader -> ByteString
 createTemplate entryPath name date optHeaders = mconcat $ map (B.pack . show) headers
   where

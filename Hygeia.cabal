@@ -47,7 +47,8 @@ library
     , lens
     , time
     , vector
-    , beam-sqlite
+--    , beam-sqlite
+    , sqlite-simple
     , containers
     , conduit
     , split
@@ -90,8 +91,10 @@ executable hygeia-exe
     , lens
     , mtl
     , optparse-applicative
-    , prettyprinter
+  --  , prettyprinter
+    , sqlite-simple
     , beam-sqlite
+    , prettyprinter
     , parsec
     , process
     , time
@@ -119,7 +122,8 @@ test-suite hygeia-test
                 , QuickCheck
                 , base >=4.7 && <5
                 , bytestring
-                , beam-sqlite
+--                , beam-sqlite
+                , sqlite-simple
                 , mtl
                 , time
                 , optparse-applicative
